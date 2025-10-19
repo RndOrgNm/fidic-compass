@@ -103,3 +103,69 @@ export const dashboardData = {
     }
   ]
 };
+
+export const receivablesData = [
+  {
+    id: "REC-2025-001",
+    receivableNumber: "REC-2025-001",
+    debtorName: "Empresa XYZ Ltda",
+    debtorCnpj: "12.345.678/0001-90",
+    invoiceNumber: "NF-9876",
+    nominalValue: 50000.00,
+    dueDate: "2025-10-15",
+    status: "pending" as const
+  },
+  {
+    id: "REC-2025-002",
+    receivableNumber: "REC-2025-002",
+    debtorName: "ABC Comércio S.A.",
+    debtorCnpj: "98.765.432/0001-11",
+    invoiceNumber: "NF-5432",
+    nominalValue: 30000.00,
+    dueDate: "2025-10-15",
+    status: "pending" as const
+  },
+  {
+    id: "REC-2025-003",
+    receivableNumber: "REC-2025-003",
+    debtorName: "Indústria DEF Ltda",
+    debtorCnpj: "11.222.333/0001-44",
+    invoiceNumber: "NF-7890",
+    nominalValue: 75000.00,
+    dueDate: "2025-10-16",
+    status: "pending" as const
+  }
+];
+
+export const bankTransactionsData = [
+  {
+    id: "TRX-001",
+    transactionDate: "2025-10-15",
+    amount: 50000.00,
+    originName: "EMPRESA XYZ LTDA",
+    originCnpj: "12.345.678/0001-90",
+    description: "TED REC PAG NF 9876",
+    transactionType: "PIX" as const,
+    reconciliationStatus: "unmatched" as const
+  },
+  {
+    id: "TRX-002",
+    transactionDate: "2025-10-14",
+    amount: 30000.00,
+    originName: "JOSE SILVA",
+    originCnpj: "123.456.789-00",
+    description: "PIX PAGAMENTO",
+    transactionType: "PIX" as const,
+    reconciliationStatus: "unmatched" as const
+  },
+  {
+    id: "TRX-003",
+    transactionDate: "2025-10-15",
+    amount: 75000.00,
+    originName: "INDUSTRIA DEF LTDA",
+    originCnpj: "11.222.333/0001-44",
+    description: "TED NF 7890",
+    transactionType: "TED" as const,
+    reconciliationStatus: "unmatched" as const
+  }
+];

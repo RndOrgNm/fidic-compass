@@ -1,6 +1,7 @@
-import { ArrowLeftRight, AlertCircle, AlertTriangle } from "lucide-react";
+import { AlertCircle, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ReconciliationTab } from "@/components/reconciliation/ReconciliationTab";
 
 export default function Receivables() {
   return (
@@ -21,24 +22,7 @@ export default function Receivables() {
 
         <div className="mt-6">
           <TabsContent value="reconciliation">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-primary/10">
-                    <ArrowLeftRight className="h-8 w-8 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>Conciliação Bancária</CardTitle>
-                    <CardDescription>Match automático de recebíveis vs pagamentos realizados</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-muted-foreground text-center">
-                  Conteúdo em desenvolvimento
-                </p>
-              </CardContent>
-            </Card>
+            <ReconciliationTab />
           </TabsContent>
 
           <TabsContent value="exceptions">
