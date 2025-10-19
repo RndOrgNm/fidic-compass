@@ -169,3 +169,64 @@ export const bankTransactionsData = [
     reconciliationStatus: "unmatched" as const
   }
 ];
+
+export const exceptionsData = [
+  {
+    id: "EXC-001",
+    type: "unmatched_transaction",
+    priority: "critical" as const,
+    amount: 150000.00,
+    description: "TED recebida sem correspondência no sistema",
+    transactionDate: "2025-10-15",
+    originName: "Empresa Desconhecida S.A.",
+    originCnpj: "98.765.432/0001-99",
+    assignedTo: "Maria Silva",
+    status: "pending" as const,
+    daysOpen: 2,
+    createdAt: "2025-10-13T10:30:00"
+  },
+  {
+    id: "EXC-002",
+    type: "partial_payment",
+    priority: "medium" as const,
+    amount: 5000.00,
+    description: "Pagamento parcial - Esperado R$ 50k, recebido R$ 5k",
+    receivableNumber: "REC-2025-347",
+    debtorName: "Comércio ABC Ltda",
+    transactionDate: "2025-10-14",
+    assignedTo: null,
+    status: "pending" as const,
+    daysOpen: 1,
+    createdAt: "2025-10-14T14:20:00"
+  },
+  {
+    id: "EXC-003",
+    type: "amount_difference",
+    priority: "low" as const,
+    amount: 49950.00,
+    description: "Diferença de valor - Esperado R$ 50k, recebido R$ 49.950",
+    receivableNumber: "REC-2025-289",
+    debtorName: "Indústria XYZ S.A.",
+    transactionDate: "2025-10-15",
+    amountDifference: -50.00,
+    assignedTo: "Pedro Santos",
+    status: "investigating" as const,
+    daysOpen: 0,
+    createdAt: "2025-10-15T09:15:00"
+  },
+  {
+    id: "EXC-004",
+    type: "unmatched_receivable",
+    priority: "high" as const,
+    amount: 85000.00,
+    description: "Recebível vencido sem pagamento identificado",
+    receivableNumber: "REC-2025-201",
+    debtorName: "Distribuidora DEF Ltda",
+    dueDate: "2025-10-10",
+    daysOverdue: 5,
+    assignedTo: "Ana Costa",
+    status: "pending" as const,
+    daysOpen: 5,
+    createdAt: "2025-10-10T08:00:00"
+  }
+];
