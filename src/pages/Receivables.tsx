@@ -1,8 +1,7 @@
-import { AlertTriangle } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReconciliationTab } from "@/components/reconciliation/ReconciliationTab";
 import { ExceptionsTab } from "@/components/exceptions/ExceptionsTab";
+import { AlertsTab } from "@/components/alerts/AlertsTab";
 
 export default function Receivables() {
   return (
@@ -31,24 +30,7 @@ export default function Receivables() {
           </TabsContent>
 
           <TabsContent value="alerts">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-red-500/10">
-                    <AlertTriangle className="h-8 w-8 text-red-500" />
-                  </div>
-                  <div>
-                    <CardTitle>Alertas de Inadimplência</CardTitle>
-                    <CardDescription>Recebíveis vencidos e em risco</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-muted-foreground text-center">
-                  Conteúdo em desenvolvimento
-                </p>
-              </CardContent>
-            </Card>
+            <AlertsTab />
           </TabsContent>
         </div>
       </Tabs>
