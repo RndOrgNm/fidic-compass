@@ -339,3 +339,176 @@ export const overdueAlertsData = [
     additionalInfo: "Contato telefônico realizado - sacado prometeu pagar amanhã"
   }
 ];
+
+export const investorsData = [
+  {
+    id: "INV-001",
+    investorType: "institutional",
+    taxId: "12.345.678/0001-90",
+    legalName: "ABC Investimentos S.A.",
+    tradeName: "ABC Investimentos",
+    email: "contato@abcinvest.com.br",
+    phone: "(11) 3456-7890",
+    riskProfile: "moderate",
+    kycStatus: "approved",
+    kycCompletedAt: "2024-08-15T10:30:00",
+    kycExpiryDate: "2025-12-31",
+    totalInvested: 5420000.00,
+    fundsCount: 3,
+    lastActivity: "2025-10-10T14:20:00",
+    createdAt: "2024-06-01T09:00:00"
+  },
+  {
+    id: "INV-002",
+    investorType: "individual",
+    taxId: "123.456.789-00",
+    legalName: "João Silva Santos",
+    tradeName: null,
+    email: "joao.silva@email.com",
+    phone: "(11) 98765-4321",
+    riskProfile: "moderate",
+    kycStatus: "approved",
+    kycCompletedAt: "2025-09-20T16:45:00",
+    kycExpiryDate: "2026-09-20",
+    totalInvested: 184330.00,
+    fundsCount: 2,
+    lastActivity: "2025-10-14T11:30:00",
+    createdAt: "2025-09-10T10:15:00"
+  },
+  {
+    id: "INV-003",
+    investorType: "institutional",
+    taxId: "98.765.432/0001-11",
+    legalName: "XYZ Participações Ltda",
+    tradeName: "XYZ Capital",
+    email: "contato@xyzcapital.com.br",
+    phone: "(21) 2345-6789",
+    riskProfile: "aggressive",
+    kycStatus: "expired",
+    kycCompletedAt: "2023-10-01T09:00:00",
+    kycExpiryDate: "2025-10-01",
+    totalInvested: 12500000.00,
+    fundsCount: 5,
+    lastActivity: "2025-10-15T09:00:00",
+    createdAt: "2023-05-15T08:30:00"
+  },
+  {
+    id: "INV-004",
+    investorType: "individual",
+    taxId: "987.654.321-00",
+    legalName: "Maria Oliveira Costa",
+    tradeName: null,
+    email: "maria.costa@email.com",
+    phone: "(11) 91234-5678",
+    riskProfile: "conservative",
+    kycStatus: "pending",
+    kycCompletedAt: null,
+    kycExpiryDate: null,
+    totalInvested: 0,
+    fundsCount: 0,
+    lastActivity: "2025-10-15T10:30:00",
+    createdAt: "2025-10-15T10:30:00"
+  }
+];
+
+export const onboardingWorkflowsData = [
+  {
+    id: "WF-001",
+    investorId: "INV-004",
+    investorName: "Maria Oliveira Costa",
+    investorTaxId: "987.654.321-00",
+    investorType: "individual",
+    workflowStatus: "documents_pending",
+    currentStep: "upload_documents",
+    totalSteps: 5,
+    completedSteps: 2,
+    startedAt: "2025-10-15T10:30:00",
+    lastActivityAt: "2025-10-15T11:45:00",
+    completedAt: null,
+    assignedTo: "Ana Costa",
+    pendingItems: [
+      "Comprovante de residência (vencido)",
+      "Declaração de IR 2024"
+    ],
+    slaDeadline: "2025-10-18T23:59:59",
+    daysInProgress: 0
+  },
+  {
+    id: "WF-002",
+    investorId: "INV-005",
+    investorName: "Carlos Eduardo Ferreira",
+    investorTaxId: "111.222.333-44",
+    investorType: "individual",
+    workflowStatus: "compliance_review",
+    currentStep: "compliance_analysis",
+    totalSteps: 5,
+    completedSteps: 3,
+    startedAt: "2025-10-12T09:15:00",
+    lastActivityAt: "2025-10-14T16:30:00",
+    completedAt: null,
+    assignedTo: "Ana Costa",
+    pendingItems: [
+      "Análise de compliance pendente"
+    ],
+    slaDeadline: "2025-10-17T23:59:59",
+    daysInProgress: 3
+  },
+  {
+    id: "WF-003",
+    investorId: "INV-006",
+    investorName: "Tech Ventures LTDA",
+    investorTaxId: "22.333.444/0001-55",
+    investorType: "institutional",
+    workflowStatus: "started",
+    currentStep: "basic_information",
+    totalSteps: 6,
+    completedSteps: 1,
+    startedAt: "2025-10-14T14:00:00",
+    lastActivityAt: "2025-10-14T14:30:00",
+    completedAt: null,
+    assignedTo: null,
+    pendingItems: [
+      "Dados cadastrais incompletos",
+      "Documentos não enviados"
+    ],
+    slaDeadline: "2025-10-19T23:59:59",
+    daysInProgress: 1
+  },
+  {
+    id: "WF-004",
+    investorId: "INV-007",
+    investorName: "Roberto Almeida",
+    investorTaxId: "555.666.777-88",
+    investorType: "individual",
+    workflowStatus: "approved",
+    currentStep: "completed",
+    totalSteps: 5,
+    completedSteps: 5,
+    startedAt: "2025-10-01T10:00:00",
+    lastActivityAt: "2025-10-08T15:45:00",
+    completedAt: "2025-10-08T15:45:00",
+    assignedTo: "Pedro Santos",
+    pendingItems: [],
+    slaDeadline: null,
+    daysInProgress: 7
+  },
+  {
+    id: "WF-005",
+    investorId: "INV-008",
+    investorName: "Holding Investments S.A.",
+    investorTaxId: "33.444.555/0001-66",
+    investorType: "institutional",
+    workflowStatus: "rejected",
+    currentStep: "compliance_analysis",
+    totalSteps: 6,
+    completedSteps: 3,
+    startedAt: "2025-09-28T11:00:00",
+    lastActivityAt: "2025-10-05T10:30:00",
+    completedAt: "2025-10-05T10:30:00",
+    assignedTo: "Ana Costa",
+    pendingItems: [],
+    rejectionReason: "Pendências regulatórias não resolvidas - empresa com restrições na CVM",
+    slaDeadline: null,
+    daysInProgress: 7
+  }
+];

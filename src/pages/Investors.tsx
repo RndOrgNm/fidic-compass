@@ -1,11 +1,33 @@
-import { Construction } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { InvestorsListTab } from "@/components/investors/InvestorsListTab";
+import { OnboardingPipelineTab } from "@/components/investors/OnboardingPipelineTab";
 
 export default function Investors() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <Construction className="h-16 w-16 text-muted-foreground" />
-      <h2 className="text-2xl font-semibold text-foreground">Em Construção</h2>
-      <p className="text-muted-foreground">A página de Investidores será implementada em breve.</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Gestão de Investidores</h1>
+        <p className="text-muted-foreground">Investidores e pipeline de onboarding</p>
+      </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="investors" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="investors">Investidores</TabsTrigger>
+          <TabsTrigger value="pipeline">Pipeline de Onboarding</TabsTrigger>
+        </TabsList>
+
+        <div className="mt-6">
+          <TabsContent value="investors">
+            <InvestorsListTab />
+          </TabsContent>
+
+          <TabsContent value="pipeline">
+            <OnboardingPipelineTab />
+          </TabsContent>
+        </div>
+      </Tabs>
     </div>
   );
 }
