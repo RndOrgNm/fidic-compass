@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Plus, Download, Mail } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export function InvestorsListTab() {
+  const navigate = useNavigate();
   const [investors, setInvestors] = useState(investorsData);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -350,9 +352,9 @@ export function InvestorsListTab() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        Ver Detalhes
-                      </Button>
+              <Button size="sm" variant="outline" onClick={() => navigate(`/investors/${investor.id}`)}>
+                Ver Detalhes
+              </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button size="sm" variant="ghost">⋮</Button>
