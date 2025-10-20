@@ -86,42 +86,51 @@ export function OnboardingPipelineTab() {
         <CardContent>
           {/* Filters */}
           <div className="flex flex-wrap gap-4">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="started">Iniciado</SelectItem>
-                <SelectItem value="documents_pending">Docs Pendentes</SelectItem>
-                <SelectItem value="compliance_review">Em Análise</SelectItem>
-                <SelectItem value="approved">Aprovado</SelectItem>
-                <SelectItem value="rejected">Rejeitado</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Status</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="started">Iniciado</SelectItem>
+                  <SelectItem value="documents_pending">Docs Pendentes</SelectItem>
+                  <SelectItem value="compliance_review">Em Análise</SelectItem>
+                  <SelectItem value="approved">Aprovado</SelectItem>
+                  <SelectItem value="rejected">Rejeitado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select value={assignedFilter} onValueChange={setAssignedFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Atribuído a" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="mine">Apenas meus</SelectItem>
-                <SelectItem value="unassigned">Não atribuídos</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Atribuído a</label>
+              <Select value={assignedFilter} onValueChange={setAssignedFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Atribuído a" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="mine">Apenas meus</SelectItem>
+                  <SelectItem value="unassigned">Não atribuídos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select value={slaFilter} onValueChange={setSlaFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="SLA" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="within">Dentro do prazo</SelectItem>
-                <SelectItem value="approaching">Próximo ao vencimento</SelectItem>
-                <SelectItem value="overdue">Atrasado</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">SLA</label>
+              <Select value={slaFilter} onValueChange={setSlaFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="SLA" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="within">Dentro do prazo</SelectItem>
+                  <SelectItem value="approaching">Próximo ao vencimento</SelectItem>
+                  <SelectItem value="overdue">Atrasado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>

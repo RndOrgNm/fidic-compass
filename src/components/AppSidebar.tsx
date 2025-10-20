@@ -18,9 +18,9 @@ import { Button } from "@/components/ui/button";
 const menuItems = [
   { title: "Home", url: "/", icon: Home },
   { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
-  { title: "Recebimentos", url: "/receivables", icon: Receipt },
+  { title: "Gestão de Recebimentos", url: "/receivables", icon: Receipt },
   { title: "Investidores", url: "/investors", icon: Users },
-  { title: "Agente IA", url: "/agent", icon: Bot },
+  { title: "Chatbot", url: "/agent", icon: Bot },
 ];
 
 export function AppSidebar() {

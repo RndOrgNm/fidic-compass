@@ -192,15 +192,15 @@ export function WorkflowCard({ workflow }: WorkflowCardProps) {
         )}
       </CardContent>
 
-      <CardFooter className="flex gap-2 pt-3">
-        <Button size="sm" className="flex-1" onClick={handleOpenWorkflow}>
+      <CardFooter className="flex flex-col gap-2 pt-3">
+        <Button size="sm" className="w-full" onClick={handleOpenWorkflow}>
           Abrir Workflow
         </Button>
         {!workflow.assignedTo && (
           <Button
             size="sm"
             variant="outline"
-            className="flex-1"
+            className="w-full"
             onClick={handleAssignToMe}
           >
             Atribuir p/ Mim
