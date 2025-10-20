@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { CheckCheck, PhoneCall } from "lucide-react";
+import { CheckCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -120,13 +120,6 @@ export function AlertsTab() {
     });
   };
 
-  const handleCreateCollectionAction = () => {
-    toast({
-      title: "Em desenvolvimento",
-      description: "Funcionalidade em desenvolvimento",
-    });
-  };
-
   const allSelected = filteredAlerts.length > 0 && selectedIds.length === filteredAlerts.length;
 
   return (
@@ -192,14 +185,6 @@ export function AlertsTab() {
               >
                 <CheckCheck className="h-4 w-4" />
                 Reconhecer Selecionados
-              </Button>
-              <Button
-                onClick={handleCreateCollectionAction}
-                variant="outline"
-                size="sm"
-              >
-                <PhoneCall className="h-4 w-4" />
-                Criar Ação de Cobrança
               </Button>
               <div className="flex items-center gap-2 ml-4">
                 <Checkbox
