@@ -1002,6 +1002,16 @@ export const conversationsData = [
   }
 ];
 
+export interface MessageSource {
+  section_id: string;
+  page_number: number;
+  section_text: string;
+  metadata?: {
+    document_name?: string;
+    chapter?: string;
+  };
+}
+
 export const messagesData: Record<string, any[]> = {
   "conv-001": [
     {
@@ -1023,7 +1033,36 @@ export const messagesData: Record<string, any[]> = {
       conversationId: "conv-001",
       role: "assistant",
       content: "Analisando os dados...\n\n**Recebíveis Vencidos Hoje (15/10/2025)**\n\n• Total: 23 recebíveis\n• Valor: R$ 1.847.500,00\n\n**Principais sacados:**\n1. Empresa XYZ: R$ 450.000 (3 recebíveis)\n2. Comércio ABC: R$ 380.000 (2 recebíveis)\n3. Distribuidora DEF: R$ 290.000 (1 recebível)\n\nDeseja que eu crie alertas de cobrança para estes casos?",
-      createdAt: "2025-10-15T09:01:18"
+      createdAt: "2025-10-15T09:01:18",
+      sources: [
+        {
+          section_id: "Art. 5º - §2º",
+          page_number: 12,
+          section_text: "Detalhamento sobre recebíveis vencidos e procedimentos de cobrança conforme regulamentação vigente...",
+          metadata: {
+            document_name: "Manual de Operações FIDC",
+            chapter: "Capítulo 3 - Gestão de Recebíveis"
+          }
+        },
+        {
+          section_id: "Art. 12 - Inciso III",
+          page_number: 28,
+          section_text: "Normas específicas para classificação de inadimplência e prazos de vencimento...",
+          metadata: {
+            document_name: "Regulamento CVM",
+            chapter: "Seção 2"
+          }
+        },
+        {
+          section_id: "Anexo B - Tabela 3",
+          page_number: 45,
+          section_text: "Tabela de classificação de risco por dias de atraso e valores envolvidos...",
+          metadata: {
+            document_name: "Manual de Risco",
+            chapter: "Anexos"
+          }
+        }
+      ]
     },
     {
       id: "msg-004",
@@ -1037,7 +1076,27 @@ export const messagesData: Record<string, any[]> = {
       conversationId: "conv-001",
       role: "assistant",
       content: "**Top 3 Casos Mais Críticos:**\n\n**1. Empresa XYZ Ltda**\n• Valor: R$ 150.000\n• Dias de atraso: 7 dias\n• Histórico: 2 promessas não cumpridas\n• Risco: CRÍTICO 🔴\n• Ação sugerida: Contato jurídico imediato\n\n**2. Comércio ABC S.A.**\n• Valor: R$ 125.000\n• Dias de atraso: 5 dias\n• Score de crédito: Caiu de 720 para 580\n• Risco: ALTO 🟠\n• Ação sugerida: Ligação do gestor + carta de cobrança\n\n**3. Distribuidora DEF**\n• Valor: R$ 95.000\n• Dias de atraso: 3 dias\n• Primeiro atraso deste cliente\n• Risco: MÉDIO 🟡\n• Ação sugerida: WhatsApp + email de lembrete\n\nPosso criar workflows de cobrança automáticos para estes casos?",
-      createdAt: "2025-10-15T09:03:25"
+      createdAt: "2025-10-15T09:03:25",
+      sources: [
+        {
+          section_id: "Art. 8º - Cobrança",
+          page_number: 19,
+          section_text: "Procedimentos escalonados de cobrança conforme gravidade do atraso e valor envolvido...",
+          metadata: {
+            document_name: "Manual de Cobrança",
+            chapter: "Capítulo 2"
+          }
+        },
+        {
+          section_id: "Seção 4 - Workflows",
+          page_number: 67,
+          section_text: "Definição de workflows automáticos por tier de inadimplência e ações correspondentes...",
+          metadata: {
+            document_name: "Sistema de Gestão",
+            chapter: "Automações"
+          }
+        }
+      ]
     },
     {
       id: "msg-006",
@@ -1067,7 +1126,27 @@ export const messagesData: Record<string, any[]> = {
       conversationId: "conv-002",
       role: "assistant",
       content: "**Status de Conciliação - 14/10/2025**\n\n✅ **Conciliados Automaticamente:** 1.652 transações (92,1%)\n\n⏳ **Pendentes de Revisão:** 112 transações (6,2%)\n• Valor total: R$ 3,2M\n• Principais causas:\n  - Pagamentos parciais: 45 casos\n  - Valores com diferença: 38 casos\n  - Origem não identificada: 29 casos\n\n❌ **Não Identificados:** 31 transações (1,7%)\n• Valor total: R$ 890k\n• Requer ação manual urgente\n\n**Eficiência geral:** 92,1% (↑1,2% vs ontem)\n\nDeseja ver detalhes das pendências?",
-      createdAt: "2025-10-14T14:21:35"
+      createdAt: "2025-10-14T14:21:35",
+      sources: [
+        {
+          section_id: "Art. 15 - §1º",
+          page_number: 34,
+          section_text: "Regulamentação sobre processos de conciliação e prazos estabelecidos...",
+          metadata: {
+            document_name: "Manual Operacional",
+            chapter: "Capítulo 5"
+          }
+        },
+        {
+          section_id: "Seção 3 - Controles",
+          page_number: 56,
+          section_text: "Descrição dos controles internos e procedimentos de auditoria...",
+          metadata: {
+            document_name: "Compliance",
+            chapter: "Seção 3"
+          }
+        }
+      ]
     },
     {
       id: "msg-010",
@@ -1165,4 +1244,15 @@ export const botAutoResponses = {
   investidores: "**Investidores**\n\n• Total: 247\n• Onboarding: 5 em processo\n• Aplicações hoje: R$ 850k\n• Resgates pendentes: 2 (R$ 620k)",
   
   default: "Entendi sua pergunta. Posso ajudá-lo com:\n\n• Resumos e métricas\n• Status de conciliação\n• Análise de inadimplência\n• Informações de investidores\n• Exposição de risco\n\nPor favor, seja mais específico ou escolha um dos tópicos acima."
+};
+
+// Dados mockados para imagens de páginas PDF (simulação)
+export const pdfPagesData: Record<number, string> = {
+  12: "https://images.unsplash.com/photo-1568667256549-094345857637?w=600&h=800&fit=crop",
+  19: "https://images.unsplash.com/photo-1554224311-beee460c201e?w=600&h=800&fit=crop",
+  28: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&h=800&fit=crop",
+  34: "https://images.unsplash.com/photo-1507925921958-8a62f3d1a50d?w=600&h=800&fit=crop",
+  45: "https://images.unsplash.com/photo-1554224154-26032ffc0d07?w=600&h=800&fit=crop",
+  56: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&h=800&fit=crop",
+  67: "https://images.unsplash.com/photo-1568667256549-094345857637?w=600&h=800&fit=crop"
 };

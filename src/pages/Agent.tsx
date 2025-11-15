@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bot, Send, MessageSquare, Plus, Loader2 } from "lucide-react";
+import { Bot, Send, MessageSquare, Plus, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -10,7 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { conversationsData, messagesData, botAutoResponses } from "@/data/mockData";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { conversationsData, messagesData, botAutoResponses, pdfPagesData, type MessageSource } from "@/data/mockData";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
@@ -21,6 +22,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   createdAt: string;
+  sources?: MessageSource[];
 }
 
 interface Conversation {
@@ -41,6 +43,9 @@ export default function Agent() {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
   const [displayedText, setDisplayedText] = useState("");
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = 100;
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -99,6 +104,74 @@ export default function Agent() {
     setDisplayedText("");
   };
 
+  const openPdfViewer = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    setPdfViewerOpen(true);
+  };
+
+  const nextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) setCurrentPage(prev => prev - 1);
+  };
+
+  const determineResponseType = (userMessage: string): string => {
+    const msg = userMessage.toLowerCase();
+    if (msg.includes("resumo") || msg.includes("métrica") || msg.includes("kpi")) {
+      return "resumo";
+    }
+    if (msg.includes("concilia") || msg.includes("banco")) {
+      return "conciliacao";
+    }
+    if (msg.includes("inadim") || msg.includes("atraso") || msg.includes("vencid")) {
+      return "inadimplencia";
+    }
+    return "default";
+  };
+
+  const generateMockSources = (responseType: string): MessageSource[] => {
+    if (responseType === "resumo" || responseType === "conciliacao") {
+      return [
+        {
+          section_id: "Art. 15 - §1º",
+          page_number: 34,
+          section_text: "Regulamentação sobre processos de conciliação e prazos estabelecidos...",
+          metadata: {
+            document_name: "Manual Operacional",
+            chapter: "Capítulo 5"
+          }
+        },
+        {
+          section_id: "Seção 3 - Controles",
+          page_number: 56,
+          section_text: "Descrição dos controles internos e procedimentos de auditoria...",
+          metadata: {
+            document_name: "Compliance",
+            chapter: "Seção 3"
+          }
+        }
+      ];
+    }
+    
+    if (responseType === "inadimplencia") {
+      return [
+        {
+          section_id: "Art. 8º - Cobrança",
+          page_number: 19,
+          section_text: "Procedimentos de cobrança escalonados conforme gravidade do atraso e valor envolvido...",
+          metadata: {
+            document_name: "Manual de Cobrança",
+            chapter: "Capítulo 2"
+          }
+        }
+      ];
+    }
+    
+    return [];
+  };
+
   const generateBotResponse = (userMessage: string): string => {
     const msg = userMessage.toLowerCase();
     
@@ -146,13 +219,17 @@ export default function Agent() {
 
     await new Promise(resolve => setTimeout(resolve, 1500));
 
+    const responseType = determineResponseType(userMessage.content);
     const botResponse = generateBotResponse(userMessage.content);
+    const sources = generateMockSources(responseType);
+    
     const botMessage: Message = {
       id: `msg-${Date.now() + 1}`,
       conversationId: currentConversationId,
       role: "assistant",
       content: botResponse,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      sources: sources.length > 0 ? sources : undefined
     };
 
     setMessages(prev => [...prev, botMessage]);
@@ -257,35 +334,68 @@ export default function Agent() {
           </div>
         ) : (
           <>
-            {displayMessages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${
-                  message.role === "user" ? "flex-row-reverse" : "flex-row"
-                }`}
-              >
-                {message.role === "assistant" && (
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                    <Bot className="h-5 w-5 text-primary-foreground" />
-                  </div>
-                )}
-                
+            {displayMessages.map((message) => {
+              const displayContent = message === streamingMessage ? displayedText : message.content;
+              
+              return (
                 <div
-                  className={`max-w-[75%] ${
-                    message.role === "assistant"
-                      ? "bg-primary text-primary-foreground rounded-2xl rounded-bl-none"
-                      : "bg-muted text-foreground rounded-2xl rounded-br-none"
-                  } px-4 py-3`}
+                  key={message.id}
+                  className={`flex gap-3 ${
+                    message.role === "user" ? "flex-row-reverse" : "flex-row"
+                  }`}
                 >
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
-                  </div>
-                  <div className="text-xs mt-2 opacity-70">
-                    {formatTimestamp(message.createdAt)}
+                  {message.role === "assistant" && (
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                      <Bot className="h-5 w-5 text-primary-foreground" />
+                    </div>
+                  )}
+                  
+                  <div className="flex-1 max-w-[75%]">
+                    <div
+                      className={`${
+                        message.role === "assistant"
+                          ? "bg-primary text-primary-foreground rounded-2xl rounded-bl-none"
+                          : "bg-muted text-foreground rounded-2xl rounded-br-none"
+                      } px-4 py-3`}
+                    >
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown>{displayContent}</ReactMarkdown>
+                      </div>
+                      <div className="text-xs mt-2 opacity-70">
+                        {formatTimestamp(message.createdAt)}
+                      </div>
+                    </div>
+                    
+                    {/* Sources Section */}
+                    {message.role === "assistant" && message.sources && message.sources.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-border/40">
+                        <p className="text-xs text-muted-foreground mb-2">Fontes:</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          {message.sources.map((source, idx) => (
+                            <Button
+                              key={idx}
+                              variant="outline"
+                              size="sm"
+                              className="flex flex-col items-start h-auto py-2 px-3 hover:bg-accent"
+                              onClick={() => openPdfViewer(source.page_number)}
+                              title={source.section_text.substring(0, 150) + "..."}
+                            >
+                              <span className="text-xs font-medium truncate w-full text-left">
+                                {source.section_id}
+                              </span>
+                              <Badge variant="secondary" className="text-xs mt-1">
+                                Pág. {source.page_number}
+                              </Badge>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+            
             
             {isLoading && (
               <div className="flex gap-3">
@@ -333,6 +443,49 @@ export default function Agent() {
           </Button>
         </div>
       </div>
+      
+      {/* PDF Viewer Modal */}
+      <Dialog open={pdfViewerOpen} onOpenChange={setPdfViewerOpen}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0">
+          <DialogHeader className="px-6 py-4 border-b">
+            <DialogTitle>Documento - Página {currentPage}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex items-center justify-center p-6 bg-slate-100">
+            <div className="bg-white shadow-xl" style={{ aspectRatio: "1/1.414", maxHeight: "70vh" }}>
+              <img
+                src={pdfPagesData[currentPage] || "https://images.unsplash.com/photo-1568667256549-094345857637?w=600&h=800&fit=crop"}
+                alt={`Página ${currentPage}`}
+                className="w-full h-full object-contain"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter className="px-6 py-4 border-t flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={prevPage}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                onClick={nextPage}
+                disabled={currentPage === totalPages}
+              >
+                Próxima
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
