@@ -327,8 +327,8 @@ export default function Agent() {
           <SelectContent>
             {conversations.map((conv) => (
               <SelectItem key={conv.id} value={conv.id} className="cursor-pointer">
-                <div className="flex items-center justify-between gap-2 w-full pr-2">
-                  <div className="flex flex-col gap-1 py-1 flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-3 w-full">
+                  <div className="flex flex-col gap-1 py-1 flex-1 min-w-0 overflow-hidden">
                     {editingConvId === conv.id ? (
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                         <Input
@@ -344,7 +344,7 @@ export default function Agent() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 w-7 p-0"
+                          className="h-7 w-7 p-0 hover:bg-accent"
                           onClick={saveEditedTitle}
                         >
                           <Check className="h-3 w-3" />
@@ -352,7 +352,7 @@ export default function Agent() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 w-7 p-0"
+                          className="h-7 w-7 p-0 hover:bg-accent"
                           onClick={cancelEditTitle}
                         >
                           <X className="h-3 w-3" />
@@ -360,9 +360,9 @@ export default function Agent() {
                       </div>
                     ) : (
                       <>
-                        <span className="font-medium truncate">{conv.title}</span>
+                        <span className="font-medium truncate max-w-full">{conv.title}</span>
                         {conv.lastMessageAt && (
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground truncate">
                             {formatTimestamp(conv.lastMessageAt)}
                           </span>
                         )}
@@ -370,11 +370,11 @@ export default function Agent() {
                     )}
                   </div>
                   {editingConvId !== conv.id && (
-                    <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex gap-1 flex-shrink-0 ml-auto" onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 w-7 p-0 hover:bg-accent"
+                        className="h-7 w-7 p-0 hover:bg-accent hover:text-accent-foreground"
                         onClick={() => handleEditConversation(conv.id, conv.title)}
                         title="Editar título"
                       >
