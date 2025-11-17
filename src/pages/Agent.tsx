@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bot, Send, MessageSquare, Plus, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bot, Send, MessageSquare, Plus, Loader2, ChevronLeft, ChevronRight, Trash2, Edit2, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { conversationsData, messagesData, botAutoResponses, pdfPagesData, type MessageSource } from "@/data/mockData";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -46,6 +48,9 @@ export default function Agent() {
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 100;
+  const [editingConvId, setEditingConvId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [deleteConvId, setDeleteConvId] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -249,6 +254,50 @@ export default function Agent() {
     textareaRef.current?.focus();
   };
 
+  const handleDeleteConversation = (convId: string) => {
+    setDeleteConvId(convId);
+  };
+
+  const confirmDeleteConversation = () => {
+    if (!deleteConvId) return;
+    
+    const updatedConversations = conversations.filter(c => c.id !== deleteConvId);
+    setConversations(updatedConversations);
+    
+    if (currentConversationId === deleteConvId) {
+      if (updatedConversations.length > 0) {
+        const newCurrentId = updatedConversations[0].id;
+        setCurrentConversationId(newCurrentId);
+        setMessages(messagesData[newCurrentId] || []);
+      } else {
+        handleNewConversation();
+      }
+    }
+    
+    setDeleteConvId(null);
+  };
+
+  const handleEditConversation = (convId: string, currentTitle: string) => {
+    setEditingConvId(convId);
+    setEditingTitle(currentTitle);
+  };
+
+  const saveEditedTitle = () => {
+    if (!editingConvId || !editingTitle.trim()) return;
+    
+    const updatedConversations = conversations.map(c =>
+      c.id === editingConvId ? { ...c, title: editingTitle.trim() } : c
+    );
+    setConversations(updatedConversations);
+    setEditingConvId(null);
+    setEditingTitle("");
+  };
+
+  const cancelEditTitle = () => {
+    setEditingConvId(null);
+    setEditingTitle("");
+  };
+
   const formatTimestamp = (timestamp: string) => {
     return formatDistanceToNow(new Date(timestamp), { 
       addSuffix: true, 
@@ -277,13 +326,70 @@ export default function Agent() {
           </SelectTrigger>
           <SelectContent>
             {conversations.map((conv) => (
-              <SelectItem key={conv.id} value={conv.id}>
-                <div className="flex flex-col gap-1 py-1">
-                  <span className="font-medium">{conv.title}</span>
-                  {conv.lastMessageAt && (
-                    <span className="text-xs text-muted-foreground">
-                      {formatTimestamp(conv.lastMessageAt)}
-                    </span>
+              <SelectItem key={conv.id} value={conv.id} className="cursor-pointer">
+                <div className="flex items-center justify-between gap-2 w-full pr-2">
+                  <div className="flex flex-col gap-1 py-1 flex-1 min-w-0">
+                    {editingConvId === conv.id ? (
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        <Input
+                          value={editingTitle}
+                          onChange={(e) => setEditingTitle(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") saveEditedTitle();
+                            if (e.key === "Escape") cancelEditTitle();
+                          }}
+                          className="h-7 text-sm"
+                          autoFocus
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0"
+                          onClick={saveEditedTitle}
+                        >
+                          <Check className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0"
+                          onClick={cancelEditTitle}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="font-medium truncate">{conv.title}</span>
+                        {conv.lastMessageAt && (
+                          <span className="text-xs text-muted-foreground">
+                            {formatTimestamp(conv.lastMessageAt)}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  {editingConvId !== conv.id && (
+                    <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0 hover:bg-accent"
+                        onClick={() => handleEditConversation(conv.id, conv.title)}
+                        title="Editar título"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={() => handleDeleteConversation(conv.id)}
+                        title="Deletar conversa"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   )}
                 </div>
               </SelectItem>
@@ -486,6 +592,24 @@ export default function Agent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConvId} onOpenChange={() => setDeleteConvId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deletar conversa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A conversa e todas as mensagens serão permanentemente removidas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteConversation} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Deletar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
