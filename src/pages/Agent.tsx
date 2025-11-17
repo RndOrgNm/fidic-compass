@@ -327,7 +327,7 @@ export default function Agent() {
           <SelectContent>
             {conversations.map((conv) => (
               <SelectItem key={conv.id} value={conv.id} className="cursor-pointer">
-                <div className="flex items-center justify-between gap-3 w-full">
+                <div className="flex items-center gap-3 w-full">
                   <div className="flex flex-col gap-1 py-1 flex-1 min-w-0 overflow-hidden">
                     {editingConvId === conv.id ? (
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
