@@ -227,5 +227,3 @@ export async function generateConversationTitle(
 
   return handleResponse<ConversationResponse>(response);
 }
-
-
