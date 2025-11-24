@@ -11,36 +11,36 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { conversationsData, messagesData, botAutoResponses, pdfPagesData, type MessageSource } from "@/data/mockData";
+import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
+import { ragService, type ConversationWithMetadata } from "@/lib/api/ragService";
+import type { MessageResponse, ApiSource } from "@/lib/api/client";
 
 interface Message {
-  id: string;
-  conversationId: string;
+  message_id: string;
+  conversation_id: string;
   role: "user" | "assistant";
   content: string;
-  createdAt: string;
-  sources?: MessageSource[];
+  created_at: string;
+  sources?: ApiSource[] | null;
 }
 
-interface Conversation {
-  id: string;
-  userId: string;
+interface Conversation extends ConversationWithMetadata {
   title: string;
-  createdAt: string;
-  updatedAt: string;
-  lastMessageAt: string | null;
-  messageCount: number;
+  created_at: string;
+  updated_at: string;
+  user?: string;
 }
 
 export default function Agent() {
-  const [conversations, setConversations] = useState<Conversation[]>(conversationsData);
-  const [currentConversationId, setCurrentConversationId] = useState<string>("conv-001");
-  const [messages, setMessages] = useState<Message[]>(messagesData["conv-001"] || []);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
   const [displayedText, setDisplayedText] = useState("");
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
@@ -59,49 +59,104 @@ export default function Agent() {
   }, [messages, displayedText]);
 
   useEffect(() => {
-    if (streamingMessage) {
-      let index = 0;
-      const fullText = streamingMessage.content;
-      setDisplayedText("");
+    const loadConversations = async () => {
+      try {
+        setIsLoadingConversations(true);
+        const fetchedConversations = await ragService.fetchConversations(50);
+        setConversations(fetchedConversations);
+      } catch (error) {
+        console.error("Error loading conversations:", error);
+        toast({
+          title: "Erro ao carregar conversas",
+          description: error instanceof Error ? error.message : "Não foi possível carregar as conversas",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingConversations(false);
+      }
+    };
 
-      const interval = setInterval(() => {
-        if (index < fullText.length) {
-          setDisplayedText(fullText.slice(0, index + 1));
-          index++;
-        } else {
-          clearInterval(interval);
+    loadConversations();
+  }, []);
+
+  useEffect(() => {
+    const loadMessages = async () => {
+      if (!currentConversationId) {
+        setMessages([]);
+        return;
+      }
+
+      try {
+        const fetchedMessages = await ragService.loadConversationMessages(currentConversationId);
+        setMessages(fetchedMessages as Message[]);
+      } catch (error) {
+        console.error("Error loading messages:", error);
+        toast({
+          title: "Erro ao carregar mensagens",
+          description: error instanceof Error ? error.message : "Não foi possível carregar as mensagens",
+          variant: "destructive",
+        });
+      }
+    };
+
+    loadMessages();
+  }, [currentConversationId]);
+
+  useEffect(() => {
+    if (!streamingMessage) return;
+
+    let index = 0;
+    const fullText = streamingMessage.content;
+    let mounted = true;
+    setDisplayedText("");
+
+    const interval = setInterval(() => {
+      if (!mounted) {
+        clearInterval(interval);
+        return;
+      }
+
+      if (index < fullText.length) {
+        setDisplayedText(fullText.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(interval);
+        if (mounted) {
           setStreamingMessage(null);
         }
-      }, 20);
+      }
+    }, 20);
 
-      return () => clearInterval(interval);
-    }
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, [streamingMessage]);
 
   const handleConversationChange = (conversationId: string) => {
     setCurrentConversationId(conversationId);
-    setMessages(messagesData[conversationId] || []);
     setInputValue("");
     setStreamingMessage(null);
     setDisplayedText("");
   };
 
-  const handleNewConversation = () => {
-    const newConv: Conversation = {
-      id: `conv-${Date.now()}`,
-      userId: "user-001",
-      title: "Nova Conversa",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      lastMessageAt: null,
-      messageCount: 0
-    };
-    setConversations([newConv, ...conversations]);
-    setCurrentConversationId(newConv.id);
-    setMessages([]);
-    setInputValue("");
-    setStreamingMessage(null);
-    setDisplayedText("");
+  const handleNewConversation = async () => {
+    try {
+      const newConv = await ragService.createNewConversation("Nova Conversa");
+      setConversations([newConv, ...conversations]);
+      setCurrentConversationId(newConv.conversation_id);
+      setMessages([]);
+      setInputValue("");
+      setStreamingMessage(null);
+      setDisplayedText("");
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      toast({
+        title: "Erro ao criar conversa",
+        description: error instanceof Error ? error.message : "Não foi possível criar uma nova conversa",
+        variant: "destructive",
+      });
+    }
   };
 
   const openPdfViewer = (pageNumber: number) => {
@@ -117,124 +172,56 @@ export default function Agent() {
     if (currentPage > 1) setCurrentPage(prev => prev - 1);
   };
 
-  const determineResponseType = (userMessage: string): string => {
-    const msg = userMessage.toLowerCase();
-    if (msg.includes("resumo") || msg.includes("métrica") || msg.includes("kpi")) {
-      return "resumo";
-    }
-    if (msg.includes("concilia") || msg.includes("banco")) {
-      return "conciliacao";
-    }
-    if (msg.includes("inadim") || msg.includes("atraso") || msg.includes("vencid")) {
-      return "inadimplencia";
-    }
-    return "default";
-  };
-
-  const generateMockSources = (responseType: string): MessageSource[] => {
-    if (responseType === "resumo" || responseType === "conciliacao") {
-      return [
-        {
-          section_id: "Art. 15 - §1º",
-          page_number: 34,
-          section_text: "Regulamentação sobre processos de conciliação e prazos estabelecidos...",
-          metadata: {
-            document_name: "Manual Operacional",
-            chapter: "Capítulo 5"
-          }
-        },
-        {
-          section_id: "Seção 3 - Controles",
-          page_number: 56,
-          section_text: "Descrição dos controles internos e procedimentos de auditoria...",
-          metadata: {
-            document_name: "Compliance",
-            chapter: "Seção 3"
-          }
-        }
-      ];
-    }
-    
-    if (responseType === "inadimplencia") {
-      return [
-        {
-          section_id: "Art. 8º - Cobrança",
-          page_number: 19,
-          section_text: "Procedimentos de cobrança escalonados conforme gravidade do atraso e valor envolvido...",
-          metadata: {
-            document_name: "Manual de Cobrança",
-            chapter: "Capítulo 2"
-          }
-        }
-      ];
-    }
-    
-    return [];
-  };
-
-  const generateBotResponse = (userMessage: string): string => {
-    const msg = userMessage.toLowerCase();
-    
-    if (msg.includes("resumo") || msg.includes("métrica") || msg.includes("kpi")) {
-      return botAutoResponses.resumo;
-    }
-    if (msg.includes("concilia") || msg.includes("banco")) {
-      return botAutoResponses.conciliacao;
-    }
-    if (msg.includes("inadim") || msg.includes("atraso") || msg.includes("vencid")) {
-      return botAutoResponses.inadimplencia;
-    }
-    if (msg.includes("investidor") || msg.includes("cotista") || msg.includes("onboarding")) {
-      return botAutoResponses.investidores;
-    }
-    
-    return botAutoResponses.default;
-  };
-
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
+    if (!inputValue.trim() || isLoading || !currentConversationId) return;
 
-    const userMessage: Message = {
-      id: `msg-${Date.now()}`,
-      conversationId: currentConversationId,
-      role: "user",
-      content: inputValue.trim(),
-      createdAt: new Date().toISOString()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+    const query = inputValue.trim();
+    const conversationIdAtSend = currentConversationId;
     setInputValue("");
     setIsLoading(true);
 
-    // Update conversation title if it's the first message
-    const currentConv = conversations.find(c => c.id === currentConversationId);
-    if (currentConv && currentConv.messageCount === 0) {
-      const updatedConversations = conversations.map(c => 
-        c.id === currentConversationId 
-          ? { ...c, title: userMessage.content.slice(0, 50), messageCount: 1 }
-          : c
+    try {
+      const currentConv = conversations.find(c => c.conversation_id === conversationIdAtSend);
+      const isFirstMessage = !currentConv || (currentConv.messageCount ?? 0) === 0;
+
+      const { userMessage, assistantMessage } = await ragService.sendMessage(
+        conversationIdAtSend,
+        query,
+        isFirstMessage
       );
+
+      if (conversationIdAtSend === currentConversationId) {
+        setMessages(prev => [...prev, userMessage as Message, assistantMessage as Message]);
+        setStreamingMessage(assistantMessage as Message);
+      }
+
+      if (isFirstMessage) {
+        try {
+          const updatedConv = await ragService.getConversation(conversationIdAtSend);
+          setConversations(prev =>
+            prev.map(c =>
+              c.conversation_id === conversationIdAtSend
+                ? { ...c, title: updatedConv.title }
+                : c
+            )
+          );
+        } catch (titleError) {
+          console.error("Error updating conversation title:", titleError);
+        }
+      }
+
+      const updatedConversations = await ragService.fetchConversations(50);
       setConversations(updatedConversations);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        title: "Erro ao enviar mensagem",
+        description: error instanceof Error ? error.message : "Não foi possível enviar a mensagem",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const responseType = determineResponseType(userMessage.content);
-    const botResponse = generateBotResponse(userMessage.content);
-    const sources = generateMockSources(responseType);
-    
-    const botMessage: Message = {
-      id: `msg-${Date.now() + 1}`,
-      conversationId: currentConversationId,
-      role: "assistant",
-      content: botResponse,
-      createdAt: new Date().toISOString(),
-      sources: sources.length > 0 ? sources : undefined
-    };
-
-    setMessages(prev => [...prev, botMessage]);
-    setStreamingMessage(botMessage);
-    setIsLoading(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -256,38 +243,48 @@ export default function Agent() {
     });
   };
 
-  const currentConversation = conversations.find(c => c.id === currentConversationId);
+  const currentConversation = conversations.find(c => c.conversation_id === currentConversationId);
   const displayMessages = messages.map(msg => ({
     ...msg,
-    content: msg.id === streamingMessage?.id ? displayedText : msg.content
+    content: msg.message_id === streamingMessage?.message_id ? displayedText : msg.content
   }));
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* Header */}
       <div className="border-b bg-card p-4 flex items-center gap-4">
-        <Select value={currentConversationId} onValueChange={handleConversationChange}>
+        <Select value={currentConversationId || undefined} onValueChange={handleConversationChange}>
           <SelectTrigger className="w-[400px]">
             <SelectValue>
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
-                <span className="truncate">{currentConversation?.title}</span>
+                <span className="truncate">{currentConversation?.title || "Selecione uma conversa"}</span>
               </div>
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {conversations.map((conv) => (
-              <SelectItem key={conv.id} value={conv.id}>
-                <div className="flex flex-col gap-1 py-1">
-                  <span className="font-medium">{conv.title}</span>
-                  {conv.lastMessageAt && (
-                    <span className="text-xs text-muted-foreground">
-                      {formatTimestamp(conv.lastMessageAt)}
-                    </span>
-                  )}
-                </div>
+            {isLoadingConversations ? (
+              <SelectItem value="loading" disabled>
+                Carregando...
               </SelectItem>
-            ))}
+            ) : conversations.length === 0 ? (
+              <SelectItem value="empty" disabled>
+                Nenhuma conversa
+              </SelectItem>
+            ) : (
+              conversations.map((conv) => (
+                <SelectItem key={conv.conversation_id} value={conv.conversation_id}>
+                  <div className="flex flex-col gap-1 py-1">
+                    <span className="font-medium">{conv.title}</span>
+                    {conv.lastMessageAt && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatTimestamp(conv.lastMessageAt)}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
         
@@ -335,11 +332,11 @@ export default function Agent() {
         ) : (
           <>
             {displayMessages.map((message) => {
-              const displayContent = message === streamingMessage ? displayedText : message.content;
+              const displayContent = message.message_id === streamingMessage?.message_id ? displayedText : message.content;
               
               return (
                 <div
-                  key={message.id}
+                  key={message.message_id}
                   className={`flex gap-3 ${
                     message.role === "user" ? "flex-row-reverse" : "flex-row"
                   }`}
@@ -362,7 +359,7 @@ export default function Agent() {
                         <ReactMarkdown>{displayContent}</ReactMarkdown>
                       </div>
                       <div className="text-xs mt-2 opacity-70">
-                        {formatTimestamp(message.createdAt)}
+                        {formatTimestamp(message.created_at)}
                       </div>
                     </div>
                     
@@ -371,23 +368,41 @@ export default function Agent() {
                       <div className="mt-3 pt-3 border-t border-border/40">
                         <p className="text-xs text-muted-foreground mb-2">Fontes:</p>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                          {message.sources.map((source, idx) => (
-                            <Button
-                              key={idx}
-                              variant="outline"
-                              size="sm"
-                              className="flex flex-col items-start h-auto py-2 px-3 hover:bg-accent"
-                              onClick={() => openPdfViewer(source.page_number)}
-                              title={source.section_text.substring(0, 150) + "..."}
-                            >
-                              <span className="text-xs font-medium truncate w-full text-left">
-                                {source.section_id}
-                              </span>
-                              <Badge variant="secondary" className="text-xs mt-1">
-                                Pág. {source.page_number}
-                              </Badge>
-                            </Button>
-                          ))}
+                          {message.sources.map((source, idx) => {
+                            const pageNumber = source.page_number;
+                            const sectionText = source.section_text || "";
+                            const sectionId = source.section_id || `Fonte ${idx + 1}`;
+                            
+                            return (
+                              <Button
+                                key={idx}
+                                variant="outline"
+                                size="sm"
+                                className="flex flex-col items-start h-auto py-2 px-3 hover:bg-accent"
+                                onClick={() => {
+                                  if (pageNumber) {
+                                    openPdfViewer(pageNumber);
+                                  } else {
+                                    toast({
+                                      title: "Informação não disponível",
+                                      description: "Número da página não disponível para esta fonte",
+                                    });
+                                  }
+                                }}
+                                title={sectionText.substring(0, 150) + (sectionText.length > 150 ? "..." : "")}
+                                disabled={!pageNumber}
+                              >
+                                <span className="text-xs font-medium truncate w-full text-left">
+                                  {sectionId}
+                                </span>
+                                {pageNumber && (
+                                  <Badge variant="secondary" className="text-xs mt-1">
+                                    Pág. {pageNumber}
+                                  </Badge>
+                                )}
+                              </Button>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -452,12 +467,13 @@ export default function Agent() {
           </DialogHeader>
           
           <div className="flex items-center justify-center p-6 bg-slate-100">
-            <div className="bg-white shadow-xl" style={{ aspectRatio: "1/1.414", maxHeight: "70vh" }}>
-              <img
-                src={pdfPagesData[currentPage] || "https://images.unsplash.com/photo-1568667256549-094345857637?w=600&h=800&fit=crop"}
-                alt={`Página ${currentPage}`}
-                className="w-full h-full object-contain"
-              />
+            <div className="bg-white shadow-xl p-8 rounded-lg">
+              <p className="text-muted-foreground text-center">
+                Visualização de PDF não disponível no momento.
+              </p>
+              <p className="text-sm text-muted-foreground text-center mt-2">
+                Página {currentPage}
+              </p>
             </div>
           </div>
           
