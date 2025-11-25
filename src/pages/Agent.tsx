@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bot, Send, MessageSquare, Plus, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bot, Send, MessageSquare, Plus, Loader2, ChevronLeft, ChevronRight, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -10,13 +10,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
 import { ragService, type ConversationWithMetadata } from "@/lib/api/ragService";
 import type { MessageResponse, ApiSource } from "@/lib/api/client";
+import { RAG_API_BASE_URL } from "@/lib/api/config";
 
 interface Message {
   message_id: string;
@@ -49,34 +50,64 @@ export default function Agent() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const shouldAutoScrollRef = useRef(true);
 
   const scrollToBottom = () => {
+    if (shouldAutoScrollRef.current) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const isNearBottom = () => {
+    if (!messagesContainerRef.current) return true;
+    const container = messagesContainerRef.current;
+    const threshold = 100; // pixels from bottom
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    return distanceFromBottom < threshold;
+  };
+
+  // Only scroll on new messages, NOT during text streaming (displayedText changes)
+  useEffect(() => {
+    if (isNearBottom()) {
+      shouldAutoScrollRef.current = true;
+    scrollToBottom();
+    }
+  }, [messages]);
+
+  // Track user scroll - if they scroll up, disable auto-scroll
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const isAtBottom = isNearBottom();
+      shouldAutoScrollRef.current = isAtBottom;
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const refreshConversations = async () => {
+    try {
+      setIsLoadingConversations(true);
+      const fetchedConversations = await ragService.fetchConversations(50);
+      setConversations(fetchedConversations);
+    } catch (error) {
+      console.error("Error loading conversations:", error);
+      toast({
+        title: "Erro ao carregar conversas",
+        description: error instanceof Error ? error.message : "Não foi possível carregar as conversas",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingConversations(false);
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, displayedText]);
-
-  useEffect(() => {
-    const loadConversations = async () => {
-      try {
-        setIsLoadingConversations(true);
-        const fetchedConversations = await ragService.fetchConversations(50);
-        setConversations(fetchedConversations);
-      } catch (error) {
-        console.error("Error loading conversations:", error);
-        toast({
-          title: "Erro ao carregar conversas",
-          description: error instanceof Error ? error.message : "Não foi possível carregar as conversas",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoadingConversations(false);
-      }
-    };
-
-    loadConversations();
+    refreshConversations();
   }, []);
 
   useEffect(() => {
@@ -105,27 +136,29 @@ export default function Agent() {
   useEffect(() => {
     if (!streamingMessage) return;
 
-    let index = 0;
-    const fullText = streamingMessage.content;
+      let index = 0;
+      const fullText = streamingMessage.content;
     let mounted = true;
-    setDisplayedText("");
+      setDisplayedText("");
 
-    const interval = setInterval(() => {
+      const interval = setInterval(() => {
       if (!mounted) {
         clearInterval(interval);
         return;
       }
 
-      if (index < fullText.length) {
-        setDisplayedText(fullText.slice(0, index + 1));
-        index++;
-      } else {
-        clearInterval(interval);
+        if (index < fullText.length) {
+        // Add 3-5 characters at a time for faster display
+        const chunkSize = Math.min(4, fullText.length - index);
+        setDisplayedText(fullText.slice(0, index + chunkSize));
+        index += chunkSize;
+        } else {
+          clearInterval(interval);
         if (mounted) {
           setStreamingMessage(null);
         }
       }
-    }, 20);
+    }, 8);
 
     return () => {
       mounted = false;
@@ -143,7 +176,7 @@ export default function Agent() {
   const handleNewConversation = async () => {
     try {
       const newConv = await ragService.createNewConversation("Nova Conversa");
-      setConversations([newConv, ...conversations]);
+      await refreshConversations();
       setCurrentConversationId(newConv.conversation_id);
       setMessages([]);
       setInputValue("");
@@ -154,6 +187,54 @@ export default function Agent() {
       toast({
         title: "Erro ao criar conversa",
         description: error instanceof Error ? error.message : "Não foi possível criar uma nova conversa",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteConversation = async (conversationId: string) => {
+    console.log("handleDeleteConversation called with ID:", conversationId);
+    
+    if (!conversationId || !conversationId.trim()) {
+      toast({
+        title: "Erro",
+        description: "ID da conversa inválido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!confirm("Tem certeza que deseja excluir esta conversa?")) {
+      return;
+    }
+
+    try {
+      console.log("Calling deleteConversation API with ID:", conversationId);
+      await ragService.deleteConversation(conversationId);
+      
+      // If we deleted the current conversation, clear it
+      if (conversationId === currentConversationId) {
+        setCurrentConversationId(null);
+        setMessages([]);
+        setInputValue("");
+        setStreamingMessage(null);
+        setDisplayedText("");
+      }
+      
+      // Refresh the conversations list
+      await refreshConversations();
+      
+      toast({
+        title: "Conversa excluída",
+        description: "A conversa foi excluída com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
+      console.error("Conversation ID that failed:", conversationId);
+      const errorMessage = error instanceof Error ? error.message : "Não foi possível excluir a conversa";
+      toast({
+        title: "Erro ao excluir conversa",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -210,8 +291,7 @@ export default function Agent() {
         }
       }
 
-      const updatedConversations = await ragService.fetchConversations(50);
-      setConversations(updatedConversations);
+      await refreshConversations();
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
@@ -250,9 +330,11 @@ export default function Agent() {
   }));
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex h-[calc(100vh-4rem)] relative">
+      {/* Main Chat Area */}
+      <div className={`flex flex-col transition-all duration-300 ${pdfViewerOpen ? 'w-[65%] min-w-0' : 'w-full'} h-[calc(100vh-4rem)] relative z-0`}>
       {/* Header */}
-      <div className="border-b bg-card p-4 flex items-center gap-4">
+        <div className="border-b bg-card p-4 flex items-center gap-4 flex-shrink-0">
         <Select value={currentConversationId || undefined} onValueChange={handleConversationChange}>
           <SelectTrigger className="w-[400px]">
             <SelectValue>
@@ -274,20 +356,31 @@ export default function Agent() {
             ) : (
               conversations.map((conv) => (
                 <SelectItem key={conv.conversation_id} value={conv.conversation_id}>
-                  <div className="flex flex-col gap-1 py-1">
-                    <span className="font-medium">{conv.title}</span>
-                    {conv.lastMessageAt && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatTimestamp(conv.lastMessageAt)}
-                      </span>
-                    )}
-                  </div>
-                </SelectItem>
+                <div className="flex flex-col gap-1 py-1">
+                  <span className="font-medium">{conv.title}</span>
+                  {conv.lastMessageAt && (
+                    <span className="text-xs text-muted-foreground">
+                      {formatTimestamp(conv.lastMessageAt)}
+                    </span>
+                  )}
+                </div>
+              </SelectItem>
               ))
             )}
           </SelectContent>
         </Select>
         
+        {currentConversationId && (
+          <Button 
+            onClick={() => handleDeleteConversation(currentConversationId)} 
+            variant="outline" 
+            size="sm"
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Excluir
+          </Button>
+        )}
         <Button onClick={handleNewConversation} variant="outline" size="sm">
           <Plus className="h-4 w-4 mr-2" />
           Nova Conversa
@@ -295,7 +388,7 @@ export default function Agent() {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-4 min-w-0 w-full" style={{ maxHeight: 'calc(100vh - 12rem)' }}>
         {displayMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-6">
             <div className="rounded-full bg-primary/10 p-6">
@@ -347,16 +440,31 @@ export default function Agent() {
                     </div>
                   )}
                   
-                  <div className="flex-1 max-w-[75%]">
+                  <div className="flex-1 max-w-[75%] min-w-0">
                     <div
                       className={`${
                         message.role === "assistant"
                           ? "bg-primary text-primary-foreground rounded-2xl rounded-bl-none"
                           : "bg-muted text-foreground rounded-2xl rounded-br-none"
-                      } px-4 py-3`}
+                      } px-4 py-3 break-words`}
                     >
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <ReactMarkdown>{displayContent}</ReactMarkdown>
+                      <div className="prose prose-sm dark:prose-invert max-w-none break-words">
+                        <ReactMarkdown
+                          components={{
+                            h2: ({node, ...props}) => <h2 className="text-xl font-semibold mt-6 mb-3" {...props} />,
+                            h3: ({node, ...props}) => <h3 className="text-lg font-semibold mt-4 mb-2" {...props} />,
+                            p: ({node, ...props}) => <p className="mb-3" {...props} />,
+                            ul: ({node, ...props}) => <ul className="list-disc list-outside mb-3 space-y-1 ml-6 [&_ul]:ml-6 [&_ul_ul]:ml-6" {...props} />,
+                            ol: ({node, ...props}) => <ol className="list-decimal list-outside mb-3 space-y-1 ml-6 [&_ol]:ml-6 [&_ol_ol]:ml-6" {...props} />,
+                            li: ({node, ...props}) => <li className="leading-relaxed pl-2" {...props} />,
+                            strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
+                            table: ({node, ...props}) => <table className="border-collapse border border-gray-300 my-4" {...props} />,
+                            th: ({node, ...props}) => <th className="border border-gray-300 px-4 py-2 bg-gray-100 font-semibold" {...props} />,
+                            td: ({node, ...props}) => <td className="border border-gray-300 px-4 py-2" {...props} />,
+                          }}
+                        >
+                          {displayContent}
+                        </ReactMarkdown>
                       </div>
                       <div className="text-xs mt-2 opacity-70">
                         {formatTimestamp(message.created_at)}
@@ -374,11 +482,11 @@ export default function Agent() {
                             const sectionId = source.section_id || `Fonte ${idx + 1}`;
                             
                             return (
-                              <Button
-                                key={idx}
-                                variant="outline"
-                                size="sm"
-                                className="flex flex-col items-start h-auto py-2 px-3 hover:bg-accent"
+                            <Button
+                              key={idx}
+                              variant="outline"
+                              size="sm"
+                              className="flex flex-col items-start h-auto py-2 px-3 hover:bg-accent"
                                 onClick={() => {
                                   if (pageNumber) {
                                     openPdfViewer(pageNumber);
@@ -391,16 +499,16 @@ export default function Agent() {
                                 }}
                                 title={sectionText.substring(0, 150) + (sectionText.length > 150 ? "..." : "")}
                                 disabled={!pageNumber}
-                              >
-                                <span className="text-xs font-medium truncate w-full text-left">
+                            >
+                              <span className="text-xs font-medium truncate w-full text-left">
                                   {sectionId}
-                                </span>
+                              </span>
                                 {pageNumber && (
-                                  <Badge variant="secondary" className="text-xs mt-1">
+                              <Badge variant="secondary" className="text-xs mt-1">
                                     Pág. {pageNumber}
-                                  </Badge>
+                              </Badge>
                                 )}
-                              </Button>
+                            </Button>
                             );
                           })}
                         </div>
@@ -433,7 +541,7 @@ export default function Agent() {
       </div>
 
       {/* Input Area */}
-      <div className="border-t bg-card p-4">
+      <div className="border-t bg-card p-4 flex-shrink-0">
         <div className="flex gap-3 items-end">
           <Textarea
             ref={textareaRef}
@@ -457,27 +565,46 @@ export default function Agent() {
             )}
           </Button>
         </div>
+        </div>
       </div>
       
-      {/* PDF Viewer Modal */}
-      <Dialog open={pdfViewerOpen} onOpenChange={setPdfViewerOpen}>
-        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0">
-          <DialogHeader className="px-6 py-4 border-b">
-            <DialogTitle>Documento - Página {currentPage}</DialogTitle>
-          </DialogHeader>
+      {/* PDF Viewer Sidebar */}
+      <Sheet open={pdfViewerOpen} onOpenChange={setPdfViewerOpen} modal={false}>
+        <SheetContent 
+          side="right" 
+          className="!w-[35%] !max-w-none p-0 flex flex-col [&>button]:hidden border-l !z-40"
+          hideOverlay
+        >
+          <SheetHeader className="px-6 py-4 border-b flex-shrink-0 flex-row items-center justify-between">
+            <SheetTitle>Documento CVM - Página {currentPage}</SheetTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setPdfViewerOpen(false)}
+              className="h-6 w-6"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </SheetHeader>
           
-          <div className="flex items-center justify-center p-6 bg-slate-100">
-            <div className="bg-white shadow-xl p-8 rounded-lg">
-              <p className="text-muted-foreground text-center">
-                Visualização de PDF não disponível no momento.
-              </p>
-              <p className="text-sm text-muted-foreground text-center mt-2">
-                Página {currentPage}
-              </p>
+          <div className="flex-1 overflow-hidden bg-slate-100 p-4 flex items-center justify-center">
+            <div className="w-full h-full bg-white shadow-xl rounded-lg overflow-hidden flex items-center justify-center">
+              <iframe
+                src={`${RAG_API_BASE_URL}/static/pdf/resol175consolid.pdf#page=${currentPage}&toolbar=0&navpanes=0&scrollbar=0&view=FitV`}
+                className="border-0 w-full h-full"
+                title={`CVM Document - Page ${currentPage}`}
+                onError={() => {
+                  toast({
+                    title: "Erro ao carregar PDF",
+                    description: "Não foi possível carregar a página do documento. Verifique se o arquivo PDF está disponível no servidor.",
+                    variant: "destructive",
+                  });
+                }}
+              />
             </div>
           </div>
           
-          <DialogFooter className="px-6 py-4 border-t flex items-center justify-between">
+          <SheetFooter className="px-6 py-4 border-t flex items-center justify-between flex-shrink-0">
             <span className="text-sm text-muted-foreground">
               Página {currentPage} de {totalPages}
             </span>
@@ -499,9 +626,9 @@ export default function Agent() {
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

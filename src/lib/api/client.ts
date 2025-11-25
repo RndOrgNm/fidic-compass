@@ -8,6 +8,7 @@ export interface QueryRequest {
   query: string;
   top_k?: number;
   use_reranking?: boolean;
+  use_agentic?: boolean;
 }
 
 export interface ApiSource {
@@ -85,7 +86,8 @@ async function handleResponse<T>(response: Response): Promise<T> {
 export async function askQuery(
   query: string,
   top_k: number = 5,
-  use_reranking: boolean = true
+  use_reranking: boolean = false,
+  use_agentic: boolean = true
 ): Promise<QueryResponse> {
   const response = await fetch(`${RAG_API_BASE_URL}/ask`, {
     method: "POST",
@@ -96,6 +98,7 @@ export async function askQuery(
       query,
       top_k,
       use_reranking,
+      use_agentic,
     } as QueryRequest),
   });
 
@@ -155,17 +158,32 @@ export async function getConversation(
 export async function deleteConversation(
   conversationId: string
 ): Promise<{ message: string }> {
-  const response = await fetch(
-    `${RAG_API_BASE_URL}/conversations/${conversationId}`,
-    {
+  // Ensure the ID is a valid string
+  if (!conversationId || typeof conversationId !== 'string' || !conversationId.trim()) {
+    throw new Error("Invalid conversation ID");
+  }
+  
+  // Trim whitespace and construct URL
+  const trimmedId = conversationId.trim();
+  const url = `${RAG_API_BASE_URL}/conversations/${trimmedId}`;
+  console.log("Deleting conversation:", url);
+  
+  try {
+    const response = await fetch(url, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
-    }
-  );
+    });
 
-  return handleResponse<{ message: string }>(response);
+    return handleResponse<{ message: string }>(response);
+  } catch (error) {
+    // Handle network errors
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error("Network error: Could not connect to the server. Please check your connection.");
+    }
+    throw error;
+  }
 }
 
 export async function getMessages(

@@ -24,40 +24,15 @@ export class RAGService {
     const response = await listConversations(limit);
     const conversations = response.conversations;
 
-    const conversationsWithMetadata: ConversationWithMetadata[] = await Promise.all(
-      conversations.map(async (conv) => {
-        try {
-          const messagesResponse = await getMessages(conv.conversation_id);
-          const messages = messagesResponse.messages;
-
-          let lastMessageAt: string | null = null;
-          if (messages.length > 0) {
-            const sortedMessages = [...messages].sort(
-              (a, b) =>
-                new Date(b.created_at).getTime() -
-                new Date(a.created_at).getTime()
-            );
-            lastMessageAt = sortedMessages[0].created_at;
-          }
-
-          return {
-            ...conv,
-            lastMessageAt,
-            messageCount: messages.length,
-          };
-        } catch (error) {
-          console.error(
-            `Error fetching messages for conversation ${conv.conversation_id}:`,
-            error
-          );
-          return {
-            ...conv,
-            lastMessageAt: null,
-            messageCount: 0,
-          };
-        }
-      })
-    );
+    // Use updated_at from conversations table instead of fetching messages
+    // This avoids loading all messages when just listing conversations
+    const conversationsWithMetadata: ConversationWithMetadata[] = conversations.map((conv) => {
+      return {
+        ...conv,
+        lastMessageAt: conv.updated_at, // Use updated_at from conversations table
+        messageCount: undefined, // Will be loaded only when conversation is selected
+      };
+    });
 
     return conversationsWithMetadata;
   }
@@ -89,12 +64,19 @@ export class RAGService {
   ): Promise<{ userMessage: MessageResponse; assistantMessage: MessageResponse }> {
     const userMessage = await addMessage(conversationId, "user", query);
 
-    const queryResponse = await askQuery(query, 5, true);
+    const queryResponse = await askQuery(query, 5, true, true); // use_agentic = true
+    
+    // Ensure response is a string and properly formatted
+    let responseText = queryResponse.response;
+    if (typeof responseText !== 'string') {
+      console.warn('Response is not a string, converting:', typeof responseText);
+      responseText = String(responseText);
+    }
 
     const assistantMessage = await addMessage(
       conversationId,
       "assistant",
-      queryResponse.response,
+      responseText,
       queryResponse.sources
     );
 
