@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { Bot, Send, MessageSquare, Plus, Loader2, ChevronLeft, ChevronRight, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,6 +37,7 @@ interface Conversation extends ConversationWithMetadata {
 }
 
 export default function Agent() {
+  const location = useLocation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -52,6 +54,28 @@ export default function Agent() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef(true);
+
+  // Reset function to clear all state
+  const resetToInitialState = () => {
+    setCurrentConversationId(null);
+    setMessages([]);
+    setInputValue("");
+    setStreamingMessage(null);
+    setDisplayedText("");
+    setPdfViewerOpen(false);
+    setCurrentPage(1);
+    setIsLoading(false);
+  };
+
+  // Check for reset state from navigation
+  useEffect(() => {
+    const state = location.state as { reset?: boolean } | null;
+    if (state?.reset) {
+      resetToInitialState();
+      // Clear the state to prevent reset on subsequent renders
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const scrollToBottom = () => {
     if (shouldAutoScrollRef.current) {
@@ -173,23 +197,10 @@ export default function Agent() {
     setDisplayedText("");
   };
 
-  const handleNewConversation = async () => {
-    try {
-      const newConv = await ragService.createNewConversation("Nova Conversa");
-      await refreshConversations();
-      setCurrentConversationId(newConv.conversation_id);
-      setMessages([]);
-      setInputValue("");
-      setStreamingMessage(null);
-      setDisplayedText("");
-    } catch (error) {
-      console.error("Error creating conversation:", error);
-      toast({
-        title: "Erro ao criar conversa",
-        description: error instanceof Error ? error.message : "Não foi possível criar uma nova conversa",
-        variant: "destructive",
-      });
-    }
+  const handleNewConversation = () => {
+    // Just reset to initial state without creating a conversation
+    // A conversation will be created when the user sends the first message
+    resetToInitialState();
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
@@ -254,16 +265,27 @@ export default function Agent() {
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading || !currentConversationId) return;
+    if (!inputValue.trim() || isLoading) return;
 
     const query = inputValue.trim();
-    const conversationIdAtSend = currentConversationId;
     setInputValue("");
     setIsLoading(true);
 
     try {
+      // Create a new conversation if one doesn't exist
+      let conversationIdAtSend = currentConversationId;
+      let isNewConversation = false;
+      
+      if (!conversationIdAtSend) {
+        const newConv = await ragService.createNewConversation("Nova Conversa");
+        conversationIdAtSend = newConv.conversation_id;
+        isNewConversation = true;
+        setCurrentConversationId(conversationIdAtSend);
+        await refreshConversations();
+      }
+
       const currentConv = conversations.find(c => c.conversation_id === conversationIdAtSend);
-      const isFirstMessage = !currentConv || (currentConv.messageCount ?? 0) === 0;
+      const isFirstMessage = isNewConversation || !currentConv || (currentConv.messageCount ?? 0) === 0;
 
       const { userMessage, assistantMessage } = await ragService.sendMessage(
         conversationIdAtSend,
@@ -330,9 +352,9 @@ export default function Agent() {
   }));
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] relative">
+    <div className="flex h-[calc(100vh-7rem)] relative -mx-6 -mb-0">
       {/* Main Chat Area */}
-      <div className={`flex flex-col transition-all duration-300 ${pdfViewerOpen ? 'w-[65%] min-w-0' : 'w-full'} h-[calc(100vh-4rem)] relative z-0`}>
+      <div className={`flex flex-col transition-all duration-300 ${pdfViewerOpen ? 'w-[65%] min-w-0' : 'w-full'} h-full relative z-0`}>
       {/* Header */}
         <div className="border-b bg-card p-4 flex items-center gap-4 flex-shrink-0">
         <Select value={currentConversationId || undefined} onValueChange={handleConversationChange}>
@@ -388,12 +410,9 @@ export default function Agent() {
       </div>
 
       {/* Messages Area */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-4 min-w-0 w-full" style={{ maxHeight: 'calc(100vh - 12rem)' }}>
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-4 min-w-0 w-full">
         {displayMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-6">
-            <div className="rounded-full bg-primary/10 p-6">
-              <Bot className="h-16 w-16 text-primary" />
-            </div>
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-semibold">Olá! Sou seu assistente inteligente.</h2>
               <p className="text-muted-foreground">Como posso ajudá-lo hoje?</p>
@@ -402,23 +421,23 @@ export default function Agent() {
               <Badge 
                 variant="outline" 
                 className="cursor-pointer hover:bg-accent px-4 py-2"
-                onClick={() => handleSuggestionClick("Resumo do dia")}
+                onClick={() => handleSuggestionClick("Quais divulgações obrigatórias um fundo deve apresentar: advertência, rentabilidade mensal e em 12 meses, PL médio em 12 meses, taxas, público‑alvo, rating, benchmark e obrigação de divulgação após mudanças?")}
               >
-                Resumo do dia
+                Divulgação após mudanças na política
               </Badge>
               <Badge 
                 variant="outline" 
                 className="cursor-pointer hover:bg-accent px-4 py-2"
-                onClick={() => handleSuggestionClick("Status de conciliação")}
+                onClick={() => handleSuggestionClick("É admissível denominar um FIDC ou uma classe de cotas mencionando cotas de outros FIDC ou fazendo referência ao tratamento tributário? Quais são os limites nessa denominação?")}
               >
-                Status de conciliação
+                Limites de denominação de FIDC
               </Badge>
               <Badge 
                 variant="outline" 
                 className="cursor-pointer hover:bg-accent px-4 py-2"
-                onClick={() => handleSuggestionClick("Inadimplentes críticos")}
+                onClick={() => handleSuggestionClick("É possível criar uma classe de cotas destinada a investidores profissionais que dispense limites de investimento, permita que o cedente receba a liquidação imediatamente e garanta voto livre aos titulares? Quais são os limites e obrigações do administrador nessa estrutura?")}
               >
-                Inadimplentes críticos
+                Cotas para investidores profissionais
               </Badge>
             </div>
           </div>
@@ -541,31 +560,38 @@ export default function Agent() {
       </div>
 
       {/* Input Area */}
-      <div className="border-t bg-card p-4 flex-shrink-0">
-        <div className="flex gap-3 items-end">
-          <Textarea
-            ref={textareaRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Digite sua mensagem..."
-            className="resize-none"
-            rows={1}
-            disabled={isLoading}
-          />
-          <Button
-            onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isLoading}
-            size="lg"
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Send className="h-5 w-5" />
-            )}
-          </Button>
+      <div className="border-t bg-card flex-shrink-0 pt-6">
+        <div className="px-4 pb-4">
+          <div className="flex gap-3 items-end">
+            <Textarea
+              ref={textareaRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Digite sua mensagem..."
+              className="resize-none"
+              rows={1}
+              disabled={isLoading}
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim() || isLoading}
+              size="lg"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
+        <div className="px-4 pb-0 text-center">
+          <p className="text-xs text-muted-foreground">
+            O Chatbot pode cometer erros. Confira informações importantes.
+          </p>
         </div>
+      </div>
       </div>
       
       {/* PDF Viewer Sidebar */}

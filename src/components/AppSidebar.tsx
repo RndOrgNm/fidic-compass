@@ -59,10 +59,26 @@ export function AppSidebar() {
             <SidebarMenu>
               {menuItems.map((item) => {
                 const isActive = location.pathname === item.url;
+                // Special handling for Chatbot to reset Agent page
+                const handleChatbotClick = (e: React.MouseEvent) => {
+                  if (item.title === "Chatbot" && location.pathname === "/agent") {
+                    e.preventDefault();
+                    // Navigate with state to trigger reset
+                    navigate("/agent", { 
+                      replace: true,
+                      state: { reset: true }
+                    });
+                  }
+                };
+                
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls(isActive)}>
+                      <NavLink 
+                        to={item.url} 
+                        className={getNavCls(isActive)}
+                        onClick={handleChatbotClick}
+                      >
                         <item.icon className="h-5 w-5" />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
