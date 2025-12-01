@@ -54,6 +54,7 @@ export default function Agent() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef(true);
+  const isSendingMessageRef = useRef(false);
 
   // Reset function to clear all state
   const resetToInitialState = () => {
@@ -138,6 +139,12 @@ export default function Agent() {
     const loadMessages = async () => {
       if (!currentConversationId) {
         setMessages([]);
+        return;
+      }
+
+      // Don't reload messages if we're currently sending a message
+      // This prevents overwriting messages we just added
+      if (isSendingMessageRef.current) {
         return;
       }
 
@@ -270,6 +277,7 @@ export default function Agent() {
     const query = inputValue.trim();
     setInputValue("");
     setIsLoading(true);
+    isSendingMessageRef.current = true;
 
     try {
       // Create a new conversation if one doesn't exist
@@ -293,7 +301,8 @@ export default function Agent() {
         isFirstMessage
       );
 
-      if (conversationIdAtSend === currentConversationId) {
+      // Always add messages if it's a new conversation or if the conversation ID matches
+      if (isNewConversation || conversationIdAtSend === currentConversationId) {
         setMessages(prev => [...prev, userMessage as Message, assistantMessage as Message]);
         setStreamingMessage(assistantMessage as Message);
       }
@@ -323,6 +332,7 @@ export default function Agent() {
       });
     } finally {
       setIsLoading(false);
+      isSendingMessageRef.current = false;
     }
   };
 
@@ -412,35 +422,53 @@ export default function Agent() {
       {/* Messages Area */}
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-4 min-w-0 w-full">
         {displayMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-6">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-semibold">Olá! Sou seu assistente inteligente.</h2>
-              <p className="text-muted-foreground">Como posso ajudá-lo hoje?</p>
-            </div>
-            <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
-              <Badge 
-                variant="outline" 
-                className="cursor-pointer hover:bg-accent px-4 py-2"
-                onClick={() => handleSuggestionClick("Quais divulgações obrigatórias um fundo deve apresentar: advertência, rentabilidade mensal e em 12 meses, PL médio em 12 meses, taxas, público‑alvo, rating, benchmark e obrigação de divulgação após mudanças?")}
-              >
-                Divulgação após mudanças na política
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className="cursor-pointer hover:bg-accent px-4 py-2"
-                onClick={() => handleSuggestionClick("É admissível denominar um FIDC ou uma classe de cotas mencionando cotas de outros FIDC ou fazendo referência ao tratamento tributário? Quais são os limites nessa denominação?")}
-              >
-                Limites de denominação de FIDC
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className="cursor-pointer hover:bg-accent px-4 py-2"
-                onClick={() => handleSuggestionClick("É possível criar uma classe de cotas destinada a investidores profissionais que dispense limites de investimento, permita que o cedente receba a liquidação imediatamente e garanta voto livre aos titulares? Quais são os limites e obrigações do administrador nessa estrutura?")}
-              >
-                Cotas para investidores profissionais
-              </Badge>
-            </div>
-          </div>
+          <>
+            {!isLoading ? (
+              <div className="flex flex-col items-center justify-center h-full gap-6">
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-semibold">Olá! Sou seu assistente inteligente.</h2>
+                  <p className="text-muted-foreground">Como posso ajudá-lo hoje?</p>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
+                  <Badge 
+                    variant="outline" 
+                    className="cursor-pointer hover:bg-accent px-4 py-2"
+                    onClick={() => handleSuggestionClick("Quais divulgações obrigatórias um fundo deve apresentar: advertência, rentabilidade mensal e em 12 meses, PL médio em 12 meses, taxas, público‑alvo, rating, benchmark e obrigação de divulgação após mudanças?")}
+                  >
+                    Divulgação após mudanças na política
+                  </Badge>
+                  <Badge 
+                    variant="outline" 
+                    className="cursor-pointer hover:bg-accent px-4 py-2"
+                    onClick={() => handleSuggestionClick("É admissível denominar um FIDC ou uma classe de cotas mencionando cotas de outros FIDC ou fazendo referência ao tratamento tributário? Quais são os limites nessa denominação?")}
+                  >
+                    Limites de denominação de FIDC
+                  </Badge>
+                  <Badge 
+                    variant="outline" 
+                    className="cursor-pointer hover:bg-accent px-4 py-2"
+                    onClick={() => handleSuggestionClick("É possível criar uma classe de cotas destinada a investidores profissionais que dispense limites de investimento, permita que o cedente receba a liquidação imediatamente e garanta voto livre aos titulares? Quais são os limites e obrigações do administrador nessa estrutura?")}
+                  >
+                    Cotas para investidores profissionais
+                  </Badge>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-3 px-6 py-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                  <Bot className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <div className="bg-primary text-primary-foreground rounded-2xl rounded-bl-none px-4 py-3">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-primary-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></span>
+                    <span className="w-2 h-2 bg-primary-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></span>
+                    <span className="w-2 h-2 bg-primary-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </>
         ) : (
           <>
             {displayMessages.map((message) => {
