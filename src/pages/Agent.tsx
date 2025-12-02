@@ -293,12 +293,14 @@ export default function Agent() {
       }
 
       const currentConv = conversations.find(c => c.conversation_id === conversationIdAtSend);
+      // Only generate title if it's a new conversation OR if the conversation still has the default title
+      const shouldGenerateTitle = isNewConversation || !currentConv || currentConv.title === "Nova Conversa";
       const isFirstMessage = isNewConversation || !currentConv || (currentConv.messageCount ?? 0) === 0;
 
       const { userMessage, assistantMessage } = await ragService.sendMessage(
         conversationIdAtSend,
         query,
-        isFirstMessage
+        shouldGenerateTitle
       );
 
       // Always add messages if it's a new conversation or if the conversation ID matches
@@ -307,7 +309,7 @@ export default function Agent() {
         setStreamingMessage(assistantMessage as Message);
       }
 
-      if (isFirstMessage) {
+      if (shouldGenerateTitle) {
         try {
           const updatedConv = await ragService.getConversation(conversationIdAtSend);
           setConversations(prev =>
