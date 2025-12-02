@@ -233,10 +233,10 @@ export default function Agent() {
       // If we deleted the current conversation, clear it
       if (conversationId === currentConversationId) {
         setCurrentConversationId(null);
-        setMessages([]);
-        setInputValue("");
-        setStreamingMessage(null);
-        setDisplayedText("");
+    setMessages([]);
+    setInputValue("");
+    setStreamingMessage(null);
+    setDisplayedText("");
       }
       
       // Refresh the conversations list
@@ -333,7 +333,7 @@ export default function Agent() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+    setIsLoading(false);
       isSendingMessageRef.current = false;
     }
   };
@@ -426,35 +426,35 @@ export default function Agent() {
         {displayMessages.length === 0 ? (
           <>
             {!isLoading ? (
-              <div className="flex flex-col items-center justify-center h-full gap-6">
-                <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-semibold">Olá! Sou seu assistente inteligente.</h2>
-                  <p className="text-muted-foreground">Como posso ajudá-lo hoje?</p>
-                </div>
-                <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
-                  <Badge 
-                    variant="outline" 
-                    className="cursor-pointer hover:bg-accent px-4 py-2"
+          <div className="flex flex-col items-center justify-center h-full gap-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-semibold">Olá! Sou seu assistente inteligente.</h2>
+              <p className="text-muted-foreground">Como posso ajudá-lo hoje?</p>
+            </div>
+            <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
+              <Badge 
+                variant="outline" 
+                className="cursor-pointer hover:bg-accent px-4 py-2"
                     onClick={() => handleSuggestionClick("Quais divulgações obrigatórias um fundo deve apresentar: advertência, rentabilidade mensal e em 12 meses, PL médio em 12 meses, taxas, público‑alvo, rating, benchmark e obrigação de divulgação após mudanças?")}
-                  >
+              >
                     Divulgação após mudanças na política
-                  </Badge>
-                  <Badge 
-                    variant="outline" 
-                    className="cursor-pointer hover:bg-accent px-4 py-2"
+              </Badge>
+              <Badge 
+                variant="outline" 
+                className="cursor-pointer hover:bg-accent px-4 py-2"
                     onClick={() => handleSuggestionClick("É admissível denominar um FIDC ou uma classe de cotas mencionando cotas de outros FIDC ou fazendo referência ao tratamento tributário? Quais são os limites nessa denominação?")}
-                  >
+              >
                     Limites de denominação de FIDC
-                  </Badge>
-                  <Badge 
-                    variant="outline" 
-                    className="cursor-pointer hover:bg-accent px-4 py-2"
+              </Badge>
+              <Badge 
+                variant="outline" 
+                className="cursor-pointer hover:bg-accent px-4 py-2"
                     onClick={() => handleSuggestionClick("É possível criar uma classe de cotas destinada a investidores profissionais que dispense limites de investimento, permita que o cedente receba a liquidação imediatamente e garanta voto livre aos titulares? Quais são os limites e obrigações do administrador nessa estrutura?")}
-                  >
+              >
                     Cotas para investidores profissionais
-                  </Badge>
-                </div>
-              </div>
+              </Badge>
+            </div>
+          </div>
             ) : (
               <div className="flex gap-3 px-6 py-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
@@ -592,28 +592,28 @@ export default function Agent() {
       {/* Input Area */}
       <div className="border-t bg-card flex-shrink-0 pt-6">
         <div className="px-4 pb-4">
-          <div className="flex gap-3 items-end">
-            <Textarea
-              ref={textareaRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Digite sua mensagem..."
-              className="resize-none"
-              rows={1}
-              disabled={isLoading}
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isLoading}
-              size="lg"
-            >
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Send className="h-5 w-5" />
-              )}
-            </Button>
+        <div className="flex gap-3 items-end">
+          <Textarea
+            ref={textareaRef}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Digite sua mensagem..."
+            className="resize-none"
+            rows={1}
+            disabled={isLoading}
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim() || isLoading}
+            size="lg"
+          >
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Send className="h-5 w-5" />
+            )}
+          </Button>
           </div>
         </div>
         <div className="px-4 pb-0 text-center">
@@ -621,7 +621,7 @@ export default function Agent() {
             O Chatbot pode cometer erros. Confira informações importantes.
           </p>
         </div>
-      </div>
+        </div>
       </div>
       
       {/* PDF Viewer Sidebar */}

@@ -176,7 +176,7 @@ export async function deleteConversation(
       },
     });
 
-    return handleResponse<{ message: string }>(response);
+  return handleResponse<{ message: string }>(response);
   } catch (error) {
     // Handle network errors
     if (error instanceof TypeError && error.message.includes('fetch')) {

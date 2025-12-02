@@ -27,11 +27,11 @@ export class RAGService {
     // Use updated_at from conversations table instead of fetching messages
     // This avoids loading all messages when just listing conversations
     const conversationsWithMetadata: ConversationWithMetadata[] = conversations.map((conv) => {
-      return {
-        ...conv,
+          return {
+            ...conv,
         lastMessageAt: conv.updated_at, // Use updated_at from conversations table
         messageCount: undefined, // Will be loaded only when conversation is selected
-      };
+          };
     });
 
     return conversationsWithMetadata;
