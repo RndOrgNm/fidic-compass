@@ -20,7 +20,7 @@ const features = [
     route: "/receivables",
   },
   {
-    title: "Investidores",
+    title: "CRM",
     description: "Onboarding e gestão de cotistas",
     icon: Users,
     color: "text-purple-600",

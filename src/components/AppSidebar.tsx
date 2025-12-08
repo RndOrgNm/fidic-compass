@@ -19,7 +19,7 @@ const menuItems = [
   { title: "Home", url: "/", icon: Home },
   { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
   { title: "Gestão de Recebimentos", url: "/receivables", icon: Receipt },
-  { title: "Investidores", url: "/investors", icon: Users },
+  { title: "CRM", url: "/investors", icon: Users },
   { title: "Chatbot", url: "/agent", icon: Bot },
 ];
 
