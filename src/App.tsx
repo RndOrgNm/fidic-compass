@@ -10,8 +10,9 @@ import Receivables from "./pages/Receivables";
 import Investors from "./pages/Investors";
 import InvestorDetails from "./pages/InvestorDetails";
 import Agent from "./pages/Agent";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+// Auth temporarily disabled
+// import Login from "./pages/Login";
+// import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,9 +24,12 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Auth routes temporarily disabled */}
+          {/*
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          
+          */}
+
           <Route path="/" element={<AppLayout><Home /></AppLayout>} />
           <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
           <Route path="/receivables" element={<AppLayout><Receivables /></AppLayout>} />

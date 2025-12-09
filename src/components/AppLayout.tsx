@@ -24,12 +24,13 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    const isAuthenticated = localStorage.getItem("isAuthenticated");
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [navigate]);
+  // Auth temporarily disabled: skip redirect to login
+  // useEffect(() => {
+  //   const isAuthenticated = localStorage.getItem("isAuthenticated");
+  //   if (!isAuthenticated) {
+  //     navigate("/login");
+  //   }
+  // }, [navigate]);
 
   const pageTitle = title || pageTitles[location.pathname] || "FIDC Manager";
 

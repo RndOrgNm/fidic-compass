@@ -13,7 +13,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 
 const menuItems = [
   { title: "Home", url: "/", icon: Home },
@@ -29,10 +29,11 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const collapsed = state === "collapsed";
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    navigate("/login");
-  };
+  // Auth temporarily disabled; keep handler commented for later reuse
+  // const handleLogout = () => {
+  //   localStorage.removeItem("isAuthenticated");
+  //   navigate("/login");
+  // };
 
   const getNavCls = (isActive: boolean) =>
     isActive
@@ -103,6 +104,8 @@ export function AppSidebar() {
             </div>
           )}
         </div>
+        {/* Auth temporarily disabled; keep logout UI commented for future use */}
+        {/*
         {!collapsed && (
           <Button
             variant="ghost"
@@ -114,6 +117,7 @@ export function AppSidebar() {
             Sair
           </Button>
         )}
+        */}
       </SidebarFooter>
     </Sidebar>
   );
