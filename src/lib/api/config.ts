@@ -1,3 +1,4 @@
-export const RAG_API_BASE_URL = 
-  import.meta.env.VITE_RAG_API_URL || "http://localhost:8000"; //"http://98.90.51.202:8000";
+// Normalize the base URL by removing trailing slashes
+const rawUrl = import.meta.env.VITE_RAG_API_URL || "http://localhost:8000";
+export const RAG_API_BASE_URL = rawUrl.replace(/\/+$/, "");
 
