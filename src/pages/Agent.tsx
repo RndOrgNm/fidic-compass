@@ -16,35 +16,29 @@ import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
-import { ragService, type ConversationWithMetadata } from "@/lib/api/ragService";
-import type { MessageResponse, ApiSource } from "@/lib/api/client";
 import { RAG_API_BASE_URL } from "@/lib/api/config";
-
-interface Message {
-  message_id: string;
-  conversation_id: string;
-  role: "user" | "assistant";
-  content: string;
-  created_at: string;
-  sources?: ApiSource[] | null;
-}
-
-interface Conversation extends ConversationWithMetadata {
-  title: string;
-  created_at: string;
-  updated_at: string;
-  user?: string;
-}
+import { useChat } from "@/contexts/ChatContext";
 
 export default function Agent() {
   const location = useLocation();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const {
+    conversations,
+    currentConversationId,
+    messages,
+    isLoading,
+    isLoadingConversations,
+    streamingMessage,
+    setCurrentConversationId,
+    setStreamingMessage,
+    refreshConversations,
+    loadMessages,
+    sendMessage,
+    deleteConversation,
+    resetToInitialState,
+  } = useChat();
+
+  // UI-specific local state
   const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingConversations, setIsLoadingConversations] = useState(true);
-  const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
   const [displayedText, setDisplayedText] = useState("");
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,33 +48,36 @@ export default function Agent() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef(true);
-  const isSendingMessageRef = useRef(false);
-
-  // Reset function to clear all state
-  const resetToInitialState = () => {
-    setCurrentConversationId(null);
-    setMessages([]);
-    setInputValue("");
-    setStreamingMessage(null);
-    setDisplayedText("");
-    setPdfViewerOpen(false);
-    setCurrentPage(1);
-    setIsLoading(false);
-  };
 
   // Check for reset state from navigation
   useEffect(() => {
     const state = location.state as { reset?: boolean } | null;
     if (state?.reset) {
       resetToInitialState();
+      setInputValue("");
+      setDisplayedText("");
+      setPdfViewerOpen(false);
+      setCurrentPage(1);
       // Clear the state to prevent reset on subsequent renders
       window.history.replaceState({}, document.title);
     }
-  }, [location.state]);
+  }, [location.state, resetToInitialState]);
+
+  // Load conversations on mount
+  useEffect(() => {
+    refreshConversations();
+  }, [refreshConversations]);
+
+  // Load messages when conversation changes
+  useEffect(() => {
+    if (currentConversationId) {
+      loadMessages(currentConversationId);
+    }
+  }, [currentConversationId, loadMessages]);
 
   const scrollToBottom = () => {
     if (shouldAutoScrollRef.current) {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -92,11 +89,11 @@ export default function Agent() {
     return distanceFromBottom < threshold;
   };
 
-  // Only scroll on new messages, NOT during text streaming (displayedText changes)
+  // Only scroll on new messages, NOT during text streaming
   useEffect(() => {
     if (isNearBottom()) {
       shouldAutoScrollRef.current = true;
-    scrollToBottom();
+      scrollToBottom();
     }
   }, [messages]);
 
@@ -114,77 +111,28 @@ export default function Agent() {
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const refreshConversations = async () => {
-    try {
-      setIsLoadingConversations(true);
-      const fetchedConversations = await ragService.fetchConversations(50);
-      setConversations(fetchedConversations);
-    } catch (error) {
-      console.error("Error loading conversations:", error);
-      toast({
-        title: "Erro ao carregar conversas",
-        description: error instanceof Error ? error.message : "Não foi possível carregar as conversas",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingConversations(false);
-    }
-  };
-
-  useEffect(() => {
-    refreshConversations();
-  }, []);
-
-  useEffect(() => {
-    const loadMessages = async () => {
-      if (!currentConversationId) {
-        setMessages([]);
-        return;
-      }
-
-      // Don't reload messages if we're currently sending a message
-      // This prevents overwriting messages we just added
-      if (isSendingMessageRef.current) {
-        return;
-      }
-
-      try {
-        const fetchedMessages = await ragService.loadConversationMessages(currentConversationId);
-        setMessages(fetchedMessages as Message[]);
-      } catch (error) {
-        console.error("Error loading messages:", error);
-        toast({
-          title: "Erro ao carregar mensagens",
-          description: error instanceof Error ? error.message : "Não foi possível carregar as mensagens",
-          variant: "destructive",
-        });
-      }
-    };
-
-    loadMessages();
-  }, [currentConversationId]);
-
+  // Streaming text animation
   useEffect(() => {
     if (!streamingMessage) return;
 
-      let index = 0;
-      const fullText = streamingMessage.content;
+    let index = 0;
+    const fullText = streamingMessage.content;
     let mounted = true;
-      setDisplayedText("");
+    setDisplayedText("");
 
-      const interval = setInterval(() => {
+    const interval = setInterval(() => {
       if (!mounted) {
         clearInterval(interval);
         return;
       }
 
-        if (index < fullText.length) {
+      if (index < fullText.length) {
         // Add 3-5 characters at a time for faster display
         const chunkSize = Math.min(4, fullText.length - index);
         setDisplayedText(fullText.slice(0, index + chunkSize));
         index += chunkSize;
-        } else {
-          clearInterval(interval);
+      } else {
+        clearInterval(interval);
         if (mounted) {
           setStreamingMessage(null);
         }
@@ -195,7 +143,7 @@ export default function Agent() {
       mounted = false;
       clearInterval(interval);
     };
-  }, [streamingMessage]);
+  }, [streamingMessage, setStreamingMessage]);
 
   const handleConversationChange = (conversationId: string) => {
     setCurrentConversationId(conversationId);
@@ -205,57 +153,18 @@ export default function Agent() {
   };
 
   const handleNewConversation = () => {
-    // Just reset to initial state without creating a conversation
-    // A conversation will be created when the user sends the first message
     resetToInitialState();
+    setInputValue("");
+    setDisplayedText("");
+    setPdfViewerOpen(false);
+    setCurrentPage(1);
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
-    console.log("handleDeleteConversation called with ID:", conversationId);
-    
-    if (!conversationId || !conversationId.trim()) {
-      toast({
-        title: "Erro",
-        description: "ID da conversa inválido",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!confirm("Tem certeza que deseja excluir esta conversa?")) {
       return;
     }
-
-    try {
-      console.log("Calling deleteConversation API with ID:", conversationId);
-      await ragService.deleteConversation(conversationId);
-      
-      // If we deleted the current conversation, clear it
-      if (conversationId === currentConversationId) {
-        setCurrentConversationId(null);
-    setMessages([]);
-    setInputValue("");
-    setStreamingMessage(null);
-    setDisplayedText("");
-      }
-      
-      // Refresh the conversations list
-      await refreshConversations();
-      
-      toast({
-        title: "Conversa excluída",
-        description: "A conversa foi excluída com sucesso.",
-      });
-    } catch (error) {
-      console.error("Error deleting conversation:", error);
-      console.error("Conversation ID that failed:", conversationId);
-      const errorMessage = error instanceof Error ? error.message : "Não foi possível excluir a conversa";
-      toast({
-        title: "Erro ao excluir conversa",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
+    await deleteConversation(conversationId);
   };
 
   const openPdfViewer = (pageNumber: number) => {
@@ -273,69 +182,9 @@ export default function Agent() {
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
-
     const query = inputValue.trim();
     setInputValue("");
-    setIsLoading(true);
-    isSendingMessageRef.current = true;
-
-    try {
-      // Create a new conversation if one doesn't exist
-      let conversationIdAtSend = currentConversationId;
-      let isNewConversation = false;
-      
-      if (!conversationIdAtSend) {
-        const newConv = await ragService.createNewConversation("Nova Conversa");
-        conversationIdAtSend = newConv.conversation_id;
-        isNewConversation = true;
-        setCurrentConversationId(conversationIdAtSend);
-        await refreshConversations();
-      }
-
-      const currentConv = conversations.find(c => c.conversation_id === conversationIdAtSend);
-      // Only generate title if it's a new conversation OR if the conversation still has the default title
-      const shouldGenerateTitle = isNewConversation || !currentConv || currentConv.title === "Nova Conversa";
-      const isFirstMessage = isNewConversation || !currentConv || (currentConv.messageCount ?? 0) === 0;
-
-      const { userMessage, assistantMessage } = await ragService.sendMessage(
-        conversationIdAtSend,
-        query,
-        shouldGenerateTitle
-      );
-
-      // Always add messages if it's a new conversation or if the conversation ID matches
-      if (isNewConversation || conversationIdAtSend === currentConversationId) {
-        setMessages(prev => [...prev, userMessage as Message, assistantMessage as Message]);
-        setStreamingMessage(assistantMessage as Message);
-      }
-
-      if (shouldGenerateTitle) {
-        try {
-          const updatedConv = await ragService.getConversation(conversationIdAtSend);
-          setConversations(prev =>
-            prev.map(c =>
-              c.conversation_id === conversationIdAtSend
-                ? { ...c, title: updatedConv.title }
-                : c
-            )
-          );
-        } catch (titleError) {
-          console.error("Error updating conversation title:", titleError);
-        }
-      }
-
-      await refreshConversations();
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast({
-        title: "Erro ao enviar mensagem",
-        description: error instanceof Error ? error.message : "Não foi possível enviar a mensagem",
-        variant: "destructive",
-      });
-    } finally {
-    setIsLoading(false);
-      isSendingMessageRef.current = false;
-    }
+    await sendMessage(query);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

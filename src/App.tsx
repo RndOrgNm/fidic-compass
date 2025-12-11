@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
+import { ChatProvider } from "./contexts/ChatContext";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Receivables from "./pages/Receivables";
@@ -20,27 +21,29 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Auth routes temporarily disabled */}
-          {/*
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          */}
+      <ChatProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Auth routes temporarily disabled */}
+            {/*
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            */}
 
-          <Route path="/" element={<AppLayout><Home /></AppLayout>} />
-          <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
-          <Route path="/receivables" element={<AppLayout><Receivables /></AppLayout>} />
-          <Route path="/investors" element={<AppLayout><Investors /></AppLayout>} />
-          <Route path="/investors/:id" element={<AppLayout><InvestorDetails /></AppLayout>} />
-          <Route path="/agent" element={<AppLayout><Agent /></AppLayout>} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="/" element={<AppLayout><Home /></AppLayout>} />
+            <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
+            <Route path="/receivables" element={<AppLayout><Receivables /></AppLayout>} />
+            <Route path="/investors" element={<AppLayout><Investors /></AppLayout>} />
+            <Route path="/investors/:id" element={<AppLayout><InvestorDetails /></AppLayout>} />
+            <Route path="/agent" element={<AppLayout><Agent /></AppLayout>} />
+            
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </ChatProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
