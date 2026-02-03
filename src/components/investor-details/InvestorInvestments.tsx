@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
-import { investorFundPositions } from "@/data/mockData";
+import { investorFundPositions } from "@/data";
 import { toast } from "@/hooks/use-toast";
 
 interface InvestorInvestmentsProps {

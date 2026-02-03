@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Receivables from "./pages/Receivables";
 import Investors from "./pages/Investors";
 import InvestorDetails from "./pages/InvestorDetails";
+import Pipeline from "./pages/Pipeline";
 import Agent from "./pages/Agent";
 // Auth temporarily disabled
 // import Login from "./pages/Login";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/receivables" element={<AppLayout><Receivables /></AppLayout>} />
             <Route path="/investors" element={<AppLayout><Investors /></AppLayout>} />
             <Route path="/investors/:id" element={<AppLayout><InvestorDetails /></AppLayout>} />
+            <Route path="/pipeline" element={<AppLayout><Pipeline /></AppLayout>} />
             <Route path="/agent" element={<AppLayout><Agent /></AppLayout>} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

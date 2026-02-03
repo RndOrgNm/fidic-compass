@@ -27,7 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { investorsData } from "@/data/mockData";
+import { investorsData } from "@/data";
 import { NewInvestorModal } from "./NewInvestorModal";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";

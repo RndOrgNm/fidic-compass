@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { receivablesData, bankTransactionsData } from "@/data/mockData";
+import { receivablesData, bankTransactionsData } from "@/data";
 import { ReceivablesTable } from "./ReceivablesTable";
 import { TransactionsTable } from "./TransactionsTable";
 import { ReconciliationFooter } from "./ReconciliationFooter";

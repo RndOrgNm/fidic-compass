@@ -2,7 +2,7 @@ import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { exceptionsData } from "@/data/mockData";
+import { exceptionsData } from "@/data";
 import { ExceptionCard } from "./ExceptionCard";
 import { ExceptionDetailsModal } from "./ExceptionDetailsModal";
 import { toast } from "@/hooks/use-toast";

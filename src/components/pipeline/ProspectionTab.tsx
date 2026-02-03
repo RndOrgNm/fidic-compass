@@ -9,40 +9,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { NewInvestorModal } from "./NewInvestorModal";
-import { OnboardingKanban } from "./OnboardingKanban";
-import { OnboardingListView } from "./OnboardingListView";
-import { onboardingWorkflowsData } from "@/data";
+import { NewProspectionModal } from "./NewProspectionModal";
+import { ProspectionKanban } from "./ProspectionKanban";
+import { ProspectionListView } from "./ProspectionListView";
+import { prospectionWorkflowsData } from "@/data";
 
-export function OnboardingPipelineTab() {
-  const [workflows, setWorkflows] = useState(onboardingWorkflowsData);
-  const [showNewInvestorModal, setShowNewInvestorModal] = useState(false);
+export function ProspectionTab() {
+  const [workflows, setWorkflows] = useState(prospectionWorkflowsData);
+  const [showNewModal, setShowNewModal] = useState(false);
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [statusFilter, setStatusFilter] = useState("all");
   const [assignedFilter, setAssignedFilter] = useState("all");
   const [slaFilter, setSlaFilter] = useState("all");
+  const [segmentFilter, setSegmentFilter] = useState("all");
 
   const filteredWorkflows = workflows.filter((wf) => {
-    if (statusFilter !== "all" && wf.workflowStatus !== statusFilter) return false;
+    if (statusFilter !== "all" && wf.status !== statusFilter) return false;
     
     if (assignedFilter === "mine" && wf.assignedTo !== "Maria Silva") return false;
     if (assignedFilter === "unassigned" && wf.assignedTo !== null) return false;
     
-    if (slaFilter !== "all") {
+    if (segmentFilter !== "all" && wf.cedenteSegment !== segmentFilter) return false;
+    
+    if (slaFilter !== "all" && wf.slaDeadline) {
       const now = new Date();
-      const deadline = wf.slaDeadline ? new Date(wf.slaDeadline) : null;
+      const deadline = new Date(wf.slaDeadline);
+      const daysRemaining = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       
-      if (slaFilter === "within" && deadline) {
-        const daysRemaining = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        if (daysRemaining <= 2) return false;
-      }
-      if (slaFilter === "approaching" && deadline) {
-        const daysRemaining = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        if (daysRemaining < 1 || daysRemaining > 2) return false;
-      }
-      if (slaFilter === "overdue" && deadline) {
-        if (deadline.getTime() > now.getTime()) return false;
-      }
+      if (slaFilter === "within" && daysRemaining <= 2) return false;
+      if (slaFilter === "approaching" && (daysRemaining < 1 || daysRemaining > 2)) return false;
+      if (slaFilter === "overdue" && deadline.getTime() > now.getTime()) return false;
     }
     
     return true;
@@ -50,11 +46,10 @@ export function OnboardingPipelineTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Pipeline de Onboarding</CardTitle>
+            <CardTitle>Pipeline de Prospecção</CardTitle>
             <div className="flex items-center gap-2">
               <div className="flex border rounded-md">
                 <Button
@@ -76,27 +71,27 @@ export function OnboardingPipelineTab() {
                   Lista
                 </Button>
               </div>
-              <Button onClick={() => setShowNewInvestorModal(true)}>
+              <Button onClick={() => setShowNewModal(true)}>
                 <Plus className="h-4 w-4" />
-                Novo Onboarding
+                Novo Lead
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {/* Filters */}
           <div className="flex flex-wrap gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Status</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="started">Iniciado</SelectItem>
-                  <SelectItem value="documents_pending">Docs Pendentes</SelectItem>
-                  <SelectItem value="compliance_review">Em Análise</SelectItem>
+                  <SelectItem value="lead">Lead</SelectItem>
+                  <SelectItem value="contact">Em Contato</SelectItem>
+                  <SelectItem value="documents">Documentação</SelectItem>
+                  <SelectItem value="credit_analysis">Análise de Crédito</SelectItem>
                   <SelectItem value="approved">Aprovado</SelectItem>
                   <SelectItem value="rejected">Rejeitado</SelectItem>
                 </SelectContent>
@@ -104,9 +99,26 @@ export function OnboardingPipelineTab() {
             </div>
 
             <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Segmento</label>
+              <Select value={segmentFilter} onValueChange={setSegmentFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Segmento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="comercio">Comércio</SelectItem>
+                  <SelectItem value="industria">Indústria</SelectItem>
+                  <SelectItem value="servicos">Serviços</SelectItem>
+                  <SelectItem value="agronegocio">Agronegócio</SelectItem>
+                  <SelectItem value="varejo">Varejo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Atribuído a</label>
               <Select value={assignedFilter} onValueChange={setAssignedFilter}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Atribuído a" />
                 </SelectTrigger>
                 <SelectContent>
@@ -120,7 +132,7 @@ export function OnboardingPipelineTab() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">SLA</label>
               <Select value={slaFilter} onValueChange={setSlaFilter}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="SLA" />
                 </SelectTrigger>
                 <SelectContent>
@@ -135,19 +147,18 @@ export function OnboardingPipelineTab() {
         </CardContent>
       </Card>
 
-      {/* View Content */}
       {viewMode === "kanban" ? (
-        <OnboardingKanban
+        <ProspectionKanban
           workflows={filteredWorkflows}
           setWorkflows={setWorkflows}
         />
       ) : (
-        <OnboardingListView workflows={filteredWorkflows} />
+        <ProspectionListView workflows={filteredWorkflows} />
       )}
 
-      <NewInvestorModal
-        open={showNewInvestorModal}
-        onOpenChange={setShowNewInvestorModal}
+      <NewProspectionModal
+        open={showNewModal}
+        onOpenChange={setShowNewModal}
       />
     </div>
   );

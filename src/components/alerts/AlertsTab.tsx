@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { overdueAlertsData } from "@/data/mockData";
+import { overdueAlertsData } from "@/data";
 import { AlertCard } from "./AlertCard";
 import { toast } from "@/hooks/use-toast";
 

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Shield, AlertTriangle, Newspaper, BarChart, ChevronDown, ChevronUp } from "lucide-react";
-import { investorComplianceChecks } from "@/data/mockData";
+import { investorComplianceChecks } from "@/data";
 import { toast } from "@/hooks/use-toast";
 
 interface InvestorComplianceProps {

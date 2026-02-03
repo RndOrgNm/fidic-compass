@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { investorDetailData } from "@/data/mockData";
+import { investorDetailData } from "@/data";
 import { InvestorBasicInfo } from "@/components/investor-details/InvestorBasicInfo";
 import { InvestorDocuments } from "@/components/investor-details/InvestorDocuments";
 import { InvestorInvestments } from "@/components/investor-details/InvestorInvestments";

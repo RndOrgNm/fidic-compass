@@ -18,7 +18,7 @@ import {
   UserPlus,
   PartyPopper,
 } from "lucide-react";
-import { investorActivityHistory } from "@/data/mockData";
+import { investorActivityHistory } from "@/data";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";

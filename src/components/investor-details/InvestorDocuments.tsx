@@ -25,7 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { investorDocuments } from "@/data/mockData";
+import { investorDocuments } from "@/data";
 import { toast } from "@/hooks/use-toast";
 import { differenceInDays } from "date-fns";
 

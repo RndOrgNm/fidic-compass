@@ -1,4 +1,4 @@
-import { Home, BarChart3, Receipt, Users, Bot, LogOut, TrendingUp } from "lucide-react";
+import { Home, BarChart3, Receipt, Users, Bot, LogOut, TrendingUp, GitBranch } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -19,6 +19,7 @@ const menuItems = [
   { title: "Home", url: "/", icon: Home },
   { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
   { title: "Gestão de Recebimentos", url: "/receivables", icon: Receipt },
+  { title: "Pipeline", url: "/pipeline", icon: GitBranch },
   { title: "CRM", url: "/investors", icon: Users },
   { title: "Chatbot", url: "/agent", icon: Bot },
 ];

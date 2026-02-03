@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, ArrowLeftRight, PhoneCall, Users, Shield, Bot } from "lucide-react";
+import { BarChart3, ArrowLeftRight, PhoneCall, Users, Shield, Bot, GitBranch } from "lucide-react";
 
 const features = [
   {
@@ -18,6 +18,14 @@ const features = [
     color: "text-success",
     bgColor: "bg-success/10",
     route: "/receivables",
+  },
+  {
+    title: "Pipeline de Investimentos",
+    description: "Prospecção e alocação de recebíveis em fundos",
+    icon: GitBranch,
+    color: "text-orange-600",
+    bgColor: "bg-orange-100",
+    route: "/pipeline",
   },
   {
     title: "CRM",
