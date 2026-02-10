@@ -6,15 +6,37 @@ import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Clock, AlertTriangle, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { useAssignWorkflow } from "@/hooks/useProspection";
+import type { ProspectionWorkflow, Segment } from "@/lib/api/prospectionService";
 
 interface WorkflowCardProps {
-  workflow: any;
+  workflow: ProspectionWorkflow;
 }
+
+const STEP_LABELS: Record<string, string> = {
+  initial_contact: "Contato Inicial",
+  proposal_sent: "Proposta Enviada",
+  document_collection: "Coleta de Documentos",
+  risk_assessment: "Avaliação de Risco",
+  committee_review: "Revisão do Comitê",
+  completed: "Concluído",
+};
+
+const SEGMENT_LABELS: Record<Segment, string> = {
+  comercio: "Comércio",
+  industria: "Indústria",
+  servicos: "Serviços",
+  agronegocio: "Agronegócio",
+  varejo: "Varejo",
+  insumos: "Insumos",
+};
 
 export function WorkflowCard({ workflow }: WorkflowCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: workflow.id,
   });
+
+  const assignMutation = useAssignWorkflow();
 
   const style = transform
     ? {
@@ -23,23 +45,28 @@ export function WorkflowCard({ workflow }: WorkflowCardProps) {
       }
     : undefined;
 
-  const formatTaxId = (taxId: string) => {
-    if (taxId.includes("-")) {
-      return taxId;
-    }
-    return taxId.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+  const formatCnpj = (cnpj: string) => {
+    if (!cnpj) return "";
+    if (cnpj.includes("/") || cnpj.includes(".")) return cnpj;
+    return cnpj.replace(
+      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+      "$1.$2.$3/$4-$5"
+    );
   };
 
   const getProgressPercentage = () => {
-    return Math.round((workflow.completedSteps / workflow.totalSteps) * 100);
+    if (workflow.total_steps === 0) return 0;
+    return Math.round((workflow.completed_steps / workflow.total_steps) * 100);
   };
 
   const getSLABadge = () => {
-    if (!workflow.slaDeadline) return null;
+    if (!workflow.sla_deadline) return null;
 
     const now = new Date();
-    const deadline = new Date(workflow.slaDeadline);
-    const daysRemaining = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const deadline = new Date(workflow.sla_deadline);
+    const daysRemaining = Math.ceil(
+      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     if (daysRemaining > 2) {
       return (
@@ -65,20 +92,21 @@ export function WorkflowCard({ workflow }: WorkflowCardProps) {
     }
   };
 
-  const getTypeBadge = (type: string) => {
-    if (type === "individual") {
-      return <Badge className="bg-blue-100 text-blue-800">PF</Badge>;
-    }
-    return <Badge className="bg-purple-100 text-purple-800">PJ</Badge>;
+  const getSegmentBadge = () => {
+    if (!workflow.cedente_segment) return null;
+    const label = SEGMENT_LABELS[workflow.cedente_segment] || workflow.cedente_segment;
+    return <Badge className="bg-indigo-100 text-indigo-800">{label}</Badge>;
   };
 
   const getStatusBorderClass = () => {
-    switch (workflow.workflowStatus) {
-      case "started":
+    switch (workflow.status) {
+      case "lead":
+        return "border-l-4 border-gray-500";
+      case "contact":
         return "border-l-4 border-blue-500";
-      case "documents_pending":
+      case "documents":
         return "border-l-4 border-yellow-500";
-      case "compliance_review":
+      case "credit_analysis":
         return "border-l-4 border-purple-500";
       case "approved":
         return "border-l-4 border-green-500";
@@ -90,10 +118,26 @@ export function WorkflowCard({ workflow }: WorkflowCardProps) {
   };
 
   const handleAssignToMe = () => {
-    toast({
-      title: "Workflow atribuído",
-      description: "Workflow atribuído com sucesso",
-    });
+    // TODO: replace with actual logged-in user name
+    const currentUser = "Usuário Atual";
+    assignMutation.mutate(
+      { workflowId: workflow.id, assignedTo: currentUser },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Workflow atribuído",
+            description: "Workflow atribuído com sucesso",
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Erro ao atribuir workflow",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      }
+    );
   };
 
   const handleOpenWorkflow = () => {
@@ -122,11 +166,15 @@ export function WorkflowCard({ workflow }: WorkflowCardProps) {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <GripVertical className="h-4 w-4 text-muted-foreground" />
-              <span className="font-semibold">{workflow.investorName}</span>
-              {getTypeBadge(workflow.investorType)}
+              <span className="font-semibold text-sm">
+                {workflow.cedente_name || "Sem nome"}
+              </span>
             </div>
-            <div className="text-xs text-muted-foreground">
-              {formatTaxId(workflow.investorTaxId)}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {workflow.cedente_cnpj ? formatCnpj(workflow.cedente_cnpj) : "—"}
+              </span>
+              {getSegmentBadge()}
             </div>
           </div>
         </div>
@@ -137,7 +185,7 @@ export function WorkflowCard({ workflow }: WorkflowCardProps) {
         <div className="space-y-1">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
-              {workflow.completedSteps} de {workflow.totalSteps} etapas
+              {workflow.completed_steps} de {workflow.total_steps} etapas
             </span>
             <span className="font-medium">{getProgressPercentage()}%</span>
           </div>
@@ -148,46 +196,32 @@ export function WorkflowCard({ workflow }: WorkflowCardProps) {
         <div className="text-sm">
           <span className="text-muted-foreground">Etapa atual:</span>
           <div className="font-medium mt-1">
-            {workflow.currentStep === "basic_information" && "Dados cadastrais"}
-            {workflow.currentStep === "upload_documents" && "Upload de documentos"}
-            {workflow.currentStep === "compliance_analysis" && "Análise de compliance"}
-            {workflow.currentStep === "completed" && "Concluído"}
-            {!["basic_information", "upload_documents", "compliance_analysis", "completed"].includes(
-              workflow.currentStep
-            ) && workflow.currentStep}
+            {STEP_LABELS[workflow.current_step] || workflow.current_step}
           </div>
         </div>
 
         {/* Management Info */}
         <div className="flex flex-wrap gap-2 text-xs">
-          {workflow.assignedTo ? (
-            <Badge variant="outline">{workflow.assignedTo}</Badge>
+          {workflow.assigned_to ? (
+            <Badge variant="outline">{workflow.assigned_to}</Badge>
           ) : (
             <Badge variant="outline" className="bg-yellow-50">
               Não atribuído
             </Badge>
           )}
-          <Badge variant="outline">{workflow.daysInProgress} dias</Badge>
+          <Badge variant="outline">{workflow.days_in_progress} dias</Badge>
           {getSLABadge()}
         </div>
 
         {/* Pending Items */}
-        {workflow.pendingItems && workflow.pendingItems.length > 0 && (
+        {workflow.pending_items && workflow.pending_items.length > 0 && (
           <div className="space-y-1">
-            {workflow.pendingItems.map((item: string, idx: number) => (
+            {workflow.pending_items.map((item: string, idx: number) => (
               <div key={idx} className="flex items-start gap-2 text-xs text-red-600">
                 <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
                 <span>{item}</span>
               </div>
             ))}
-          </div>
-        )}
-
-        {/* Rejection Reason */}
-        {workflow.rejectionReason && (
-          <div className="p-2 bg-red-50 border border-red-200 rounded-md text-xs text-red-800">
-            <div className="font-medium mb-1">Motivo da rejeição:</div>
-            {workflow.rejectionReason}
           </div>
         )}
       </CardContent>
@@ -196,14 +230,15 @@ export function WorkflowCard({ workflow }: WorkflowCardProps) {
         <Button size="sm" className="w-full" onClick={handleOpenWorkflow}>
           Abrir Workflow
         </Button>
-        {!workflow.assignedTo && (
+        {!workflow.assigned_to && (
           <Button
             size="sm"
             variant="outline"
             className="w-full"
             onClick={handleAssignToMe}
+            disabled={assignMutation.isPending}
           >
-            Atribuir p/ Mim
+            {assignMutation.isPending ? "Atribuindo..." : "Atribuir p/ Mim"}
           </Button>
         )}
       </CardFooter>
