@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import { useCreateNewLead } from "@/hooks/useProspection";
+import type { Segment } from "@/lib/api/prospectionService";
 
 interface NewProspectionModalProps {
   open: boolean;
@@ -32,7 +34,8 @@ export function NewProspectionModal({ open, onOpenChange }: NewProspectionModalP
   const [contactPhone, setContactPhone] = useState("");
   const [segment, setSegment] = useState("");
   const [estimatedVolume, setEstimatedVolume] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createLead = useCreateNewLead();
 
   const formatCnpj = (value: string) => {
     const numbers = value.replace(/\D/g, "");
@@ -69,7 +72,17 @@ export function NewProspectionModal({ open, onOpenChange }: NewProspectionModalP
     setContactPhone(formatPhone(e.target.value));
   };
 
-  const handleSubmit = async () => {
+  const resetForm = () => {
+    setCompanyName("");
+    setCnpj("");
+    setContactName("");
+    setContactEmail("");
+    setContactPhone("");
+    setSegment("");
+    setEstimatedVolume("");
+  };
+
+  const handleSubmit = () => {
     if (!companyName || !cnpj || !contactName || !segment) {
       toast({
         title: "Campos obrigatórios",
@@ -79,24 +92,34 @@ export function NewProspectionModal({ open, onOpenChange }: NewProspectionModalP
       return;
     }
 
-    setIsSubmitting(true);
-    
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    toast({
-      title: "Lead criado com sucesso",
-      description: `${companyName} foi adicionado ao pipeline de prospecção`,
-    });
-
-    setCompanyName("");
-    setCnpj("");
-    setContactName("");
-    setContactEmail("");
-    setContactPhone("");
-    setSegment("");
-    setEstimatedVolume("");
-    setIsSubmitting(false);
-    onOpenChange(false);
+    createLead.mutate(
+      {
+        company_name: companyName,
+        cnpj,
+        contact_name: contactName,
+        contact_email: contactEmail,
+        contact_phone: contactPhone,
+        segment: segment as Segment,
+        estimated_volume: estimatedVolume ? parseFloat(estimatedVolume) : 0,
+      },
+      {
+        onSuccess: (data) => {
+          toast({
+            title: "Lead criado com sucesso",
+            description: `${data.company_name} foi adicionado ao pipeline de prospecção`,
+          });
+          resetForm();
+          onOpenChange(false);
+        },
+        onError: (error) => {
+          toast({
+            title: "Erro ao criar lead",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      }
+    );
   };
 
   return (
@@ -149,6 +172,7 @@ export function NewProspectionModal({ open, onOpenChange }: NewProspectionModalP
                 <SelectItem value="servicos">Serviços</SelectItem>
                 <SelectItem value="agronegocio">Agronegócio</SelectItem>
                 <SelectItem value="varejo">Varejo</SelectItem>
+                <SelectItem value="insumos">Insumos</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -204,8 +228,8 @@ export function NewProspectionModal({ open, onOpenChange }: NewProspectionModalP
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Criando..." : "Criar Lead"}
+          <Button onClick={handleSubmit} disabled={createLead.isPending}>
+            {createLead.isPending ? "Criando..." : "Criar Lead"}
           </Button>
         </DialogFooter>
       </DialogContent>

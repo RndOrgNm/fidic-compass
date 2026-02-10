@@ -13,13 +13,16 @@ import {
 } from "@/components/ui/table";
 import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
 
 interface ProspectionListViewProps {
-  workflows: any[];
+  workflows: ProspectionWorkflow[];
 }
 
 export function ProspectionListView({ workflows }: ProspectionListViewProps) {
   const formatCnpj = (cnpj: string) => {
+    if (!cnpj) return "";
+    if (cnpj.includes("/") || cnpj.includes(".")) return cnpj;
     return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
   };
 
@@ -32,15 +35,16 @@ export function ProspectionListView({ workflows }: ProspectionListViewProps) {
     }).format(value);
   };
 
-  const getProgressPercentage = (workflow: any) => {
-    return Math.round((workflow.completedSteps / workflow.totalSteps) * 100);
+  const getProgressPercentage = (workflow: ProspectionWorkflow) => {
+    if (workflow.total_steps === 0) return 0;
+    return Math.round((workflow.completed_steps / workflow.total_steps) * 100);
   };
 
-  const getSLABadge = (workflow: any) => {
-    if (!workflow.slaDeadline) return null;
+  const getSLABadge = (workflow: ProspectionWorkflow) => {
+    if (!workflow.sla_deadline) return null;
 
     const now = new Date();
-    const deadline = new Date(workflow.slaDeadline);
+    const deadline = new Date(workflow.sla_deadline);
     const daysRemaining = Math.ceil(
       (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -83,13 +87,15 @@ export function ProspectionListView({ workflows }: ProspectionListViewProps) {
     return <Badge className={badge.className}>{badge.label}</Badge>;
   };
 
-  const getSegmentBadge = (segment: string) => {
+  const getSegmentBadge = (segment: string | null) => {
+    if (!segment) return null;
     const segments: Record<string, { label: string; className: string }> = {
       comercio: { label: "Comércio", className: "bg-blue-100 text-blue-800" },
       industria: { label: "Indústria", className: "bg-purple-100 text-purple-800" },
       servicos: { label: "Serviços", className: "bg-cyan-100 text-cyan-800" },
       agronegocio: { label: "Agro", className: "bg-green-100 text-green-800" },
       varejo: { label: "Varejo", className: "bg-orange-100 text-orange-800" },
+      insumos: { label: "Insumos", className: "bg-amber-100 text-amber-800" },
     };
     const seg = segments[segment] || { label: segment, className: "bg-gray-100 text-gray-800" };
     return <Badge className={seg.className}>{seg.label}</Badge>;
@@ -131,19 +137,21 @@ export function ProspectionListView({ workflows }: ProspectionListViewProps) {
                 </TableCell>
                 <TableCell>
                   <div>
-                    <div className="font-medium">{workflow.cedenteName}</div>
+                    <div className="font-medium">
+                      {workflow.cedente_name || "Sem nome"}
+                    </div>
                     <div className="text-sm text-muted-foreground">
-                      {formatCnpj(workflow.cedenteCnpj)}
+                      {workflow.cedente_cnpj ? formatCnpj(workflow.cedente_cnpj) : "—"}
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>{getSegmentBadge(workflow.cedenteSegment)}</TableCell>
+                <TableCell>{getSegmentBadge(workflow.cedente_segment)}</TableCell>
                 <TableCell>{getStatusBadge(workflow.status)}</TableCell>
                 <TableCell>
                   <div className="space-y-1 min-w-[120px]">
                     <div className="flex items-center justify-between text-xs">
                       <span>
-                        {workflow.completedSteps} de {workflow.totalSteps}
+                        {workflow.completed_steps} de {workflow.total_steps}
                       </span>
                       <span>{getProgressPercentage(workflow)}%</span>
                     </div>
@@ -152,12 +160,12 @@ export function ProspectionListView({ workflows }: ProspectionListViewProps) {
                 </TableCell>
                 <TableCell>
                   <span className="font-medium">
-                    {formatCurrency(workflow.estimatedVolume || 0)}
+                    {formatCurrency(workflow.estimated_volume || 0)}
                   </span>
                 </TableCell>
                 <TableCell>
-                  {workflow.assignedTo ? (
-                    <Badge variant="outline">{workflow.assignedTo}</Badge>
+                  {workflow.assigned_to ? (
+                    <Badge variant="outline">{workflow.assigned_to}</Badge>
                   ) : (
                     <Badge variant="outline" className="bg-yellow-50">
                       Não atribuído
@@ -165,15 +173,15 @@ export function ProspectionListView({ workflows }: ProspectionListViewProps) {
                   )}
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{workflow.daysInProgress} dias</span>
+                  <span className="text-sm">{workflow.days_in_progress} dias</span>
                 </TableCell>
                 <TableCell>{getSLABadge(workflow)}</TableCell>
                 <TableCell>
-                  {workflow.pendingItems && workflow.pendingItems.length > 0 ? (
+                  {workflow.pending_items && workflow.pending_items.length > 0 ? (
                     <div className="flex items-center gap-1">
                       <AlertCircle className="h-4 w-4 text-red-600" />
                       <span className="text-sm font-medium text-red-600">
-                        {workflow.pendingItems.length}
+                        {workflow.pending_items.length}
                       </span>
                     </div>
                   ) : (

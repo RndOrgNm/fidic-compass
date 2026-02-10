@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, LayoutList, LayoutGrid } from "lucide-react";
+import { Plus, LayoutList, LayoutGrid, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,10 +12,15 @@ import {
 import { NewProspectionModal } from "./NewProspectionModal";
 import { ProspectionKanban } from "./ProspectionKanban";
 import { ProspectionListView } from "./ProspectionListView";
-import { prospectionWorkflowsData } from "@/data";
+import { useProspectionWorkflows } from "@/hooks/useProspection";
+import type {
+  ProspectionStatus,
+  Segment,
+  WorkflowFilters,
+  ProspectionWorkflow,
+} from "@/lib/api/prospectionService";
 
 export function ProspectionTab() {
-  const [workflows, setWorkflows] = useState(prospectionWorkflowsData);
   const [showNewModal, setShowNewModal] = useState(false);
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -23,26 +28,38 @@ export function ProspectionTab() {
   const [slaFilter, setSlaFilter] = useState("all");
   const [segmentFilter, setSegmentFilter] = useState("all");
 
-  const filteredWorkflows = workflows.filter((wf) => {
-    if (statusFilter !== "all" && wf.status !== statusFilter) return false;
-    
-    if (assignedFilter === "mine" && wf.assignedTo !== "Maria Silva") return false;
-    if (assignedFilter === "unassigned" && wf.assignedTo !== null) return false;
-    
-    if (segmentFilter !== "all" && wf.cedenteSegment !== segmentFilter) return false;
-    
-    if (slaFilter !== "all" && wf.slaDeadline) {
-      const now = new Date();
-      const deadline = new Date(wf.slaDeadline);
-      const daysRemaining = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (slaFilter === "within" && daysRemaining <= 2) return false;
-      if (slaFilter === "approaching" && (daysRemaining < 1 || daysRemaining > 2)) return false;
-      if (slaFilter === "overdue" && deadline.getTime() > now.getTime()) return false;
+  // Build API filters
+  const apiFilters: WorkflowFilters = {};
+  if (statusFilter !== "all") {
+    apiFilters.status = statusFilter as ProspectionStatus;
+  }
+  if (segmentFilter !== "all") {
+    apiFilters.segment = segmentFilter as Segment;
+  }
+
+  const { data, isLoading, isError, error } = useProspectionWorkflows(apiFilters);
+
+  // Client-side filtering for assigned and SLA (not supported by backend)
+  const filteredWorkflows: ProspectionWorkflow[] = (data?.items ?? []).filter(
+    (wf) => {
+      if (assignedFilter === "unassigned" && wf.assigned_to !== null) return false;
+      // "mine" would require knowing the current user; skip for now
+
+      if (slaFilter !== "all" && wf.sla_deadline) {
+        const now = new Date();
+        const deadline = new Date(wf.sla_deadline);
+        const daysRemaining = Math.ceil(
+          (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (slaFilter === "within" && daysRemaining <= 2) return false;
+        if (slaFilter === "approaching" && (daysRemaining < 1 || daysRemaining > 2)) return false;
+        if (slaFilter === "overdue" && deadline.getTime() > now.getTime()) return false;
+      }
+
+      return true;
     }
-    
-    return true;
-  });
+  );
 
   return (
     <div className="space-y-6">
@@ -111,6 +128,7 @@ export function ProspectionTab() {
                   <SelectItem value="servicos">Serviços</SelectItem>
                   <SelectItem value="agronegocio">Agronegócio</SelectItem>
                   <SelectItem value="varejo">Varejo</SelectItem>
+                  <SelectItem value="insumos">Insumos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -147,13 +165,30 @@ export function ProspectionTab() {
         </CardContent>
       </Card>
 
-      {viewMode === "kanban" ? (
-        <ProspectionKanban
-          workflows={filteredWorkflows}
-          setWorkflows={setWorkflows}
-        />
-      ) : (
-        <ProspectionListView workflows={filteredWorkflows} />
+      {/* Loading / Error states */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-muted-foreground">Carregando workflows...</span>
+        </div>
+      )}
+
+      {isError && (
+        <div className="flex items-center justify-center py-12">
+          <p className="text-destructive">
+            Erro ao carregar workflows: {error?.message}
+          </p>
+        </div>
+      )}
+
+      {!isLoading && !isError && (
+        <>
+          {viewMode === "kanban" ? (
+            <ProspectionKanban workflows={filteredWorkflows} />
+          ) : (
+            <ProspectionListView workflows={filteredWorkflows} />
+          )}
+        </>
       )}
 
       <NewProspectionModal
