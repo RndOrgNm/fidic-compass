@@ -1,8 +1,9 @@
-import { DndContext, DragEndEvent, closestCorners } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverlay, closestCorners, useDroppable } from "@dnd-kit/core";
 import { Badge } from "@/components/ui/badge";
 import { WorkflowCard } from "./WorkflowCard";
 import { toast } from "@/hooks/use-toast";
 import { useTransitionWorkflow } from "@/hooks/useProspection";
+import { cn } from "@/lib/utils";
 import type { ProspectionWorkflow, ProspectionStatus } from "@/lib/api/prospectionService";
 
 interface OnboardingKanbanProps {
@@ -18,22 +19,63 @@ const columns: { id: ProspectionStatus; title: string; color: string }[] = [
   { id: "rejected", title: "Rejeitado", color: "border-red-500" },
 ];
 
+// ── Droppable column component ─────────────────────────────────────────────────
+
+interface KanbanColumnProps {
+  id: ProspectionStatus;
+  title: string;
+  color: string;
+  workflows: ProspectionWorkflow[];
+}
+
+function KanbanColumn({ id, title, color, workflows }: KanbanColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "space-y-4 border-t-4 rounded-t-md bg-muted/30 p-4 min-h-[600px] transition-colors",
+        color,
+        isOver && "bg-primary/10 ring-2 ring-primary/30"
+      )}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold text-sm">{title}</h3>
+        <Badge variant="secondary">{workflows.length}</Badge>
+      </div>
+      <div className="space-y-3">
+        {workflows.map((workflow) => (
+          <WorkflowCard key={workflow.id} workflow={workflow} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Kanban board ───────────────────────────────────────────────────────────────
+
 export function OnboardingKanban({ workflows }: OnboardingKanbanProps) {
   const transitionMutation = useTransitionWorkflow();
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over || active.id === over.id) return;
+    if (!over) return;
 
     const workflowId = active.id as string;
-    const newStatus = over.id as ProspectionStatus;
+    const targetColumnId = over.id as ProspectionStatus;
+
+    // Find the workflow being dragged to check its current status
+    const draggedWorkflow = workflows.find((wf) => wf.id === workflowId);
+    if (!draggedWorkflow || draggedWorkflow.status === targetColumnId) return;
 
     transitionMutation.mutate(
-      { workflowId, data: { status: newStatus } },
+      { workflowId, data: { status: targetColumnId } },
       {
         onSuccess: () => {
-          const columnTitle = columns.find((c) => c.id === newStatus)?.title || newStatus;
+          const columnTitle =
+            columns.find((c) => c.id === targetColumnId)?.title || targetColumnId;
           toast({
             title: "Workflow movido",
             description: `Workflow movido para ${columnTitle}`,
@@ -57,25 +99,15 @@ export function OnboardingKanban({ workflows }: OnboardingKanbanProps) {
   return (
     <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {columns.map((column) => {
-          const columnWorkflows = getWorkflowsByStatus(column.id);
-          return (
-            <div
-              key={column.id}
-              className={`space-y-4 border-t-4 ${column.color} rounded-t-md bg-muted/30 p-4 min-h-[600px]`}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-sm">{column.title}</h3>
-                <Badge variant="secondary">{columnWorkflows.length}</Badge>
-              </div>
-              <div className="space-y-3">
-                {columnWorkflows.map((workflow) => (
-                  <WorkflowCard key={workflow.id} workflow={workflow} />
-                ))}
-              </div>
-            </div>
-          );
-        })}
+        {columns.map((column) => (
+          <KanbanColumn
+            key={column.id}
+            id={column.id}
+            title={column.title}
+            color={column.color}
+            workflows={getWorkflowsByStatus(column.id)}
+          />
+        ))}
       </div>
     </DndContext>
   );
