@@ -12,41 +12,28 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
-import type { ProspectionWorkflow, Segment } from "@/lib/api/prospectionService";
 
 interface OnboardingListViewProps {
-  workflows: ProspectionWorkflow[];
+  workflows: any[];
 }
 
-const SEGMENT_LABELS: Record<Segment, string> = {
-  comercio: "Comércio",
-  industria: "Indústria",
-  servicos: "Serviços",
-  agronegocio: "Agronegócio",
-  varejo: "Varejo",
-  insumos: "Insumos",
-};
-
 export function OnboardingListView({ workflows }: OnboardingListViewProps) {
-  const formatCnpj = (cnpj: string) => {
-    if (!cnpj) return "";
-    if (cnpj.includes("/") || cnpj.includes(".")) return cnpj;
-    return cnpj.replace(
-      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
-      "$1.$2.$3/$4-$5"
-    );
+  const formatTaxId = (taxId: string) => {
+    if (taxId.includes("-")) {
+      return taxId;
+    }
+    return taxId.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
   };
 
-  const getProgressPercentage = (workflow: ProspectionWorkflow) => {
-    if (workflow.total_steps === 0) return 0;
-    return Math.round((workflow.completed_steps / workflow.total_steps) * 100);
+  const getProgressPercentage = (workflow: any) => {
+    return Math.round((workflow.completedSteps / workflow.totalSteps) * 100);
   };
 
-  const getSLABadge = (workflow: ProspectionWorkflow) => {
-    if (!workflow.sla_deadline) return null;
+  const getSLABadge = (workflow: any) => {
+    if (!workflow.slaDeadline) return null;
 
     const now = new Date();
-    const deadline = new Date(workflow.sla_deadline);
+    const deadline = new Date(workflow.slaDeadline);
     const daysRemaining = Math.ceil(
       (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -77,14 +64,13 @@ export function OnboardingListView({ workflows }: OnboardingListViewProps) {
 
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { label: string; className: string }> = {
-      lead: { label: "Lead", className: "bg-gray-100 text-gray-800" },
-      contact: { label: "Contato", className: "bg-blue-100 text-blue-800" },
-      documents: {
-        label: "Documentação",
+      started: { label: "Iniciado", className: "bg-blue-100 text-blue-800" },
+      documents_pending: {
+        label: "Docs Pendentes",
         className: "bg-yellow-100 text-yellow-800",
       },
-      credit_analysis: {
-        label: "Análise de Crédito",
+      compliance_review: {
+        label: "Em Análise",
         className: "bg-purple-100 text-purple-800",
       },
       approved: { label: "Aprovado", className: "bg-green-100 text-green-800" },
@@ -98,10 +84,11 @@ export function OnboardingListView({ workflows }: OnboardingListViewProps) {
     return <Badge className={badge.className}>{badge.label}</Badge>;
   };
 
-  const getSegmentBadge = (segment: Segment | null) => {
-    if (!segment) return null;
-    const label = SEGMENT_LABELS[segment] || segment;
-    return <Badge className="bg-indigo-100 text-indigo-800">{label}</Badge>;
+  const getTypeBadge = (type: string) => {
+    if (type === "individual") {
+      return <Badge className="bg-blue-100 text-blue-800">PF</Badge>;
+    }
+    return <Badge className="bg-purple-100 text-purple-800">PJ</Badge>;
   };
 
   return (
@@ -113,7 +100,7 @@ export function OnboardingListView({ workflows }: OnboardingListViewProps) {
               <TableHead className="w-12">
                 <Checkbox />
               </TableHead>
-              <TableHead>Cedente</TableHead>
+              <TableHead>Investidor</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Progresso</TableHead>
               <TableHead>Atribuído a</TableHead>
@@ -132,36 +119,29 @@ export function OnboardingListView({ workflows }: OnboardingListViewProps) {
                 <TableCell>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        {workflow.cedente_name || "Sem nome"}
-                      </span>
-                      {getSegmentBadge(workflow.cedente_segment)}
+                      <span className="font-medium">{workflow.investorName}</span>
+                      {getTypeBadge(workflow.investorType)}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {workflow.cedente_cnpj
-                        ? formatCnpj(workflow.cedente_cnpj)
-                        : "—"}
+                      {formatTaxId(workflow.investorTaxId)}
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>{getStatusBadge(workflow.status)}</TableCell>
+                <TableCell>{getStatusBadge(workflow.workflowStatus)}</TableCell>
                 <TableCell>
                   <div className="space-y-1 min-w-[150px]">
                     <div className="flex items-center justify-between text-xs">
                       <span>
-                        {workflow.completed_steps} de {workflow.total_steps}
+                        {workflow.completedSteps} de {workflow.totalSteps}
                       </span>
                       <span>{getProgressPercentage(workflow)}%</span>
                     </div>
-                    <Progress
-                      value={getProgressPercentage(workflow)}
-                      className="h-2"
-                    />
+                    <Progress value={getProgressPercentage(workflow)} className="h-2" />
                   </div>
                 </TableCell>
                 <TableCell>
-                  {workflow.assigned_to ? (
-                    <Badge variant="outline">{workflow.assigned_to}</Badge>
+                  {workflow.assignedTo ? (
+                    <Badge variant="outline">{workflow.assignedTo}</Badge>
                   ) : (
                     <Badge variant="outline" className="bg-yellow-50">
                       Não atribuído
@@ -169,17 +149,15 @@ export function OnboardingListView({ workflows }: OnboardingListViewProps) {
                   )}
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">
-                    {workflow.days_in_progress} dias
-                  </span>
+                  <span className="text-sm">{workflow.daysInProgress} dias</span>
                 </TableCell>
                 <TableCell>{getSLABadge(workflow)}</TableCell>
                 <TableCell>
-                  {workflow.pending_items && workflow.pending_items.length > 0 ? (
+                  {workflow.pendingItems && workflow.pendingItems.length > 0 ? (
                     <div className="flex items-center gap-1">
                       <AlertCircle className="h-4 w-4 text-red-600" />
                       <span className="text-sm font-medium text-red-600">
-                        {workflow.pending_items.length}
+                        {workflow.pendingItems.length}
                       </span>
                     </div>
                   ) : (
