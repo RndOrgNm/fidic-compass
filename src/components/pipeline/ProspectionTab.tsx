@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, LayoutList, LayoutGrid, Loader2 } from "lucide-react";
+import { Plus, LayoutList, LayoutGrid, Loader2, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,7 +37,7 @@ export function ProspectionTab() {
     apiFilters.segment = segmentFilter as Segment;
   }
 
-  const { data, isLoading, isError, error } = useProspectionWorkflows(apiFilters);
+  const { data, isLoading, isFetching, isError, error, refetch } = useProspectionWorkflows(apiFilters);
 
   // Client-side filtering for assigned and SLA (not supported by backend)
   const filteredWorkflows: ProspectionWorkflow[] = (data?.items ?? []).filter(
@@ -88,6 +88,15 @@ export function ProspectionTab() {
                   Lista
                 </Button>
               </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => refetch()}
+                disabled={isFetching}
+              >
+                <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+                Atualizar
+              </Button>
               <Button onClick={() => setShowNewModal(true)}>
                 <Plus className="h-4 w-4" />
                 Novo Lead
