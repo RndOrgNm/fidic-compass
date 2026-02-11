@@ -227,14 +227,16 @@ export function ProspectionCard({ workflow }: ProspectionCardProps) {
         </div>
 
         {workflow.pending_items && workflow.pending_items.length > 0 && (
-          <TooltipProvider>
+          <TooltipProvider delayDuration={100}>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge className="bg-red-100 text-red-800 cursor-help">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {workflow.pending_items.length}{" "}
-                  {workflow.pending_items.length === 1 ? "pendência" : "pendências"}
-                </Badge>
+              <TooltipTrigger>
+                <button type="button" className="cursor-help">
+                  <Badge className="bg-red-100 text-red-800 pointer-events-none">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    {workflow.pending_items.length}{" "}
+                    {workflow.pending_items.length === 1 ? "pendência" : "pendências"}
+                  </Badge>
+                </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[250px]">
                 <ul className="text-sm space-y-1">
