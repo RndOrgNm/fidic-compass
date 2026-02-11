@@ -38,7 +38,7 @@ export function useCreateNewLead() {
 
 /**
  * Transition a workflow to a new status (used by drag-and-drop).
- * Invalidates the workflows list on success.
+ * Uses optimistic updates for instant UI feedback.
  */
 export function useTransitionWorkflow() {
   const queryClient = useQueryClient();
@@ -51,7 +51,43 @@ export function useTransitionWorkflow() {
       workflowId: string;
       data: TransitionRequest;
     }) => transitionWorkflow(workflowId, data),
-    onSuccess: () => {
+
+    // Optimistic update: move the card instantly before the API responds
+    onMutate: async ({ workflowId, data }) => {
+      // Cancel in-flight refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: [WORKFLOWS_KEY] });
+
+      // Snapshot the current cache for rollback
+      const previousData = queryClient.getQueriesData({ queryKey: [WORKFLOWS_KEY] });
+
+      // Optimistically update every matching cache entry
+      queryClient.setQueriesData(
+        { queryKey: [WORKFLOWS_KEY] },
+        (old: any) => {
+          if (!old?.items) return old;
+          return {
+            ...old,
+            items: old.items.map((wf: any) =>
+              wf.id === workflowId ? { ...wf, status: data.status } : wf
+            ),
+          };
+        }
+      );
+
+      return { previousData };
+    },
+
+    // If the API fails, roll back to the snapshot
+    onError: (_error, _variables, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]: [any, any]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+
+    // Always refetch after settled to ensure consistency with the backend
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
     },
   });
@@ -59,7 +95,7 @@ export function useTransitionWorkflow() {
 
 /**
  * Assign a workflow to a user.
- * Invalidates the workflows list on success.
+ * Uses optimistic updates for instant UI feedback.
  */
 export function useAssignWorkflow() {
   const queryClient = useQueryClient();
@@ -72,7 +108,38 @@ export function useAssignWorkflow() {
       workflowId: string;
       assignedTo: string;
     }) => assignWorkflow(workflowId, assignedTo),
-    onSuccess: () => {
+
+    // Optimistic update: show assignment instantly
+    onMutate: async ({ workflowId, assignedTo }) => {
+      await queryClient.cancelQueries({ queryKey: [WORKFLOWS_KEY] });
+
+      const previousData = queryClient.getQueriesData({ queryKey: [WORKFLOWS_KEY] });
+
+      queryClient.setQueriesData(
+        { queryKey: [WORKFLOWS_KEY] },
+        (old: any) => {
+          if (!old?.items) return old;
+          return {
+            ...old,
+            items: old.items.map((wf: any) =>
+              wf.id === workflowId ? { ...wf, assigned_to: assignedTo } : wf
+            ),
+          };
+        }
+      );
+
+      return { previousData };
+    },
+
+    onError: (_error, _variables, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]: [any, any]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
     },
   });
