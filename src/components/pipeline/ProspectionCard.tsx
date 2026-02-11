@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Clock, AlertTriangle, GripVertical, Building2, DollarSign } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useAssignWorkflow } from "@/hooks/useProspection";
@@ -226,19 +227,27 @@ export function ProspectionCard({ workflow }: ProspectionCardProps) {
         </div>
 
         {workflow.pending_items && workflow.pending_items.length > 0 && (
-          <div className="space-y-1">
-            {workflow.pending_items.slice(0, 2).map((item: string, idx: number) => (
-              <div key={idx} className="flex items-start gap-2 text-xs text-red-600">
-                <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                <span className="line-clamp-1">{item}</span>
-              </div>
-            ))}
-            {workflow.pending_items.length > 2 && (
-              <span className="text-xs text-muted-foreground">
-                +{workflow.pending_items.length - 2} pendências
-              </span>
-            )}
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className="bg-red-100 text-red-800 cursor-help">
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  {workflow.pending_items.length}{" "}
+                  {workflow.pending_items.length === 1 ? "pendência" : "pendências"}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[250px]">
+                <ul className="text-sm space-y-1">
+                  {workflow.pending_items.map((item: string, idx: number) => (
+                    <li key={idx} className="flex items-start gap-1.5">
+                      <span className="text-red-500 mt-0.5">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </CardContent>
 
