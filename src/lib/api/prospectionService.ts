@@ -154,7 +154,7 @@ export async function transitionWorkflow(
   data: TransitionRequest
 ): Promise<ProspectionWorkflow> {
   const response = await fetch(
-    `${FUNDS_API_BASE_URL}/prospection/${workflowId}/transition`,
+    `${FUNDS_API_BASE_URL}/prospection/${workflowId}/transition_BROKEN`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
