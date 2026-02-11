@@ -167,32 +167,34 @@ export function ProspectionCard({ workflow }: ProspectionCardProps) {
         <div
           {...listeners}
           {...attributes}
-          className="flex items-start justify-between gap-2"
+          className="space-y-2"
         >
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="font-semibold truncate">
-                {workflow.cedente_name || "Sem nome"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Building2 className="h-3 w-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">
-                {workflow.cedente_cnpj ? formatCnpj(workflow.cedente_cnpj) : "—"}
-              </span>
-            </div>
+          <div className="flex items-center gap-2">
+            <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <span className="font-semibold truncate">
+              {workflow.cedente_name || "Sem nome"}
+            </span>
           </div>
-          {getSegmentBadge(workflow.cedente_segment)}
+          <div className="flex items-center gap-2">
+            <Building2 className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+            <span className="text-xs text-muted-foreground truncate">
+              {workflow.cedente_cnpj ? formatCnpj(workflow.cedente_cnpj) : "—"}
+            </span>
+          </div>
+          {workflow.cedente_segment && (
+            <div>{getSegmentBadge(workflow.cedente_segment)}</div>
+          )}
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3 pb-3">
         {workflow.estimated_volume > 0 && (
-          <div className="flex items-center gap-2 text-sm">
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{formatCurrency(workflow.estimated_volume)}</span>
-            <span className="text-xs text-muted-foreground">volume estimado</span>
+          <div className="space-y-0.5">
+            <span className="text-xs text-muted-foreground">Vol. estimado</span>
+            <div className="flex items-center gap-1.5">
+              <DollarSign className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+              <span className="font-medium text-sm">{formatCurrency(workflow.estimated_volume)}</span>
+            </div>
           </div>
         )}
 

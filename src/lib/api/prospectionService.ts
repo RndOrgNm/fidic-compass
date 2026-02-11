@@ -38,8 +38,6 @@ export interface ProspectionWorkflow {
   pending_items: string[];
   sla_deadline: string | null;
   estimated_volume: number;
-  started_at: string;
-  last_activity_at: string;
   created_at: string;
   updated_at: string;
   cedente_name: string | null;
