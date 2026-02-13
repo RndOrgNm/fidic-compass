@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Clock, AlertTriangle, GripVertical, FileText, Building2, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -39,6 +40,22 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
+  };
+
+  const getProgressPercentage = () => {
+    if (!workflow.totalSteps) return 0;
+    return Math.round((workflow.completedSteps / workflow.totalSteps) * 100);
+  };
+
+  const getCurrentStepLabel = () => {
+    const steps: Record<string, string> = {
+      awaiting_selection: "Aguardando seleção",
+      fund_evaluation: "Avaliação do fundo",
+      compliance_verification: "Verificação compliance",
+      final_approval: "Aprovação final",
+      completed: "Concluído",
+    };
+    return steps[workflow.currentStep] || workflow.currentStep || "—";
   };
 
   const getSLABadge = () => {
@@ -165,6 +182,21 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
             <p className="text-sm font-medium">{workflow.fundName}</p>
           </div>
         )}
+
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">
+              {workflow.completedSteps ?? 0} de {workflow.totalSteps ?? 0} etapas
+            </span>
+            <span className="font-medium">{getProgressPercentage()}%</span>
+          </div>
+          <Progress value={getProgressPercentage()} className="h-2" />
+        </div>
+
+        <div className="text-sm">
+          <span className="text-muted-foreground">Etapa atual:</span>
+          <div className="font-medium mt-1">{getCurrentStepLabel()}</div>
+        </div>
 
         <div className="flex flex-wrap gap-2 text-xs">
           {workflow.assignedTo ? (

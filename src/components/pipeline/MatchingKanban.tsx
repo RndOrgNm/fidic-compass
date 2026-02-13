@@ -31,7 +31,7 @@ function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnP
     <div
       ref={setNodeRef}
       className={cn(
-        "space-y-4 border-t-4 rounded-t-md bg-muted/30 p-4 min-h-[600px] min-w-[260px] w-[260px] flex-shrink-0 transition-colors",
+        "space-y-4 border-t-4 rounded-t-md bg-muted/30 p-4 min-h-[600px] transition-colors",
         color,
         isOver && "bg-primary/10 ring-2 ring-primary/30"
       )}
@@ -96,7 +96,7 @@ export function MatchingKanban({ workflows, setWorkflows }: MatchingKanbanProps)
 
   return (
     <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {columns.map((column) => (
           <KanbanColumn
             key={column.id}
