@@ -2,8 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listAllocationWorkflows,
   transitionAllocationWorkflow,
+  createAllocationWorkflow,
   type AllocationWorkflowFilters,
   type TransitionAllocationRequest,
+  type AllocationWorkflowCreate,
   type AllocationStatus,
 } from "@/lib/api/allocationService";
 
@@ -64,6 +66,21 @@ export function useTransitionAllocationWorkflow() {
     },
 
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
+    },
+  });
+}
+
+/**
+ * Create a new allocation (matching) workflow.
+ * Invalidates the allocation workflows list on success.
+ */
+export function useCreateAllocationWorkflow() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: AllocationWorkflowCreate) => createAllocationWorkflow(data),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
     },
   });

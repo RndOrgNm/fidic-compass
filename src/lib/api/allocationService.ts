@@ -65,6 +65,15 @@ export interface TransitionAllocationRequest {
   pending_items?: string[];
 }
 
+/** Payload for creating a new allocation (matching) workflow. */
+export interface AllocationWorkflowCreate {
+  receivable_id: string;
+  fund_id?: string | null;
+  assigned_to?: string | null;
+  sla_deadline?: string | null;
+  pending_items?: string[];
+}
+
 // ── Filters ────────────────────────────────────────────────────────────────────
 
 export interface AllocationWorkflowFilters {
@@ -132,6 +141,26 @@ export async function transitionAllocationWorkflow(
       body: JSON.stringify(data),
     }
   );
+
+  return handleResponse<AllocationWorkflow>(response);
+}
+
+export async function createAllocationWorkflow(
+  data: AllocationWorkflowCreate
+): Promise<AllocationWorkflow> {
+  const body: Record<string, unknown> = {
+    receivable_id: data.receivable_id,
+  };
+  if (data.fund_id != null && data.fund_id !== "") body.fund_id = data.fund_id;
+  if (data.assigned_to != null && data.assigned_to !== "") body.assigned_to = data.assigned_to;
+  if (data.sla_deadline != null && data.sla_deadline !== "") body.sla_deadline = data.sla_deadline;
+  if (data.pending_items?.length) body.pending_items = data.pending_items;
+
+  const response = await fetch(`${FUNDS_API_BASE_URL}/matching`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
   return handleResponse<AllocationWorkflow>(response);
 }

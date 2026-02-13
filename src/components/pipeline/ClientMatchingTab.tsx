@@ -9,15 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { MatchingKanban } from "./MatchingKanban";
 import { MatchingListView } from "./MatchingListView";
+import { NewAllocationModal } from "./NewAllocationModal";
 import { fundsData } from "@/data";
 import { useAllocationWorkflows, useTransitionAllocationWorkflow } from "@/hooks/useAllocation";
 import type { AllocationWorkflow, AllocationStatus } from "@/lib/api/allocationService";
@@ -199,16 +193,10 @@ export function ClientMatchingTab() {
         <MatchingListView workflows={filteredWorkflows} />
       )}
 
-      <Dialog open={showNewAllocationModal} onOpenChange={setShowNewAllocationModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nova Alocação</DialogTitle>
-            <DialogDescription>
-              O formulário de nova alocação será implementado em breve.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <NewAllocationModal
+        open={showNewAllocationModal}
+        onOpenChange={setShowNewAllocationModal}
+      />
     </div>
   );
 }
