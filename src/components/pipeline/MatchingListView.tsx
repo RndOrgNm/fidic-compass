@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/table";
 import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import type { AllocationWorkflow } from "@/lib/api/allocationService";
 
 interface MatchingListViewProps {
-  workflows: any[];
+  workflows: AllocationWorkflow[];
 }
 
 export function MatchingListView({ workflows }: MatchingListViewProps) {
@@ -28,15 +29,16 @@ export function MatchingListView({ workflows }: MatchingListViewProps) {
     }).format(value);
   };
 
-  const getProgressPercentage = (workflow: any) => {
-    return Math.round((workflow.completedSteps / workflow.totalSteps) * 100);
+  const getProgressPercentage = (workflow: AllocationWorkflow) => {
+    if (!workflow.total_steps) return 0;
+    return Math.round((workflow.completed_steps / workflow.total_steps) * 100);
   };
 
-  const getSLABadge = (workflow: any) => {
-    if (!workflow.slaDeadline) return null;
+  const getSLABadge = (workflow: AllocationWorkflow) => {
+    if (!workflow.sla_deadline) return null;
 
     const now = new Date();
-    const deadline = new Date(workflow.slaDeadline);
+    const deadline = new Date(workflow.sla_deadline);
     const daysRemaining = Math.ceil(
       (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -124,28 +126,28 @@ export function MatchingListView({ workflows }: MatchingListViewProps) {
                   <Checkbox />
                 </TableCell>
                 <TableCell>
-                  <span className="font-medium">{workflow.receivableNumber}</span>
+                  <span className="font-medium">{workflow.receivable_number ?? "—"}</span>
                 </TableCell>
                 <TableCell>
                   <div className="max-w-[150px]">
-                    <div className="font-medium truncate">{workflow.cedenteName}</div>
+                    <div className="font-medium truncate">{workflow.cedente_name ?? "—"}</div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="max-w-[150px]">
-                    <div className="truncate">{workflow.debtorName}</div>
+                    <div className="truncate">{workflow.debtor_name ?? "—"}</div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <span className="font-medium">
-                    {formatCurrency(workflow.nominalValue)}
+                    {formatCurrency(workflow.nominal_value)}
                   </span>
                 </TableCell>
-                <TableCell>{getRiskBadge(workflow.riskScore)}</TableCell>
+                <TableCell>{getRiskBadge(workflow.risk_score)}</TableCell>
                 <TableCell>{getStatusBadge(workflow.status)}</TableCell>
                 <TableCell>
-                  {workflow.fundName ? (
-                    <Badge variant="outline">{workflow.fundName}</Badge>
+                  {workflow.fund_name ? (
+                    <Badge variant="outline">{workflow.fund_name}</Badge>
                   ) : (
                     <span className="text-sm text-muted-foreground">-</span>
                   )}
@@ -154,7 +156,7 @@ export function MatchingListView({ workflows }: MatchingListViewProps) {
                   <div className="space-y-1 min-w-[100px]">
                     <div className="flex items-center justify-between text-xs">
                       <span>
-                        {workflow.completedSteps}/{workflow.totalSteps}
+                        {workflow.completed_steps}/{workflow.total_steps}
                       </span>
                       <span>{getProgressPercentage(workflow)}%</span>
                     </div>
@@ -163,11 +165,11 @@ export function MatchingListView({ workflows }: MatchingListViewProps) {
                 </TableCell>
                 <TableCell>{getSLABadge(workflow)}</TableCell>
                 <TableCell>
-                  {workflow.pendingItems && workflow.pendingItems.length > 0 ? (
+                  {workflow.pending_items && workflow.pending_items.length > 0 ? (
                     <div className="flex items-center gap-1">
                       <AlertCircle className="h-4 w-4 text-red-600" />
                       <span className="text-sm font-medium text-red-600">
-                        {workflow.pendingItems.length}
+                        {workflow.pending_items.length}
                       </span>
                     </div>
                   ) : (

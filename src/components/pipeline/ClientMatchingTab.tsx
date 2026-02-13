@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutList, LayoutGrid, RefreshCw, Plus } from "lucide-react";
+import { LayoutList, LayoutGrid, RefreshCw, Plus, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,41 +18,48 @@ import {
 } from "@/components/ui/dialog";
 import { MatchingKanban } from "./MatchingKanban";
 import { MatchingListView } from "./MatchingListView";
-import { matchingWorkflowsData, fundsData } from "@/data";
+import { fundsData } from "@/data";
+import { useAllocationWorkflows, useTransitionAllocationWorkflow } from "@/hooks/useAllocation";
+import type { AllocationWorkflow, AllocationStatus } from "@/lib/api/allocationService";
+
+const CURRENT_USER_PLACEHOLDER = "Maria Silva";
 
 export function ClientMatchingTab() {
-  const [workflows, setWorkflows] = useState(matchingWorkflowsData);
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [statusFilter, setStatusFilter] = useState("all");
   const [fundFilter, setFundFilter] = useState("all");
   const [assignedFilter, setAssignedFilter] = useState("all");
   const [slaFilter, setSlaFilter] = useState("all");
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showNewAllocationModal, setShowNewAllocationModal] = useState(false);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setWorkflows([...matchingWorkflowsData]);
-    setTimeout(() => setIsRefreshing(false), 500);
+  const apiFilters = {
+    status: statusFilter !== "all" ? (statusFilter as AllocationStatus) : undefined,
+    fund_id: fundFilter !== "all" ? fundFilter : undefined,
+    assigned_to:
+      assignedFilter === "mine" ? CURRENT_USER_PLACEHOLDER : undefined,
+    limit: 500,
+    offset: 0,
   };
 
-  const filteredWorkflows = workflows.filter((wf) => {
-    if (statusFilter !== "all" && wf.status !== statusFilter) return false;
-    if (fundFilter !== "all" && wf.fundId !== fundFilter) return false;
-    
-    if (assignedFilter === "mine" && wf.assignedTo !== "Maria Silva") return false;
-    if (assignedFilter === "unassigned" && wf.assignedTo !== null) return false;
-    
-    if (slaFilter !== "all" && wf.slaDeadline) {
-      const now = new Date();
-      const deadline = new Date(wf.slaDeadline);
-      const daysRemaining = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (slaFilter === "within" && daysRemaining <= 2) return false;
-      if (slaFilter === "approaching" && (daysRemaining < 1 || daysRemaining > 2)) return false;
-      if (slaFilter === "overdue" && deadline.getTime() > now.getTime()) return false;
-    }
-    
+  const { data, isLoading, isError, error, refetch, isRefetching } =
+    useAllocationWorkflows(apiFilters);
+  const transitionMutation = useTransitionAllocationWorkflow();
+
+  const handleRefresh = () => refetch();
+
+  const items = data?.items ?? [];
+  const filteredWorkflows = items.filter((wf: AllocationWorkflow) => {
+    if (assignedFilter === "unassigned" && wf.assigned_to != null) return false;
+    if (slaFilter === "all") return true;
+    if (!wf.sla_deadline) return slaFilter !== "overdue";
+    const now = new Date();
+    const deadline = new Date(wf.sla_deadline);
+    const daysRemaining = Math.ceil(
+      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (slaFilter === "within" && daysRemaining <= 2) return false;
+    if (slaFilter === "approaching" && (daysRemaining < 1 || daysRemaining > 2)) return false;
+    if (slaFilter === "overdue" && deadline.getTime() > now.getTime()) return false;
     return true;
   });
 
@@ -87,9 +94,9 @@ export function ClientMatchingTab() {
                 size="sm"
                 variant="outline"
                 onClick={handleRefresh}
-                disabled={isRefreshing}
+                disabled={isRefetching}
               >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
                 Atualizar
               </Button>
               <Button onClick={() => setShowNewAllocationModal(true)}>
@@ -166,11 +173,28 @@ export function ClientMatchingTab() {
         </CardContent>
       </Card>
 
-      {viewMode === "kanban" ? (
-        <MatchingKanban
-          workflows={filteredWorkflows}
-          setWorkflows={setWorkflows}
-        />
+      {isLoading ? (
+        <Card>
+          <CardContent className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </CardContent>
+        </Card>
+      ) : isError ? (
+        <Card>
+          <CardContent className="py-8 text-center">
+            <p className="text-destructive font-medium">
+              Erro ao carregar alocações. Tente novamente.
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {error instanceof Error ? error.message : "Erro desconhecido"}
+            </p>
+            <Button variant="outline" className="mt-4" onClick={handleRefresh}>
+              Atualizar
+            </Button>
+          </CardContent>
+        </Card>
+      ) : viewMode === "kanban" ? (
+        <MatchingKanban workflows={filteredWorkflows} />
       ) : (
         <MatchingListView workflows={filteredWorkflows} />
       )}

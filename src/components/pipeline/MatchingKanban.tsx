@@ -3,10 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { MatchingCard } from "./MatchingCard";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useTransitionAllocationWorkflow } from "@/hooks/useAllocation";
+import type { AllocationWorkflow, AllocationStatus } from "@/lib/api/allocationService";
 
 interface MatchingKanbanProps {
-  workflows: any[];
-  setWorkflows: (workflows: any[]) => void;
+  workflows: AllocationWorkflow[];
 }
 
 const columns = [
@@ -20,7 +21,7 @@ interface KanbanColumnProps {
   id: string;
   title: string;
   color: string;
-  workflows: any[];
+  workflows: AllocationWorkflow[];
   totalValue: string;
 }
 
@@ -52,7 +53,9 @@ function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnP
   );
 }
 
-export function MatchingKanban({ workflows, setWorkflows }: MatchingKanbanProps) {
+export function MatchingKanban({ workflows }: MatchingKanbanProps) {
+  const transitionMutation = useTransitionAllocationWorkflow();
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -64,17 +67,25 @@ export function MatchingKanban({ workflows, setWorkflows }: MatchingKanbanProps)
     const draggedWorkflow = workflows.find((wf) => wf.id === workflowId);
     if (!draggedWorkflow || draggedWorkflow.status === targetColumnId) return;
 
-    setWorkflows(
-      workflows.map((wf) =>
-        wf.id === workflowId ? { ...wf, status: targetColumnId } : wf
-      )
+    transitionMutation.mutate(
+      { workflowId, data: { status: targetColumnId as AllocationStatus } },
+      {
+        onSuccess: () => {
+          const columnTitle = columns.find((c) => c.id === targetColumnId)?.title || targetColumnId;
+          toast({
+            title: "Workflow movido",
+            description: `Recebível movido para ${columnTitle}`,
+          });
+        },
+        onError: (err) => {
+          toast({
+            title: "Erro ao mover",
+            description: err instanceof Error ? err.message : "Não foi possível mover o workflow",
+            variant: "destructive",
+          });
+        },
+      }
     );
-
-    const columnTitle = columns.find((c) => c.id === targetColumnId)?.title || targetColumnId;
-    toast({
-      title: "Workflow movido",
-      description: `Recebível movido para ${columnTitle}`,
-    });
   };
 
   const getWorkflowsByStatus = (status: string) => {
@@ -91,7 +102,7 @@ export function MatchingKanban({ workflows, setWorkflows }: MatchingKanbanProps)
   };
 
   const getTotalValue = (status: string) => {
-    return getWorkflowsByStatus(status).reduce((acc, wf) => acc + (wf.nominalValue || 0), 0);
+    return getWorkflowsByStatus(status).reduce((acc, wf) => acc + (wf.nominal_value || 0), 0);
   };
 
   return (

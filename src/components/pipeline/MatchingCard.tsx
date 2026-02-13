@@ -12,9 +12,10 @@ import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Clock, AlertTriangle, GripVertical, FileText, Building2, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import type { AllocationWorkflow } from "@/lib/api/allocationService";
 
 interface MatchingCardProps {
-  workflow: any;
+  workflow: AllocationWorkflow;
 }
 
 export function MatchingCard({ workflow }: MatchingCardProps) {
@@ -43,8 +44,8 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
   };
 
   const getProgressPercentage = () => {
-    if (!workflow.totalSteps) return 0;
-    return Math.round((workflow.completedSteps / workflow.totalSteps) * 100);
+    if (!workflow.total_steps) return 0;
+    return Math.round((workflow.completed_steps / workflow.total_steps) * 100);
   };
 
   const getCurrentStepLabel = () => {
@@ -55,14 +56,14 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
       final_approval: "Aprovação final",
       completed: "Concluído",
     };
-    return steps[workflow.currentStep] || workflow.currentStep || "—";
+    return steps[workflow.current_step] || workflow.current_step || "—";
   };
 
   const getSLABadge = () => {
-    if (!workflow.slaDeadline) return null;
+    if (!workflow.sla_deadline) return null;
 
     const now = new Date();
-    const deadline = new Date(workflow.slaDeadline);
+    const deadline = new Date(workflow.sla_deadline);
     const daysRemaining = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
     if (daysRemaining > 2) {
@@ -148,13 +149,13 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
             <div className="flex items-center gap-2 mb-1">
               <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="font-semibold truncate">{workflow.receivableNumber}</span>
+              <span className="font-semibold truncate">{workflow.receivable_number ?? "—"}</span>
             </div>
             <div className="text-lg font-bold text-primary">
-              {formatCurrency(workflow.nominalValue)}
+              {formatCurrency(workflow.nominal_value)}
             </div>
           </div>
-          {workflow.riskScore > 0 && getRiskBadge(workflow.riskScore)}
+          {workflow.risk_score > 0 && getRiskBadge(workflow.risk_score)}
         </div>
       </CardHeader>
 
@@ -163,30 +164,30 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
           <div className="flex items-start gap-2">
             <Building2 className="h-4 w-4 text-muted-foreground mt-0.5" />
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{workflow.cedenteName}</p>
+              <p className="text-sm font-medium truncate">{workflow.cedente_name ?? "—"}</p>
               <p className="text-xs text-muted-foreground">Cedente</p>
             </div>
           </div>
           <div className="flex items-start gap-2">
             <Briefcase className="h-4 w-4 text-muted-foreground mt-0.5" />
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{workflow.debtorName}</p>
+              <p className="text-sm font-medium truncate">{workflow.debtor_name ?? "—"}</p>
               <p className="text-xs text-muted-foreground">Sacado</p>
             </div>
           </div>
         </div>
 
-        {workflow.fundName && (
+        {workflow.fund_name && (
           <div className="p-2 bg-primary/10 rounded-md">
             <p className="text-xs text-muted-foreground">Fundo selecionado</p>
-            <p className="text-sm font-medium">{workflow.fundName}</p>
+            <p className="text-sm font-medium">{workflow.fund_name}</p>
           </div>
         )}
 
         <div className="space-y-1">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
-              {workflow.completedSteps ?? 0} de {workflow.totalSteps ?? 0} etapas
+              {workflow.completed_steps ?? 0} de {workflow.total_steps ?? 0} etapas
             </span>
             <span className="font-medium">{getProgressPercentage()}%</span>
           </div>
@@ -199,32 +200,32 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
         </div>
 
         <div className="flex flex-wrap gap-2 text-xs">
-          {workflow.assignedTo ? (
-            <Badge variant="outline">{workflow.assignedTo}</Badge>
+          {workflow.assigned_to ? (
+            <Badge variant="outline">{workflow.assigned_to}</Badge>
           ) : (
             <Badge variant="outline" className="bg-yellow-50">
               Não atribuído
             </Badge>
           )}
-          <Badge variant="outline">{workflow.daysInProgress} dias</Badge>
+          <Badge variant="outline">{workflow.days_in_progress} dias</Badge>
           {getSLABadge()}
         </div>
 
-        {workflow.pendingItems && workflow.pendingItems.length > 0 && (
+        {workflow.pending_items && workflow.pending_items.length > 0 && (
           <TooltipProvider delayDuration={100}>
             <Tooltip>
               <TooltipTrigger>
                 <button type="button" className="cursor-help">
                   <Badge className="bg-red-100 text-red-800 pointer-events-none">
                     <AlertCircle className="h-3 w-3 mr-1" />
-                    {workflow.pendingItems.length}{" "}
-                    {workflow.pendingItems.length === 1 ? "pendência" : "pendências"}
+                    {workflow.pending_items.length}{" "}
+                    {workflow.pending_items.length === 1 ? "pendência" : "pendências"}
                   </Badge>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[250px]">
                 <ul className="text-sm space-y-1">
-                  {workflow.pendingItems.map((item: string, idx: number) => (
+                  {workflow.pending_items.map((item: string, idx: number) => (
                     <li key={idx} className="flex items-start gap-1.5">
                       <span className="text-red-500 mt-0.5">•</span>
                       <span>{item}</span>
@@ -241,7 +242,7 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
         <Button size="sm" className="w-full" onClick={handleOpenWorkflow}>
           Abrir Detalhes
         </Button>
-        {!workflow.assignedTo && (
+        {!workflow.assigned_to && (
           <Button
             size="sm"
             variant="outline"
