@@ -2,7 +2,6 @@ import { useDraggable } from "@dnd-kit/core";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Clock, AlertTriangle, GripVertical, Building2, DollarSign } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -198,21 +197,6 @@ export function ProspectionCard({ workflow }: ProspectionCardProps) {
             </div>
           </div>
         )}
-
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
-              {workflow.completed_steps} de {workflow.total_steps} etapas
-            </span>
-            <span className="font-medium">{getProgressPercentage()}%</span>
-          </div>
-          <Progress value={getProgressPercentage()} className="h-2" />
-        </div>
-
-        <div className="text-sm">
-          <span className="text-muted-foreground">Etapa atual:</span>
-          <div className="font-medium mt-1">{getCurrentStepLabel()}</div>
-        </div>
 
         <div className="flex flex-wrap gap-2 text-xs">
           {workflow.assigned_to ? (

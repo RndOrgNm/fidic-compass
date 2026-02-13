@@ -2,7 +2,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
 import {
   Table,
   TableBody,
@@ -33,11 +32,6 @@ export function ProspectionListView({ workflows }: ProspectionListViewProps) {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
-  };
-
-  const getProgressPercentage = (workflow: ProspectionWorkflow) => {
-    if (workflow.total_steps === 0) return 0;
-    return Math.round((workflow.completed_steps / workflow.total_steps) * 100);
   };
 
   const getSLABadge = (workflow: ProspectionWorkflow) => {
@@ -120,7 +114,6 @@ export function ProspectionListView({ workflows }: ProspectionListViewProps) {
               <TableHead>Cedente</TableHead>
               <TableHead>Segmento</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Progresso</TableHead>
               <TableHead>Volume Estimado</TableHead>
               <TableHead>Atribuído a</TableHead>
               <TableHead>Tempo</TableHead>
@@ -147,17 +140,6 @@ export function ProspectionListView({ workflows }: ProspectionListViewProps) {
                 </TableCell>
                 <TableCell>{getSegmentBadge(workflow.cedente_segment)}</TableCell>
                 <TableCell>{getStatusBadge(workflow.status)}</TableCell>
-                <TableCell>
-                  <div className="space-y-1 min-w-[120px]">
-                    <div className="flex items-center justify-between text-xs">
-                      <span>
-                        {workflow.completed_steps} de {workflow.total_steps}
-                      </span>
-                      <span>{getProgressPercentage(workflow)}%</span>
-                    </div>
-                    <Progress value={getProgressPercentage(workflow)} className="h-2" />
-                  </div>
-                </TableCell>
                 <TableCell>
                   <span className="font-medium">
                     {formatCurrency(workflow.estimated_volume || 0)}
