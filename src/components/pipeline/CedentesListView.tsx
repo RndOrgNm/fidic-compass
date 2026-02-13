@@ -69,6 +69,8 @@ export function CedentesListView({ cedentes }: CedentesListViewProps) {
               <TableHead>Segmento</TableHead>
               <TableHead>Score</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Atribuído a</TableHead>
+              <TableHead>Pendências</TableHead>
               <TableHead>Recebíveis / Limite</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
@@ -105,6 +107,20 @@ export function CedentesListView({ cedentes }: CedentesListViewProps) {
                   </TableCell>
                   <TableCell>
                     <Badge className={statusBadge.className}>{statusBadge.label}</Badge>
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {cedente.assigned_to ?? (
+                      <span className="text-muted-foreground">Não atribuído</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {cedente.pending_items?.length ? (
+                      <span className="text-red-600 font-medium">
+                        {cedente.pending_items.length} {cedente.pending_items.length === 1 ? "item" : "itens"}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {cedente.totalReceivables > 0 || cedente.approvedLimit > 0 ? (

@@ -32,15 +32,15 @@ function KanbanColumn({ id, title, color, cedentes }: KanbanColumnProps) {
     <div
       ref={setNodeRef}
       className={cn(
-        "space-y-4 border-t-4 rounded-t-md bg-muted/30 p-4 min-h-[500px] min-w-[240px] flex-shrink-0 transition-colors",
+        "space-y-4 border-t-4 rounded-t-md bg-muted/30 p-4 min-h-[600px] min-w-[260px] w-[260px] flex-shrink-0 transition-colors",
         color,
         isOver && "bg-primary/10 ring-2 ring-primary/30"
       )}
     >
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold">{title}</h3>
-          <Badge variant="secondary">{cedentes.length}</Badge>
+          <h3 className="font-semibold text-sm">{title}</h3>
+          <Badge variant="secondary" className="text-xs">{cedentes.length}</Badge>
         </div>
       </div>
       <div className="space-y-3">
@@ -52,6 +52,10 @@ function KanbanColumn({ id, title, color, cedentes }: KanbanColumnProps) {
   );
 }
 
+/**
+ * Kanban pattern: a card can only move to the next status when it has no pending items.
+ * Backend will enforce the same rule via pending_items on the cedente/workflow.
+ */
 export function CedentesKanban({ cedentes, onStatusChange }: CedentesKanbanProps) {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -62,6 +66,16 @@ export function CedentesKanban({ cedentes, onStatusChange }: CedentesKanbanProps
 
     const cedente = cedentes.find((c) => c.id === cedenteId);
     if (!cedente || cedente.status === targetStatus) return;
+
+    const hasPending = (cedente.pending_items?.length ?? 0) > 0;
+    if (hasPending) {
+      toast({
+        title: "Itens pendentes",
+        description: "Complete os itens pendentes antes de mover o cedente para outra etapa.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     onStatusChange(cedenteId, targetStatus);
 

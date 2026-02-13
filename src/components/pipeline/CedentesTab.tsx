@@ -22,11 +22,14 @@ import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
 import { cedentesPipelineData } from "@/data";
 
+const CURRENT_USER_PLACEHOLDER = "Maria Silva";
+
 export function CedentesTab() {
   const [cedentes, setCedentes] = useState<CedentePipelineItem[]>(cedentesPipelineData);
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [statusFilter, setStatusFilter] = useState("all");
   const [segmentFilter, setSegmentFilter] = useState("all");
+  const [assignedFilter, setAssignedFilter] = useState("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showNewCedenteModal, setShowNewCedenteModal] = useState(false);
 
@@ -45,6 +48,8 @@ export function CedentesTab() {
   const filteredCedentes = cedentes.filter((c) => {
     if (statusFilter !== "all" && c.status !== statusFilter) return false;
     if (segmentFilter !== "all" && c.segment !== segmentFilter) return false;
+    if (assignedFilter === "mine" && c.assigned_to !== CURRENT_USER_PLACEHOLDER) return false;
+    if (assignedFilter === "unassigned" && c.assigned_to != null) return false;
     return true;
   });
 
@@ -123,6 +128,19 @@ export function CedentesTab() {
                   <SelectItem value="agronegocio">Agronegócio</SelectItem>
                   <SelectItem value="varejo">Varejo</SelectItem>
                   <SelectItem value="insumos">Insumos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Atribuído a</label>
+              <Select value={assignedFilter} onValueChange={setAssignedFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Atribuído a" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="mine">Apenas meus</SelectItem>
+                  <SelectItem value="unassigned">Não atribuídos</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -2,7 +2,8 @@ import { useDraggable } from "@dnd-kit/core";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GripVertical, Building2, User, Mail } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { GripVertical, Building2, User, Mail, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
@@ -20,6 +21,8 @@ export interface CedentePipelineItem {
   totalReceivables: number;
   approvedLimit: number;
   createdAt: string;
+  assigned_to: string | null;
+  pending_items: string[];
 }
 
 interface CedenteCardProps {
@@ -144,6 +147,39 @@ export function CedenteCard({ cedente }: CedenteCardProps) {
             )}
           </div>
         )}
+
+        <div className="flex flex-wrap gap-2 text-xs pt-1">
+          {cedente.assigned_to ? (
+            <Badge variant="outline">{cedente.assigned_to}</Badge>
+          ) : (
+            <Badge variant="outline" className="bg-yellow-50">
+              Não atribuído
+            </Badge>
+          )}
+          {cedente.pending_items && cedente.pending_items.length > 0 && (
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge className="bg-red-100 text-red-800 cursor-help">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    {cedente.pending_items.length} {cedente.pending_items.length === 1 ? "pendência" : "pendências"}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[250px]">
+                  <p className="font-medium mb-1">Itens pendentes (bloqueia avanço)</p>
+                  <ul className="text-sm space-y-1">
+                    {cedente.pending_items.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <span className="text-red-500 mt-0.5">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       </CardContent>
 
       <CardFooter className="pt-0">
