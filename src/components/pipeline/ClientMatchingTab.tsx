@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutList, LayoutGrid } from "lucide-react";
+import { LayoutList, LayoutGrid, RefreshCw, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { MatchingKanban } from "./MatchingKanban";
 import { MatchingListView } from "./MatchingListView";
 import { matchingWorkflowsData, fundsData } from "@/data";
@@ -20,6 +27,14 @@ export function ClientMatchingTab() {
   const [fundFilter, setFundFilter] = useState("all");
   const [assignedFilter, setAssignedFilter] = useState("all");
   const [slaFilter, setSlaFilter] = useState("all");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showNewAllocationModal, setShowNewAllocationModal] = useState(false);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setWorkflows([...matchingWorkflowsData]);
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
 
   const filteredWorkflows = workflows.filter((wf) => {
     if (statusFilter !== "all" && wf.status !== statusFilter) return false;
@@ -68,6 +83,19 @@ export function ClientMatchingTab() {
                   Lista
                 </Button>
               </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                Atualizar
+              </Button>
+              <Button onClick={() => setShowNewAllocationModal(true)}>
+                <Plus className="h-4 w-4" />
+                Nova Alocação
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -146,6 +174,17 @@ export function ClientMatchingTab() {
       ) : (
         <MatchingListView workflows={filteredWorkflows} />
       )}
+
+      <Dialog open={showNewAllocationModal} onOpenChange={setShowNewAllocationModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Alocação</DialogTitle>
+            <DialogDescription>
+              O formulário de nova alocação será implementado em breve.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

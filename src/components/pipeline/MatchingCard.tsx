@@ -2,7 +2,12 @@ import { useDraggable } from "@dnd-kit/core";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { AlertCircle, Clock, AlertTriangle, GripVertical, FileText, Building2, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -34,10 +39,6 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
-  };
-
-  const getProgressPercentage = () => {
-    return Math.round((workflow.completedSteps / workflow.totalSteps) * 100);
   };
 
   const getSLABadge = () => {
@@ -110,17 +111,6 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
     });
   };
 
-  const getCurrentStepLabel = () => {
-    const steps: Record<string, string> = {
-      awaiting_selection: "Aguardando seleção",
-      fund_evaluation: "Avaliação do fundo",
-      compliance_verification: "Verificação compliance",
-      final_approval: "Aprovação final",
-      completed: "Concluído",
-    };
-    return steps[workflow.currentStep] || workflow.currentStep;
-  };
-
   return (
     <Card
       ref={setNodeRef}
@@ -176,21 +166,6 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
           </div>
         )}
 
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
-              {workflow.completedSteps} de {workflow.totalSteps} etapas
-            </span>
-            <span className="font-medium">{getProgressPercentage()}%</span>
-          </div>
-          <Progress value={getProgressPercentage()} className="h-2" />
-        </div>
-
-        <div className="text-sm">
-          <span className="text-muted-foreground">Etapa atual:</span>
-          <div className="font-medium mt-1">{getCurrentStepLabel()}</div>
-        </div>
-
         <div className="flex flex-wrap gap-2 text-xs">
           {workflow.assignedTo ? (
             <Badge variant="outline">{workflow.assignedTo}</Badge>
@@ -204,14 +179,29 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
         </div>
 
         {workflow.pendingItems && workflow.pendingItems.length > 0 && (
-          <div className="space-y-1">
-            {workflow.pendingItems.slice(0, 2).map((item: string, idx: number) => (
-              <div key={idx} className="flex items-start gap-2 text-xs text-red-600">
-                <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                <span className="line-clamp-1">{item}</span>
-              </div>
-            ))}
-          </div>
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger>
+                <button type="button" className="cursor-help">
+                  <Badge className="bg-red-100 text-red-800 pointer-events-none">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    {workflow.pendingItems.length}{" "}
+                    {workflow.pendingItems.length === 1 ? "pendência" : "pendências"}
+                  </Badge>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[250px]">
+                <ul className="text-sm space-y-1">
+                  {workflow.pendingItems.map((item: string, idx: number) => (
+                    <li key={idx} className="flex items-start gap-1.5">
+                      <span className="text-red-500 mt-0.5">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </CardContent>
 

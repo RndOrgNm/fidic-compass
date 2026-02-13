@@ -1,7 +1,8 @@
-import { DndContext, DragEndEvent, closestCorners } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, closestCorners, useDroppable } from "@dnd-kit/core";
 import { Badge } from "@/components/ui/badge";
 import { MatchingCard } from "./MatchingCard";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface MatchingKanbanProps {
   workflows: any[];
@@ -15,22 +16,61 @@ const columns = [
   { id: "allocated", title: "Alocado", color: "border-green-500" },
 ];
 
+interface KanbanColumnProps {
+  id: string;
+  title: string;
+  color: string;
+  workflows: any[];
+  totalValue: string;
+}
+
+function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "space-y-4 border-t-4 rounded-t-md bg-muted/30 p-4 min-h-[600px] min-w-[260px] w-[260px] flex-shrink-0 transition-colors",
+        color,
+        isOver && "bg-primary/10 ring-2 ring-primary/30"
+      )}
+    >
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold">{title}</h3>
+          <Badge variant="secondary">{workflows.length}</Badge>
+        </div>
+        <p className="text-xs text-muted-foreground">{totalValue}</p>
+      </div>
+      <div className="space-y-3">
+        {workflows.map((workflow) => (
+          <MatchingCard key={workflow.id} workflow={workflow} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function MatchingKanban({ workflows, setWorkflows }: MatchingKanbanProps) {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over || active.id === over.id) return;
+    if (!over) return;
 
     const workflowId = active.id as string;
-    const newStatus = over.id as string;
+    const targetColumnId = over.id as string;
+
+    const draggedWorkflow = workflows.find((wf) => wf.id === workflowId);
+    if (!draggedWorkflow || draggedWorkflow.status === targetColumnId) return;
 
     setWorkflows(
       workflows.map((wf) =>
-        wf.id === workflowId ? { ...wf, status: newStatus } : wf
+        wf.id === workflowId ? { ...wf, status: targetColumnId } : wf
       )
     );
 
-    const columnTitle = columns.find((c) => c.id === newStatus)?.title || newStatus;
+    const columnTitle = columns.find((c) => c.id === targetColumnId)?.title || targetColumnId;
     toast({
       title: "Workflow movido",
       description: `Recebível movido para ${columnTitle}`,
@@ -56,32 +96,17 @@ export function MatchingKanban({ workflows, setWorkflows }: MatchingKanbanProps)
 
   return (
     <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {columns.map((column) => {
-          const columnWorkflows = getWorkflowsByStatus(column.id);
-          const totalValue = getTotalValue(column.id);
-          return (
-            <div
-              key={column.id}
-              className={`space-y-4 border-t-4 ${column.color} rounded-t-md bg-muted/30 p-4 min-h-[600px]`}
-            >
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">{column.title}</h3>
-                  <Badge variant="secondary">{columnWorkflows.length}</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {formatCurrency(totalValue)}
-                </p>
-              </div>
-              <div className="space-y-3">
-                {columnWorkflows.map((workflow) => (
-                  <MatchingCard key={workflow.id} workflow={workflow} />
-                ))}
-              </div>
-            </div>
-          );
-        })}
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {columns.map((column) => (
+          <KanbanColumn
+            key={column.id}
+            id={column.id}
+            title={column.title}
+            color={column.color}
+            workflows={getWorkflowsByStatus(column.id)}
+            totalValue={formatCurrency(getTotalValue(column.id))}
+          />
+        ))}
       </div>
     </DndContext>
   );
