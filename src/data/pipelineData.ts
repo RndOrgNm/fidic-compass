@@ -164,6 +164,81 @@ export const cedentesData = [
   }
 ];
 
+/** Cedentes pipeline: status values for the Cedentes Kanban (before Prospecção). */
+export type CedentePipelineStatus =
+  | "lead"
+  | "due_diligence"
+  | "documentacao_pendente"
+  | "cedente_ativo"
+  | "bloqueado_desistencia";
+
+/** Cedentes for the Cedentes pipeline tab. Same shape as cedentesData but with CedentePipelineStatus. */
+export const cedentesPipelineData: Array<{
+  id: string;
+  companyName: string;
+  cnpj: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  segment: string;
+  creditScore: number;
+  status: CedentePipelineStatus;
+  totalReceivables: number;
+  approvedLimit: number;
+  createdAt: string;
+}> = [
+  { ...cedentesData[6], status: "lead" as CedentePipelineStatus },
+  { ...cedentesData[7], status: "lead" as CedentePipelineStatus },
+  {
+    id: "CED-009",
+    companyName: "Logística Norte Ltda",
+    cnpj: "77.888.999/0001-00",
+    contactName: "Roberto Lima",
+    contactEmail: "roberto@lognorte.com.br",
+    contactPhone: "(61) 3456-7890",
+    segment: "servicos",
+    creditScore: 0,
+    status: "due_diligence",
+    totalReceivables: 0,
+    approvedLimit: 0,
+    createdAt: "2025-10-16T11:00:00"
+  },
+  {
+    id: "CED-010",
+    companyName: "Energia Solar Brasil S.A.",
+    cnpj: "88.999.000/0001-11",
+    contactName: "Carla Mendes",
+    contactEmail: "carla@energiasolar.com.br",
+    contactPhone: "(11) 98765-4321",
+    segment: "industria",
+    creditScore: 0,
+    status: "documentacao_pendente",
+    totalReceivables: 0,
+    approvedLimit: 0,
+    createdAt: "2025-10-14T08:00:00"
+  },
+  { ...cedentesData[4], status: "documentacao_pendente" as CedentePipelineStatus },
+  { ...cedentesData[5], status: "documentacao_pendente" as CedentePipelineStatus },
+  { ...cedentesData[0], status: "cedente_ativo" as CedentePipelineStatus },
+  { ...cedentesData[1], status: "cedente_ativo" as CedentePipelineStatus },
+  { ...cedentesData[2], status: "cedente_ativo" as CedentePipelineStatus },
+  { ...cedentesData[3], status: "cedente_ativo" as CedentePipelineStatus },
+  {
+    id: "CED-011",
+    companyName: "Ex-Cedente Desistente Ltda",
+    cnpj: "99.000.111/0001-22",
+    contactName: "Paulo Souza",
+    contactEmail: "paulo@excedente.com.br",
+    contactPhone: "(21) 3456-7890",
+    segment: "comercio",
+    creditScore: 0,
+    status: "bloqueado_desistencia",
+    totalReceivables: 0,
+    approvedLimit: 0,
+    createdAt: "2025-09-01T10:00:00"
+  }
+];
+
 export const pipelineReceivablesData = [
   {
     id: "PREC-001",
