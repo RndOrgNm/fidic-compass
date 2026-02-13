@@ -44,20 +44,18 @@ export function AppSidebar() {
   return (
     <Sidebar className={collapsed ? "w-14" : "w-64"} collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-6">
-        <SidebarMenuButton asChild>
-          <NavLink
-            to="/"
-            className="flex items-center gap-3 rounded-md hover:bg-sidebar-accent/50 transition-colors -m-2 p-2"
-          >
-            <TrendingUp className="h-8 w-8 text-primary shrink-0" />
-            {!collapsed && (
-              <div className="min-w-0">
-                <h1 className="text-lg font-bold text-sidebar-foreground">FIDC Manager</h1>
-                <p className="text-xs text-sidebar-foreground/70">Gestão de Fundos</p>
-              </div>
-            )}
-          </NavLink>
-        </SidebarMenuButton>
+        <NavLink
+          to="/"
+          className="flex items-center gap-3 rounded-md p-2 -mx-2 hover:bg-sidebar-accent/50 transition-colors min-h-0 overflow-visible"
+        >
+          <TrendingUp className="h-8 w-8 text-primary shrink-0" />
+          {!collapsed && (
+            <div className="min-w-0 flex flex-col justify-center overflow-visible">
+              <h1 className="text-lg font-bold text-sidebar-foreground leading-tight">FIDC Manager</h1>
+              <p className="text-xs text-sidebar-foreground/70 leading-normal mt-0.5">Gestão de Fundos</p>
+            </div>
+          )}
+        </NavLink>
       </SidebarHeader>
 
       <SidebarContent>
