@@ -69,6 +69,7 @@ export function CedentesListView({ cedentes }: CedentesListViewProps) {
               <TableHead>Segmento</TableHead>
               <TableHead>Score</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Dias</TableHead>
               <TableHead>Atribuído a</TableHead>
               <TableHead>Pendências</TableHead>
               <TableHead>Recebíveis / Limite</TableHead>
@@ -107,6 +108,9 @@ export function CedentesListView({ cedentes }: CedentesListViewProps) {
                   </TableCell>
                   <TableCell>
                     <Badge className={statusBadge.className}>{statusBadge.label}</Badge>
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {cedente.days_in_status} dias
                   </TableCell>
                   <TableCell className="text-sm">
                     {cedente.assigned_to ?? (

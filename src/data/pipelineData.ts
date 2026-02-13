@@ -172,7 +172,7 @@ export type CedentePipelineStatus =
   | "cedente_ativo"
   | "bloqueado_desistencia";
 
-/** Cedentes for the Cedentes pipeline tab. assigned_to and pending_items support the Kanban pattern: transition to next status only when pending_items is empty (backend will enforce same rule). */
+/** Cedentes for the Cedentes pipeline tab. assigned_to, pending_items, days_in_status. Transition to next status only when pending_items is empty (backend will enforce same rule). */
 export const cedentesPipelineData: Array<{
   id: string;
   companyName: string;
@@ -188,9 +188,10 @@ export const cedentesPipelineData: Array<{
   createdAt: string;
   assigned_to: string | null;
   pending_items: string[];
+  days_in_status: number;
 }> = [
-  { ...cedentesData[6], status: "lead" as CedentePipelineStatus, assigned_to: null, pending_items: ["Validar CNPJ", "Primeiro contato"] },
-  { ...cedentesData[7], status: "lead" as CedentePipelineStatus, assigned_to: "Maria Silva", pending_items: [] },
+  { ...cedentesData[6], status: "lead" as CedentePipelineStatus, assigned_to: null, pending_items: ["Validar CNPJ", "Primeiro contato"], days_in_status: 12 },
+  { ...cedentesData[7], status: "lead" as CedentePipelineStatus, assigned_to: "Maria Silva", pending_items: [], days_in_status: 8 },
   {
     id: "CED-009",
     companyName: "Logística Norte Ltda",
@@ -205,7 +206,8 @@ export const cedentesPipelineData: Array<{
     approvedLimit: 0,
     createdAt: "2025-10-16T11:00:00",
     assigned_to: "Ana Costa",
-    pending_items: ["Documentos societários", "Certidões negativas"]
+    pending_items: ["Documentos societários", "Certidões negativas"],
+    days_in_status: 5
   },
   {
     id: "CED-010",
@@ -221,14 +223,15 @@ export const cedentesPipelineData: Array<{
     approvedLimit: 0,
     createdAt: "2025-10-14T08:00:00",
     assigned_to: "Pedro Santos",
-    pending_items: ["Contrato social atualizado"]
+    pending_items: ["Contrato social atualizado"],
+    days_in_status: 18
   },
-  { ...cedentesData[4], status: "documentacao_pendente" as CedentePipelineStatus, assigned_to: null, pending_items: ["Aguardar envio pelo cedente"] },
-  { ...cedentesData[5], status: "documentacao_pendente" as CedentePipelineStatus, assigned_to: "Maria Silva", pending_items: [] },
-  { ...cedentesData[0], status: "cedente_ativo" as CedentePipelineStatus, assigned_to: "Ana Costa", pending_items: [] },
-  { ...cedentesData[1], status: "cedente_ativo" as CedentePipelineStatus, assigned_to: "Pedro Santos", pending_items: [] },
-  { ...cedentesData[2], status: "cedente_ativo" as CedentePipelineStatus, assigned_to: "Maria Silva", pending_items: [] },
-  { ...cedentesData[3], status: "cedente_ativo" as CedentePipelineStatus, assigned_to: null, pending_items: [] },
+  { ...cedentesData[4], status: "documentacao_pendente" as CedentePipelineStatus, assigned_to: null, pending_items: ["Aguardar envio pelo cedente"], days_in_status: 3 },
+  { ...cedentesData[5], status: "documentacao_pendente" as CedentePipelineStatus, assigned_to: "Maria Silva", pending_items: [], days_in_status: 7 },
+  { ...cedentesData[0], status: "cedente_ativo" as CedentePipelineStatus, assigned_to: "Ana Costa", pending_items: [], days_in_status: 120 },
+  { ...cedentesData[1], status: "cedente_ativo" as CedentePipelineStatus, assigned_to: "Pedro Santos", pending_items: [], days_in_status: 95 },
+  { ...cedentesData[2], status: "cedente_ativo" as CedentePipelineStatus, assigned_to: "Maria Silva", pending_items: [], days_in_status: 45 },
+  { ...cedentesData[3], status: "cedente_ativo" as CedentePipelineStatus, assigned_to: null, pending_items: [], days_in_status: 28 },
   {
     id: "CED-011",
     companyName: "Ex-Cedente Desistente Ltda",
@@ -243,7 +246,8 @@ export const cedentesPipelineData: Array<{
     approvedLimit: 0,
     createdAt: "2025-09-01T10:00:00",
     assigned_to: null,
-    pending_items: []
+    pending_items: [],
+    days_in_status: 42
   }
 ];
 

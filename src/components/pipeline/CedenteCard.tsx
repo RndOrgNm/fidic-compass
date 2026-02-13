@@ -23,6 +23,7 @@ export interface CedentePipelineItem {
   createdAt: string;
   assigned_to: string | null;
   pending_items: string[];
+  days_in_status: number;
 }
 
 interface CedenteCardProps {
@@ -156,6 +157,7 @@ export function CedenteCard({ cedente }: CedenteCardProps) {
               Não atribuído
             </Badge>
           )}
+          <Badge variant="outline">{cedente.days_in_status} dias</Badge>
           {cedente.pending_items && cedente.pending_items.length > 0 && (
             <TooltipProvider delayDuration={100}>
               <Tooltip>

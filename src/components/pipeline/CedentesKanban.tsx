@@ -39,8 +39,8 @@ function KanbanColumn({ id, title, color, cedentes }: KanbanColumnProps) {
     >
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-sm">{title}</h3>
-          <Badge variant="secondary" className="text-xs">{cedentes.length}</Badge>
+          <h3 className="font-semibold">{title}</h3>
+          <Badge variant="secondary">{cedentes.length}</Badge>
         </div>
       </div>
       <div className="space-y-3">
