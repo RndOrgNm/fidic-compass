@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { GripVertical, Building2, User, Mail, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "@/hooks/use-toast";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
 import { CEDENTES_CHECKLIST } from "@/data/cedentesChecklist";
 
@@ -29,6 +28,7 @@ export interface CedentePipelineItem {
 
 interface CedenteCardProps {
   cedente: CedentePipelineItem;
+  onOpenDetails?: (cedente: CedentePipelineItem) => void;
 }
 
 function formatCnpj(cnpj: string) {
@@ -55,7 +55,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   insumos: "Insumos",
 };
 
-export function CedenteCard({ cedente }: CedenteCardProps) {
+export function CedenteCard({ cedente, onOpenDetails }: CedenteCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: cedente.id,
   });
@@ -85,10 +85,7 @@ export function CedenteCard({ cedente }: CedenteCardProps) {
   };
 
   const handleOpenDetails = () => {
-    toast({
-      title: "Em desenvolvimento",
-      description: "Detalhes do cedente serão implementados em breve",
-    });
+    onOpenDetails?.(cedente);
   };
 
   return (

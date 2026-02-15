@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { CedentesKanban } from "./CedentesKanban";
 import { CedentesListView } from "./CedentesListView";
+import { CedenteDetailsModal } from "./CedenteDetailsModal";
 import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
 import { cedentesPipelineData } from "@/data";
@@ -32,6 +33,7 @@ export function CedentesTab() {
   const [assignedFilter, setAssignedFilter] = useState("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showNewCedenteModal, setShowNewCedenteModal] = useState(false);
+  const [selectedCedenteId, setSelectedCedenteId] = useState<string | null>(null);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -44,6 +46,14 @@ export function CedentesTab() {
       prev.map((c) => (c.id === cedenteId ? { ...c, status: newStatus } : c))
     );
   };
+
+  const handleUpdatePendingItems = (cedenteId: string, pendingItems: string[]) => {
+    setCedentes((prev) =>
+      prev.map((c) => (c.id === cedenteId ? { ...c, pending_items: pendingItems } : c))
+    );
+  };
+
+  const selectedCedente = cedentes.find((c) => c.id === selectedCedenteId) ?? null;
 
   const filteredCedentes = cedentes.filter((c) => {
     if (statusFilter !== "all" && c.status !== statusFilter) return false;
@@ -149,10 +159,24 @@ export function CedentesTab() {
       </Card>
 
       {viewMode === "kanban" ? (
-        <CedentesKanban cedentes={filteredCedentes} onStatusChange={handleStatusChange} />
+        <CedentesKanban
+          cedentes={filteredCedentes}
+          onStatusChange={handleStatusChange}
+          onOpenDetails={(c) => setSelectedCedenteId(c.id)}
+        />
       ) : (
-        <CedentesListView cedentes={filteredCedentes} />
+        <CedentesListView
+          cedentes={filteredCedentes}
+          onOpenDetails={(c) => setSelectedCedenteId(c.id)}
+        />
       )}
+
+      <CedenteDetailsModal
+        cedente={selectedCedente}
+        open={selectedCedenteId != null}
+        onOpenChange={(open) => !open && setSelectedCedenteId(null)}
+        onUpdatePendingItems={handleUpdatePendingItems}
+      />
 
       <Dialog open={showNewCedenteModal} onOpenChange={setShowNewCedenteModal}>
         <DialogContent>

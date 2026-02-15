@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "@/hooks/use-toast";
 import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
 
@@ -32,6 +31,7 @@ const STATUS_BADGES: Record<CedentePipelineStatus, { label: string; className: s
 
 interface CedentesListViewProps {
   cedentes: CedentePipelineItem[];
+  onOpenDetails: (cedente: CedentePipelineItem) => void;
 }
 
 function formatCnpj(cnpj: string) {
@@ -49,14 +49,7 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
-export function CedentesListView({ cedentes }: CedentesListViewProps) {
-  const handleOpenDetails = () => {
-    toast({
-      title: "Em desenvolvimento",
-      description: "Detalhes do cedente serão implementados em breve",
-    });
-  };
-
+export function CedentesListView({ cedentes, onOpenDetails }: CedentesListViewProps) {
   return (
     <Card>
       <CardContent className="p-0">
@@ -138,7 +131,11 @@ export function CedentesListView({ cedentes }: CedentesListViewProps) {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Button size="sm" variant="outline" onClick={handleOpenDetails}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onOpenDetails(cedente)}
+                    >
                       Abrir
                     </Button>
                   </TableCell>

@@ -16,6 +16,7 @@ const COLUMNS: { id: CedentePipelineStatus; title: string; color: string }[] = [
 interface CedentesKanbanProps {
   cedentes: CedentePipelineItem[];
   onStatusChange: (cedenteId: string, newStatus: CedentePipelineStatus) => void;
+  onOpenDetails: (cedente: CedentePipelineItem) => void;
 }
 
 interface KanbanColumnProps {
@@ -23,9 +24,10 @@ interface KanbanColumnProps {
   title: string;
   color: string;
   cedentes: CedentePipelineItem[];
+  onOpenDetails: (cedente: CedentePipelineItem) => void;
 }
 
-function KanbanColumn({ id, title, color, cedentes }: KanbanColumnProps) {
+function KanbanColumn({ id, title, color, cedentes, onOpenDetails }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -45,7 +47,7 @@ function KanbanColumn({ id, title, color, cedentes }: KanbanColumnProps) {
       </div>
       <div className="space-y-3">
         {cedentes.map((cedente) => (
-          <CedenteCard key={cedente.id} cedente={cedente} />
+          <CedenteCard key={cedente.id} cedente={cedente} onOpenDetails={onOpenDetails} />
         ))}
       </div>
     </div>
@@ -56,7 +58,7 @@ function KanbanColumn({ id, title, color, cedentes }: KanbanColumnProps) {
  * Kanban pattern: a card can only move to the next status when it has no pending items.
  * Backend will enforce the same rule via pending_items on the cedente/workflow.
  */
-export function CedentesKanban({ cedentes, onStatusChange }: CedentesKanbanProps) {
+export function CedentesKanban({ cedentes, onStatusChange, onOpenDetails }: CedentesKanbanProps) {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -99,6 +101,7 @@ export function CedentesKanban({ cedentes, onStatusChange }: CedentesKanbanProps
             title={col.title}
             color={col.color}
             cedentes={getCedentesByStatus(col.id)}
+            onOpenDetails={onOpenDetails}
           />
         ))}
       </div>
