@@ -3,3 +3,4 @@ export * from './receivablesData';
 export * from './investorsData';
 export * from './chatData';
 export * from './pipelineData';
+export * from './cedentesChecklist';
