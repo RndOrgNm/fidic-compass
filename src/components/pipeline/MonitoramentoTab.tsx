@@ -14,44 +14,77 @@ import { MonitoramentoListView } from "./MonitoramentoListView";
 import { MonitoramentoDetailsModal } from "./MonitoramentoDetailsModal";
 import type { MonitoramentoPipelineItem } from "./MonitoramentoCard";
 import type { MonitoramentoPipelineStatus } from "@/data/pipelineData";
-import { monitoramentoPipelineData } from "@/data";
+import { useMonitoramento, useUpdateMonitoramento } from "@/hooks/useMonitoramento";
+import { toast } from "@/hooks/use-toast";
+import type { MonitoramentoStatus } from "@/lib/api/monitoramentoService";
 
 const CURRENT_USER_PLACEHOLDER = "Maria Silva";
 
 export function MonitoramentoTab() {
-  const [items, setItems] = useState<MonitoramentoPipelineItem[]>(monitoramentoPipelineData);
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [statusFilter, setStatusFilter] = useState("all");
   const [assignedFilter, setAssignedFilter] = useState("all");
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setItems([...monitoramentoPipelineData]);
-    setTimeout(() => setIsRefreshing(false), 400);
-  };
+  const filters: { status?: MonitoramentoStatus } = {};
+  if (statusFilter !== "all") filters.status = statusFilter as MonitoramentoStatus;
 
-  const handleStatusChange = (itemId: string, newStatus: MonitoramentoPipelineStatus) => {
-    setItems((prev) =>
-      prev.map((i) => (i.id === itemId ? { ...i, status: newStatus } : i))
-    );
-  };
+  const { data, isLoading, error, refetch, isRefetching } = useMonitoramento(filters);
+  const updateMonitoramento = useUpdateMonitoramento();
 
-  const handleUpdatePendingItems = (itemId: string, pendingItems: string[]) => {
-    setItems((prev) =>
-      prev.map((i) => (i.id === itemId ? { ...i, pending_items: pendingItems } : i))
-    );
-  };
-
-  const selectedItem = items.find((i) => i.id === selectedItemId) ?? null;
-
+  const items = data?.items ?? [];
   const filteredItems = items.filter((i) => {
-    if (statusFilter !== "all" && i.status !== statusFilter) return false;
     if (assignedFilter === "mine" && i.assigned_to !== CURRENT_USER_PLACEHOLDER) return false;
     if (assignedFilter === "unassigned" && i.assigned_to != null) return false;
     return true;
   });
+
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+
+  const handleRefresh = () => refetch();
+
+  const handleStatusChange = async (itemId: string, newStatus: MonitoramentoPipelineStatus) => {
+    try {
+      await updateMonitoramento.mutateAsync({
+        id: itemId,
+        payload: {
+          status: newStatus,
+          status_started_at: new Date().toISOString(),
+        },
+      });
+      const columnTitle =
+        {
+          alertas_deteccao: "Alertas Detecção",
+          correcoes_acoes: "Correções/Ações",
+          relatorios_em_andamento: "Relatórios em Andamento",
+          em_conformidade_auditoria: "Em conformidade/Auditoria",
+          encerrado: "Encerrado",
+        }[newStatus] ?? newStatus;
+      toast({ title: "Monitoramento movido", description: `Movido para ${columnTitle}` });
+    } catch {
+      toast({
+        title: "Erro",
+        description: "Não foi possível mover o monitoramento.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdatePendingItems = async (itemId: string, pendingItems: string[]) => {
+    try {
+      await updateMonitoramento.mutateAsync({
+        id: itemId,
+        payload: { pending_items: pendingItems },
+      });
+    } catch {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar os itens pendentes.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const selectedItem = filteredItems.find((i) => i.id === selectedItemId) ?? null;
 
   return (
     <div className="space-y-6">
@@ -84,9 +117,9 @@ export function MonitoramentoTab() {
                 size="sm"
                 variant="outline"
                 onClick={handleRefresh}
-                disabled={isRefreshing}
+                disabled={isRefetching}
               >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
                 Atualizar
               </Button>
             </div>
@@ -127,17 +160,31 @@ export function MonitoramentoTab() {
         </CardContent>
       </Card>
 
-      {viewMode === "kanban" ? (
-        <MonitoramentoKanban
-          items={filteredItems}
-          onStatusChange={handleStatusChange}
-          onOpenDetails={(i) => setSelectedItemId(i.id)}
-        />
+      {error && (
+        <div className="text-sm text-destructive bg-destructive/10 p-4 rounded-md">
+          {error.message}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12 text-muted-foreground">
+          Carregando monitoramento...
+        </div>
       ) : (
-        <MonitoramentoListView
-          items={filteredItems}
-          onOpenDetails={(i) => setSelectedItemId(i.id)}
-        />
+        <>
+          {viewMode === "kanban" ? (
+            <MonitoramentoKanban
+              items={filteredItems}
+              onStatusChange={handleStatusChange}
+              onOpenDetails={(i) => setSelectedItemId(i.id)}
+            />
+          ) : (
+            <MonitoramentoListView
+              items={filteredItems}
+              onOpenDetails={(i) => setSelectedItemId(i.id)}
+            />
+          )}
+        </>
       )}
 
       <MonitoramentoDetailsModal

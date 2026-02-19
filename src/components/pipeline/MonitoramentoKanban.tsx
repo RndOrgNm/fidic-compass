@@ -79,12 +79,6 @@ export function MonitoramentoKanban({ items, onStatusChange, onOpenDetails }: Mo
     }
 
     onStatusChange(itemId, targetStatus);
-
-    const columnTitle = COLUMNS.find((c) => c.id === targetStatus)?.title ?? targetStatus;
-    toast({
-      title: "Item movido",
-      description: `Movido para ${columnTitle}`,
-    });
   };
 
   const getItemsByStatus = (status: MonitoramentoPipelineStatus) =>

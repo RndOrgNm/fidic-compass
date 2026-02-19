@@ -21,47 +21,75 @@ import { CedentesListView } from "./CedentesListView";
 import { CedenteDetailsModal } from "./CedenteDetailsModal";
 import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
-import { cedentesPipelineData } from "@/data";
+import { useCedentes, useUpdateCedente } from "@/hooks/useCedentes";
+import { toast } from "@/hooks/use-toast";
+import type { CedenteStatus, Segment } from "@/lib/api/cedenteService";
 
 const CURRENT_USER_PLACEHOLDER = "Maria Silva";
 
 export function CedentesTab() {
-  const [cedentes, setCedentes] = useState<CedentePipelineItem[]>(cedentesPipelineData);
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [statusFilter, setStatusFilter] = useState("all");
   const [segmentFilter, setSegmentFilter] = useState("all");
   const [assignedFilter, setAssignedFilter] = useState("all");
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showNewCedenteModal, setShowNewCedenteModal] = useState(false);
   const [selectedCedenteId, setSelectedCedenteId] = useState<string | null>(null);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setCedentes([...cedentesPipelineData]);
-    setTimeout(() => setIsRefreshing(false), 400);
-  };
+  const filters: { status?: CedenteStatus; segment?: Segment } = {};
+  if (statusFilter !== "all") filters.status = statusFilter as CedenteStatus;
+  if (segmentFilter !== "all") filters.segment = segmentFilter as Segment;
 
-  const handleStatusChange = (cedenteId: string, newStatus: CedentePipelineStatus) => {
-    setCedentes((prev) =>
-      prev.map((c) => (c.id === cedenteId ? { ...c, status: newStatus } : c))
-    );
-  };
+  const { data, isLoading, error, refetch, isRefetching } = useCedentes(filters);
+  const updateCedente = useUpdateCedente();
 
-  const handleUpdatePendingItems = (cedenteId: string, pendingItems: string[]) => {
-    setCedentes((prev) =>
-      prev.map((c) => (c.id === cedenteId ? { ...c, pending_items: pendingItems } : c))
-    );
-  };
-
-  const selectedCedente = cedentes.find((c) => c.id === selectedCedenteId) ?? null;
-
+  const cedentes = data?.items ?? [];
   const filteredCedentes = cedentes.filter((c) => {
-    if (statusFilter !== "all" && c.status !== statusFilter) return false;
-    if (segmentFilter !== "all" && c.segment !== segmentFilter) return false;
     if (assignedFilter === "mine" && c.assigned_to !== CURRENT_USER_PLACEHOLDER) return false;
     if (assignedFilter === "unassigned" && c.assigned_to != null) return false;
     return true;
   });
+
+  const handleRefresh = () => refetch();
+
+  const handleStatusChange = async (cedenteId: string, newStatus: CedentePipelineStatus) => {
+    try {
+      await updateCedente.mutateAsync({
+        id: cedenteId,
+        payload: {
+          status: newStatus,
+          status_started_at: new Date().toISOString(),
+        },
+      });
+      const columnTitle =
+        { lead: "Lead", due_diligence: "Due Diligence", documentacao_pendente: "Documentação Pendente", cedente_ativo: "Cedente Ativo", bloqueado_desistencia: "Bloqueado/Desistência" }[
+          newStatus
+        ] ?? newStatus;
+      toast({ title: "Cedente movido", description: `Movido para ${columnTitle}` });
+    } catch {
+      toast({
+        title: "Erro",
+        description: "Não foi possível mover o cedente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdatePendingItems = async (cedenteId: string, pendingItems: string[]) => {
+    try {
+      await updateCedente.mutateAsync({
+        id: cedenteId,
+        payload: { pending_items: pendingItems },
+      });
+    } catch {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar os itens pendentes.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const selectedCedente = filteredCedentes.find((c) => c.id === selectedCedenteId) ?? null;
 
   return (
     <div className="space-y-6">
@@ -94,9 +122,9 @@ export function CedentesTab() {
                 size="sm"
                 variant="outline"
                 onClick={handleRefresh}
-                disabled={isRefreshing}
+                disabled={isRefetching}
               >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
                 Atualizar
               </Button>
               <Button onClick={() => setShowNewCedenteModal(true)}>
@@ -158,17 +186,31 @@ export function CedentesTab() {
         </CardContent>
       </Card>
 
-      {viewMode === "kanban" ? (
-        <CedentesKanban
-          cedentes={filteredCedentes}
-          onStatusChange={handleStatusChange}
-          onOpenDetails={(c) => setSelectedCedenteId(c.id)}
-        />
+      {error && (
+        <div className="text-sm text-destructive bg-destructive/10 p-4 rounded-md">
+          {error.message}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12 text-muted-foreground">
+          Carregando cedentes...
+        </div>
       ) : (
-        <CedentesListView
-          cedentes={filteredCedentes}
-          onOpenDetails={(c) => setSelectedCedenteId(c.id)}
-        />
+        <>
+          {viewMode === "kanban" ? (
+            <CedentesKanban
+              cedentes={filteredCedentes}
+              onStatusChange={handleStatusChange}
+              onOpenDetails={(c) => setSelectedCedenteId(c.id)}
+            />
+          ) : (
+            <CedentesListView
+              cedentes={filteredCedentes}
+              onOpenDetails={(c) => setSelectedCedenteId(c.id)}
+            />
+          )}
+        </>
       )}
 
       <CedenteDetailsModal

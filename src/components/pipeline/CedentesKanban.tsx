@@ -80,12 +80,6 @@ export function CedentesKanban({ cedentes, onStatusChange, onOpenDetails }: Cede
     }
 
     onStatusChange(cedenteId, targetStatus);
-
-    const columnTitle = COLUMNS.find((c) => c.id === targetStatus)?.title ?? targetStatus;
-    toast({
-      title: "Cedente movido",
-      description: `Movido para ${columnTitle}`,
-    });
   };
 
   const getCedentesByStatus = (status: CedentePipelineStatus) =>
