@@ -2,20 +2,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CedentesTab } from "@/components/pipeline/CedentesTab";
 import { ProspectionTab } from "@/components/pipeline/ProspectionTab";
 import { ClientMatchingTab } from "@/components/pipeline/ClientMatchingTab";
+import { MonitoramentoTab } from "@/components/pipeline/MonitoramentoTab";
 
 export default function Pipeline() {
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Pipeline de Investimentos</h1>
-        <p className="text-muted-foreground">Cedentes, prospecção e alocação de recebíveis em fundos</p>
+        <p className="text-muted-foreground">Cedentes, prospecção, alocação e monitoramento de recebíveis em fundos</p>
       </div>
 
       <Tabs defaultValue="cedentes" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+        <TabsList className="grid w-full grid-cols-4 max-w-3xl">
           <TabsTrigger value="cedentes">Cedentes</TabsTrigger>
           <TabsTrigger value="prospection">Prospecção</TabsTrigger>
-          <TabsTrigger value="matching">Alocação em Fundos</TabsTrigger>
+          <TabsTrigger value="matching">Alocação</TabsTrigger>
+          <TabsTrigger value="monitoramento">Monitoramento</TabsTrigger>
         </TabsList>
 
         <div className="mt-6">
@@ -29,6 +31,10 @@ export default function Pipeline() {
 
           <TabsContent value="matching">
             <ClientMatchingTab />
+          </TabsContent>
+
+          <TabsContent value="monitoramento">
+            <MonitoramentoTab />
           </TabsContent>
         </div>
       </Tabs>
