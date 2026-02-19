@@ -9,16 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { CedentesKanban } from "./CedentesKanban";
 import { CedentesListView } from "./CedentesListView";
 import { CedenteDetailsModal } from "./CedenteDetailsModal";
+import { NewCedenteModal } from "./NewCedenteModal";
 import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
 import { useCedentes, useUpdateCedente } from "@/hooks/useCedentes";
@@ -220,16 +214,7 @@ export function CedentesTab() {
         onUpdatePendingItems={handleUpdatePendingItems}
       />
 
-      <Dialog open={showNewCedenteModal} onOpenChange={setShowNewCedenteModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Novo Cedente</DialogTitle>
-            <DialogDescription>
-              O formulário de novo cedente será implementado em breve (integração com o backend).
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <NewCedenteModal open={showNewCedenteModal} onOpenChange={setShowNewCedenteModal} />
     </div>
   );
 }

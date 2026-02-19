@@ -2,8 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listCedentes,
   updateCedente,
+  createCedente,
   type CedenteFilters,
   type CedenteUpdatePayload,
+  type CedenteCreatePayload,
   type CedentePipelineItem,
 } from "@/lib/api/cedenteService";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
@@ -63,6 +65,17 @@ export function useUpdateCedente() {
     },
 
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [CEDENTES_KEY] });
+    },
+  });
+}
+
+export function useCreateCedente() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CedenteCreatePayload) => createCedente(payload),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CEDENTES_KEY] });
     },
   });

@@ -53,6 +53,18 @@ export interface CedenteUpdatePayload {
   status_started_at?: string;
 }
 
+export interface CedenteCreatePayload {
+  company_name: string;
+  cnpj: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone: string;
+  segment: Segment;
+  credit_score?: number;
+  approved_limit?: number;
+  assigned_to?: string | null;
+}
+
 /** Pipeline item shape expected by CedenteCard, CedentesKanban, etc. */
 export interface CedentePipelineItem {
   id: string;
@@ -137,6 +149,29 @@ export async function listCedentes(
     items: data.items.map(mapCedenteToPipelineItem),
     total: data.total,
   };
+}
+
+export async function createCedente(payload: CedenteCreatePayload): Promise<CedentePipelineItem> {
+  const body: Record<string, unknown> = {
+    company_name: payload.company_name,
+    cnpj: payload.cnpj,
+    contact_name: payload.contact_name,
+    contact_email: payload.contact_email,
+    contact_phone: payload.contact_phone,
+    segment: payload.segment,
+  };
+  if (payload.credit_score != null) body.credit_score = payload.credit_score;
+  if (payload.approved_limit != null) body.approved_limit = payload.approved_limit;
+  if (payload.assigned_to !== undefined) body.assigned_to = payload.assigned_to;
+
+  const response = await fetch(`${FUNDS_API_BASE_URL}/cedentes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const data = await handleResponse<CedenteResponse>(response);
+  return mapCedenteToPipelineItem(data);
 }
 
 export async function getCedente(id: string): Promise<CedentePipelineItem | null> {
