@@ -7,19 +7,19 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { cn } from "@/lib/utils";
 import { RECEBIVEIS_CHECKLIST } from "@/data/recebiveisChecklist";
 import { toast } from "@/hooks/use-toast";
-import { useAssignWorkflow } from "@/hooks/useProspection";
-import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
+import { useAssignRecebivel } from "@/hooks/useRecebiveis";
+import type { Recebivel } from "@/lib/api/recebiveisService";
 
 interface RecebiveisCardProps {
-  workflow: ProspectionWorkflow;
+  recebivel: Recebivel;
 }
 
-export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
+export function RecebiveisCard({ recebivel }: RecebiveisCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: workflow.id,
+    id: recebivel.id,
   });
 
-  const assignMutation = useAssignWorkflow();
+  const assignMutation = useAssignRecebivel();
 
   const style = transform
     ? {
@@ -44,15 +44,15 @@ export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
   };
 
   const getProgressPercentage = () => {
-    if (workflow.total_steps === 0) return 0;
-    return Math.round((workflow.completed_steps / workflow.total_steps) * 100);
+    if (recebivel.total_steps === 0) return 0;
+    return Math.round((recebivel.completed_steps / recebivel.total_steps) * 100);
   };
 
   const getSLABadge = () => {
-    if (!workflow.sla_deadline) return null;
+    if (!recebivel.sla_deadline) return null;
 
     const now = new Date();
-    const deadline = new Date(workflow.sla_deadline);
+    const deadline = new Date(recebivel.sla_deadline);
     const daysRemaining = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
     if (daysRemaining > 2) {
@@ -94,7 +94,7 @@ export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
   };
 
   const getStatusBorderClass = () => {
-    switch (workflow.status) {
+    switch (recebivel.status) {
       case "lead":
         return "border-l-4 border-slate-500";
       case "contact":
@@ -116,7 +116,7 @@ export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
     // TODO: replace with actual logged-in user name
     const currentUser = "Usuário Atual";
     assignMutation.mutate(
-      { workflowId: workflow.id, assignedTo: currentUser },
+      { recebivelId: recebivel.id, assignedTo: currentUser },
       {
         onSuccess: () => {
           toast({
@@ -126,7 +126,7 @@ export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
         },
         onError: (error) => {
           toast({
-            title: "Erro ao atribuir workflow",
+            title: "Erro ao atribuir recebivel",
             description: error.message,
             variant: "destructive",
           });
@@ -138,7 +138,7 @@ export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
   const handleOpenWorkflow = () => {
     toast({
       title: "Em desenvolvimento",
-      description: "Detalhes do workflow serão implementados em breve",
+      description: "Detalhes do recebivel serão implementados em breve",
     });
   };
 
@@ -151,7 +151,7 @@ export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
       committee_review: "Revisão do comitê",
       completed: "Concluído",
     };
-    return steps[workflow.current_step] || workflow.current_step;
+    return steps[recebivel.current_step] || recebivel.current_step;
   };
 
   return (
@@ -173,65 +173,65 @@ export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
           <div className="flex items-center gap-2">
             <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <span className="font-semibold truncate">
-              {workflow.cedente_name || "Sem nome"}
+              {recebivel.cedente_name || "Sem nome"}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Building2 className="h-3 w-3 text-muted-foreground flex-shrink-0" />
             <span className="text-xs text-muted-foreground truncate">
-              {workflow.cedente_cnpj ? formatCnpj(workflow.cedente_cnpj) : "—"}
+              {recebivel.cedente_cnpj ? formatCnpj(recebivel.cedente_cnpj) : "—"}
             </span>
           </div>
-          {workflow.cedente_segment && (
-            <div>{getSegmentBadge(workflow.cedente_segment)}</div>
+          {recebivel.cedente_segment && (
+            <div>{getSegmentBadge(recebivel.cedente_segment)}</div>
           )}
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3 pb-3">
-        {workflow.estimated_volume > 0 && (
+        {recebivel.estimated_volume > 0 && (
           <div className="space-y-0.5">
             <span className="text-xs text-muted-foreground">Vol. estimado</span>
             <div className="flex items-center gap-1.5">
               <DollarSign className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-              <span className="font-medium text-sm">{formatCurrency(workflow.estimated_volume)}</span>
+              <span className="font-medium text-sm">{formatCurrency(recebivel.estimated_volume)}</span>
             </div>
           </div>
         )}
 
         <div className="flex flex-wrap gap-2 text-xs">
-          {workflow.assigned_to ? (
-            <Badge variant="outline">{workflow.assigned_to}</Badge>
+          {recebivel.assigned_to ? (
+            <Badge variant="outline">{recebivel.assigned_to}</Badge>
           ) : (
             <Badge variant="outline" className="bg-yellow-50">
               Não atribuído
             </Badge>
           )}
-          <Badge variant="outline">{workflow.days_in_progress} dias</Badge>
+          <Badge variant="outline">{recebivel.days_in_progress} dias</Badge>
           {getSLABadge()}
         </div>
 
-        {(workflow.pending_items?.length ?? 0) > 0 && (
+        {(recebivel.pending_items?.length ?? 0) > 0 && (
           <TooltipProvider delayDuration={100}>
             <Tooltip>
               <TooltipTrigger>
                 <button type="button" className="cursor-help">
                   <Badge className="bg-red-100 text-red-800 pointer-events-none">
                     <AlertCircle className="h-3 w-3 mr-1" />
-                    {(RECEBIVEIS_CHECKLIST[workflow.status]?.length ?? 0) > 0
-                      ? `${workflow.pending_items.length} de ${RECEBIVEIS_CHECKLIST[workflow.status]!.length}`
-                      : `${workflow.pending_items.length} ${workflow.pending_items.length === 1 ? "pendência" : "pendências"}`}
+                    {(RECEBIVEIS_CHECKLIST[recebivel.status]?.length ?? 0) > 0
+                      ? `${recebivel.pending_items.length} de ${RECEBIVEIS_CHECKLIST[recebivel.status]!.length}`
+                      : `${recebivel.pending_items.length} ${recebivel.pending_items.length === 1 ? "pendência" : "pendências"}`}
                   </Badge>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[320px]">
                 <p className="font-medium mb-1.5">
-                  Checklist — {workflow.pending_items.length} pendente{workflow.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
+                  Checklist — {recebivel.pending_items.length} pendente{recebivel.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
                 </p>
                 <ul className="text-sm space-y-1.5">
-                  {(RECEBIVEIS_CHECKLIST[workflow.status] ?? []).length > 0 ? (
-                    (RECEBIVEIS_CHECKLIST[workflow.status] ?? []).map((item, idx) => {
-                      const isPending = workflow.pending_items.includes(item);
+                  {(RECEBIVEIS_CHECKLIST[recebivel.status] ?? []).length > 0 ? (
+                    (RECEBIVEIS_CHECKLIST[recebivel.status] ?? []).map((item, idx) => {
+                      const isPending = recebivel.pending_items.includes(item);
                       return (
                         <li key={idx} className={cn("flex items-start gap-1.5", isPending ? "text-foreground" : "text-muted-foreground")}>
                           <span className={isPending ? "text-red-500 mt-0.5" : "text-green-600 mt-0.5"}>
@@ -242,7 +242,7 @@ export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
                       );
                     })
                   ) : (
-                    workflow.pending_items.map((item: string, idx: number) => (
+                    recebivel.pending_items.map((item: string, idx: number) => (
                       <li key={idx} className="flex items-start gap-1.5">
                         <span className="text-red-500 mt-0.5">•</span>
                         <span>{item}</span>
@@ -260,7 +260,7 @@ export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
         <Button size="sm" className="w-full" onClick={handleOpenWorkflow}>
           Abrir Detalhes
         </Button>
-        {!workflow.assigned_to && (
+        {!recebivel.assigned_to && (
           <Button
             size="sm"
             variant="outline"

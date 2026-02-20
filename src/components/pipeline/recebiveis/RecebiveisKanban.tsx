@@ -2,12 +2,12 @@ import { DndContext, DragEndEvent, closestCorners, useDroppable } from "@dnd-kit
 import { Badge } from "@/components/ui/badge";
 import { RecebiveisCard } from "./RecebiveisCard";
 import { toast } from "@/hooks/use-toast";
-import { useTransitionWorkflow } from "@/hooks/useProspection";
+import { useTransitionRecebivel } from "@/hooks/useRecebiveis";
 import { cn } from "@/lib/utils";
-import type { ProspectionWorkflow, ProspectionStatus } from "@/lib/api/prospectionService";
+import type { Recebivel, ProspectionStatus } from "@/lib/api/recebiveisService";
 
 interface RecebiveisKanbanProps {
-  workflows: ProspectionWorkflow[];
+  recebiveis: Recebivel[];
 }
 
 const columns: { id: ProspectionStatus; title: string; color: string }[] = [
@@ -25,11 +25,11 @@ interface KanbanColumnProps {
   id: ProspectionStatus;
   title: string;
   color: string;
-  workflows: ProspectionWorkflow[];
+  recebiveis: Recebivel[];
   totalValue: string;
 }
 
-function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnProps) {
+function KanbanColumn({ id, title, color, recebiveis, totalValue }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -44,13 +44,13 @@ function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnP
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold">{title}</h3>
-          <Badge variant="secondary">{workflows.length}</Badge>
+          <Badge variant="secondary">{recebiveis.length}</Badge>
         </div>
         <p className="text-xs text-muted-foreground">{totalValue}</p>
       </div>
       <div className="space-y-3">
-        {workflows.map((workflow) => (
-          <RecebiveisCard key={workflow.id} workflow={workflow} />
+        {recebiveis.map((r) => (
+          <RecebiveisCard key={r.id} recebivel={r} />
         ))}
       </div>
     </div>
@@ -59,8 +59,8 @@ function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnP
 
 // ── Kanban board ───────────────────────────────────────────────────────────────
 
-export function RecebiveisKanban({ workflows }: RecebiveisKanbanProps) {
-  const transitionMutation = useTransitionWorkflow();
+export function RecebiveisKanban({ recebiveis }: RecebiveisKanbanProps) {
+  const transitionMutation = useTransitionRecebivel();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -76,14 +76,14 @@ export function RecebiveisKanban({ workflows }: RecebiveisKanbanProps) {
 
     if (!over) return;
 
-    const workflowId = active.id as string;
+    const recebivelId = active.id as string;
     const targetColumnId = over.id as ProspectionStatus;
 
-    const draggedWorkflow = workflows.find((wf) => wf.id === workflowId);
-    if (!draggedWorkflow || draggedWorkflow.status === targetColumnId) return;
+    const dragged = recebiveis.find((r) => r.id === recebivelId);
+    if (!dragged || dragged.status === targetColumnId) return;
 
     transitionMutation.mutate(
-      { workflowId, data: { status: targetColumnId } },
+      { recebivelId, data: { status: targetColumnId } },
       {
         onSuccess: () => {
           const columnTitle =
@@ -104,13 +104,13 @@ export function RecebiveisKanban({ workflows }: RecebiveisKanbanProps) {
     );
   };
 
-  const getWorkflowsByStatus = (status: ProspectionStatus) => {
-    return workflows.filter((wf) => wf.status === status);
+  const getRecebiveisByStatus = (status: ProspectionStatus) => {
+    return recebiveis.filter((r) => r.status === status);
   };
 
   const getTotalValue = (status: ProspectionStatus) => {
-    return getWorkflowsByStatus(status).reduce(
-      (acc, wf) => acc + (wf.estimated_volume || 0),
+    return getRecebiveisByStatus(status).reduce(
+      (acc, r) => acc + (r.estimated_volume || r.receivable_value || 0),
       0
     );
   };
@@ -124,7 +124,7 @@ export function RecebiveisKanban({ workflows }: RecebiveisKanbanProps) {
             id={column.id}
             title={column.title}
             color={column.color}
-            workflows={getWorkflowsByStatus(column.id)}
+            recebiveis={getRecebiveisByStatus(column.id)}
             totalValue={formatCurrency(getTotalValue(column.id))}
           />
         ))}
