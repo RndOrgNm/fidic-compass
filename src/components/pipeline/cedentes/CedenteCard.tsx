@@ -2,7 +2,11 @@ import { useDraggable } from "@dnd-kit/core";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { GripVertical, Building2, User, Mail, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
@@ -157,32 +161,32 @@ export function CedenteCard({ cedente, onOpenDetails }: CedenteCardProps) {
           )}
           <Badge variant="outline">{cedente.days_in_status} dias</Badge>
           {(cedente.pending_items?.length ?? 0) > 0 && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge className="bg-red-100 text-red-800 cursor-help pointer-events-auto">
+            <HoverCard openDelay={0} closeDelay={100}>
+              <HoverCardTrigger asChild>
+                <Badge className="bg-red-100 text-red-800 cursor-help pointer-events-auto hover:bg-red-200/80">
                   <AlertCircle className="h-3 w-3 mr-1" />
                   {cedente.pending_items.length} de {CEDENTES_CHECKLIST[cedente.status]?.length ?? cedente.pending_items.length}
                 </Badge>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-[320px] z-[100]" sideOffset={8}>
-                  <p className="font-medium mb-1.5">
-                    Checklist — {cedente.pending_items.length} pendente{cedente.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
-                  </p>
-                  <ul className="text-sm space-y-1.5">
-                    {(CEDENTES_CHECKLIST[cedente.status] ?? []).map((item, idx) => {
-                      const isPending = cedente.pending_items.includes(item);
-                      return (
-                        <li key={idx} className={cn("flex items-start gap-1.5", isPending ? "text-foreground" : "text-muted-foreground")}>
-                          <span className={isPending ? "text-red-500 mt-0.5" : "text-green-600 mt-0.5"}>
-                            {isPending ? "○" : "✓"}
-                          </span>
-                          <span>{item}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-              </TooltipContent>
-            </Tooltip>
+              </HoverCardTrigger>
+              <HoverCardContent side="bottom" className="max-w-[320px] z-[9999]" sideOffset={8} avoidCollisions={true}>
+                <p className="font-medium mb-1.5">
+                  Checklist — {cedente.pending_items.length} pendente{cedente.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
+                </p>
+                <ul className="text-sm space-y-1.5">
+                  {(CEDENTES_CHECKLIST[cedente.status] ?? []).map((item, idx) => {
+                    const isPending = cedente.pending_items.includes(item);
+                    return (
+                      <li key={idx} className={cn("flex items-start gap-1.5", isPending ? "text-foreground" : "text-muted-foreground")}>
+                        <span className={isPending ? "text-red-500 mt-0.5" : "text-green-600 mt-0.5"}>
+                          {isPending ? "○" : "✓"}
+                        </span>
+                        <span>{item}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </HoverCardContent>
+            </HoverCard>
           )}
         </div>
       </CardContent>
