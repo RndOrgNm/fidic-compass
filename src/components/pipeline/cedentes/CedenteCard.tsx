@@ -2,7 +2,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { GripVertical, Building2, User, Mail, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
@@ -157,15 +157,14 @@ export function CedenteCard({ cedente, onOpenDetails }: CedenteCardProps) {
           )}
           <Badge variant="outline">{cedente.days_in_status} dias</Badge>
           {(cedente.pending_items?.length ?? 0) > 0 && (
-            <TooltipProvider delayDuration={100}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge className="bg-red-100 text-red-800 cursor-help">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {cedente.pending_items.length} de {CEDENTES_CHECKLIST[cedente.status]?.length ?? cedente.pending_items.length}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-[320px]">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge className="bg-red-100 text-red-800 cursor-help pointer-events-auto">
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  {cedente.pending_items.length} de {CEDENTES_CHECKLIST[cedente.status]?.length ?? cedente.pending_items.length}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[320px] z-[100]" sideOffset={8}>
                   <p className="font-medium mb-1.5">
                     Checklist — {cedente.pending_items.length} pendente{cedente.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
                   </p>
@@ -182,9 +181,8 @@ export function CedenteCard({ cedente, onOpenDetails }: CedenteCardProps) {
                       );
                     })}
                   </ul>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
       </CardContent>

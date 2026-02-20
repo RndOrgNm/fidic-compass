@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutList, LayoutGrid, RefreshCw } from "lucide-react";
+import { LayoutList, LayoutGrid, RefreshCw, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MonitoramentoKanban } from "./MonitoramentoKanban";
+import { NewMonitoramentoModal } from "./NewMonitoramentoModal";
 import { MonitoramentoListView } from "./MonitoramentoListView";
 import { MonitoramentoDetailsModal } from "./MonitoramentoDetailsModal";
 import type { MonitoramentoPipelineItem } from "./MonitoramentoCard";
@@ -39,6 +40,7 @@ export function MonitoramentoTab() {
   });
 
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [showNewModal, setShowNewModal] = useState(false);
 
   const handleRefresh = () => refetch();
 
@@ -122,6 +124,10 @@ export function MonitoramentoTab() {
                 <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
                 Atualizar
               </Button>
+              <Button onClick={() => setShowNewModal(true)}>
+                <Plus className="h-4 w-4" />
+                Novo Monitoramento
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -193,6 +199,8 @@ export function MonitoramentoTab() {
         onOpenChange={(open) => !open && setSelectedItemId(null)}
         onUpdatePendingItems={handleUpdatePendingItems}
       />
+
+      <NewMonitoramentoModal open={showNewModal} onOpenChange={setShowNewModal} />
     </div>
   );
 }

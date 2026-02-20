@@ -182,7 +182,7 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
         <DialogHeader>
           <DialogTitle>Novo Recebível</DialogTitle>
           <DialogDescription>
-            Cadastre um novo recebível (nota fiscal / direito creditório). Selecione apenas cedentes em status Cedente Ativo.
+            Cadastre um novo recebível (nota fiscal / direito creditório). Só é possível criar recebíveis para cedentes em status Cedente Ativo (aprovação do pipeline anterior).
           </DialogDescription>
         </DialogHeader>
 

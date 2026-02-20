@@ -41,6 +41,14 @@ export interface MonitoramentoUpdatePayload {
   status_started_at?: string;
 }
 
+export interface MonitoramentoCreatePayload {
+  title: string;
+  period: string;
+  fund_id?: string | null;
+  status?: MonitoramentoStatus;
+  assigned_to?: string | null;
+}
+
 /** Pipeline item shape expected by MonitoramentoCard, MonitoramentoKanban, etc. */
 export interface MonitoramentoPipelineItem {
   id: string;
@@ -119,6 +127,27 @@ export async function getMonitoramento(id: string): Promise<MonitoramentoPipelin
     headers: { "Content-Type": "application/json" },
   });
   if (response.status === 404) return null;
+  const data = await handleResponse<MonitoramentoResponse>(response);
+  return mapMonitoramentoToPipelineItem({ ...data, fund_name: null });
+}
+
+export async function createMonitoramento(
+  payload: MonitoramentoCreatePayload
+): Promise<MonitoramentoPipelineItem> {
+  const body: Record<string, unknown> = {
+    title: payload.title,
+    period: payload.period,
+  };
+  if (payload.fund_id !== undefined) body.fund_id = payload.fund_id;
+  if (payload.status != null) body.status = payload.status;
+  if (payload.assigned_to !== undefined) body.assigned_to = payload.assigned_to;
+
+  const response = await fetch(`${FUNDS_API_BASE_URL}/monitoramento`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
   const data = await handleResponse<MonitoramentoResponse>(response);
   return mapMonitoramentoToPipelineItem({ ...data, fund_name: null });
 }

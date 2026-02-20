@@ -2,8 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listMonitoramentos,
   updateMonitoramento,
+  createMonitoramento,
   type MonitoramentoFilters,
   type MonitoramentoUpdatePayload,
+  type MonitoramentoCreatePayload,
   type MonitoramentoPipelineItem,
 } from "@/lib/api/monitoramentoService";
 import type { MonitoramentoPipelineStatus } from "@/data/pipelineData";
@@ -60,6 +62,17 @@ export function useUpdateMonitoramento() {
     },
 
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [MONITORAMENTO_KEY] });
+    },
+  });
+}
+
+export function useCreateMonitoramento() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: MonitoramentoCreatePayload) => createMonitoramento(payload),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [MONITORAMENTO_KEY] });
     },
   });

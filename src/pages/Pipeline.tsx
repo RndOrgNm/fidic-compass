@@ -1,11 +1,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CedentesTab } from "@/components/pipeline/CedentesTab";
-import { ProspectionTab } from "@/components/pipeline/ProspectionTab";
-import { ClientMatchingTab } from "@/components/pipeline/ClientMatchingTab";
-import { MonitoramentoTab } from "@/components/pipeline/MonitoramentoTab";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { CedentesTab } from "@/components/pipeline/cedentes/CedentesTab";
+import { ProspectionTab } from "@/components/pipeline/prospecao/ProspectionTab";
+import { ClientMatchingTab } from "@/components/pipeline/alocacao/ClientMatchingTab";
+import { MonitoramentoTab } from "@/components/pipeline/monitoramento/MonitoramentoTab";
 
 export default function Pipeline() {
   return (
+    <TooltipProvider delayDuration={200} skipDelayDuration={0}>
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Pipeline de Investimentos</h1>
@@ -39,5 +41,6 @@ export default function Pipeline() {
         </div>
       </Tabs>
     </div>
+    </TooltipProvider>
   );
 }

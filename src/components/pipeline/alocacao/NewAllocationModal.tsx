@@ -116,7 +116,7 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
         <DialogHeader>
           <DialogTitle>Nova Alocação</DialogTitle>
           <DialogDescription>
-            Inicie um novo fluxo de alocação selecionando um recebível aprovado
+            Inicie um novo fluxo de alocação selecionando um recebível aprovado (aprovação do pipeline de Prospecção).
           </DialogDescription>
         </DialogHeader>
 
