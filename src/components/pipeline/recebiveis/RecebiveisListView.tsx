@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/table";
 import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { RECEBIVEIS_CHECKLIST } from "@/data/recebiveisChecklist";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
 
 interface RecebiveisListViewProps {
@@ -160,25 +162,44 @@ export function RecebiveisListView({ workflows }: RecebiveisListViewProps) {
                 </TableCell>
                 <TableCell>{getSLABadge(workflow)}</TableCell>
                 <TableCell>
-                  {workflow.pending_items && workflow.pending_items.length > 0 ? (
+                  {(workflow.pending_items?.length ?? 0) > 0 ? (
                     <TooltipProvider delayDuration={100}>
                       <Tooltip>
                         <TooltipTrigger>
                           <button type="button" className="cursor-help inline-flex items-center gap-1">
                             <AlertCircle className="h-4 w-4 text-red-600" />
                             <span className="text-sm font-medium text-red-600">
-                              {workflow.pending_items.length}
+                              {(RECEBIVEIS_CHECKLIST[workflow.status]?.length ?? 0) > 0
+                                ? `${workflow.pending_items.length} de ${RECEBIVEIS_CHECKLIST[workflow.status]!.length}`
+                                : `${workflow.pending_items.length} ${workflow.pending_items.length === 1 ? "pendência" : "pendências"}`}
                             </span>
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="max-w-[250px]">
-                          <ul className="text-sm space-y-1">
-                            {workflow.pending_items.map((item: string, idx: number) => (
-                              <li key={idx} className="flex items-start gap-1.5">
-                                <span className="text-red-500 mt-0.5">•</span>
-                                <span>{item}</span>
-                              </li>
-                            ))}
+                        <TooltipContent side="bottom" className="max-w-[320px]">
+                          <p className="font-medium mb-1.5">
+                            Checklist — {workflow.pending_items.length} pendente{workflow.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
+                          </p>
+                          <ul className="text-sm space-y-1.5">
+                            {(RECEBIVEIS_CHECKLIST[workflow.status] ?? []).length > 0 ? (
+                              (RECEBIVEIS_CHECKLIST[workflow.status] ?? []).map((item, idx) => {
+                                const isPending = workflow.pending_items.includes(item);
+                                return (
+                                  <li key={idx} className={cn("flex items-start gap-1.5", isPending ? "text-foreground" : "text-muted-foreground")}>
+                                    <span className={isPending ? "text-red-500 mt-0.5" : "text-green-600 mt-0.5"}>
+                                      {isPending ? "○" : "✓"}
+                                    </span>
+                                    <span>{item}</span>
+                                  </li>
+                                );
+                              })
+                            ) : (
+                              workflow.pending_items.map((item: string, idx: number) => (
+                                <li key={idx} className="flex items-start gap-1.5">
+                                  <span className="text-red-500 mt-0.5">•</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))
+                            )}
                           </ul>
                         </TooltipContent>
                       </Tooltip>
