@@ -2,11 +2,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { GripVertical, Building2, User, Mail, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
@@ -161,36 +157,36 @@ export function CedenteCard({ cedente, onOpenDetails }: CedenteCardProps) {
           )}
           <Badge variant="outline">{cedente.days_in_status} dias</Badge>
           {(cedente.pending_items?.length ?? 0) > 0 && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className="inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-semibold transition-colors bg-red-100 text-red-800 cursor-pointer hover:bg-red-200/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {cedente.pending_items.length} de {CEDENTES_CHECKLIST[cedente.status]?.length ?? cedente.pending_items.length}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent side="bottom" className="max-w-[320px] z-[9999]" sideOffset={8} align="start">
-                <p className="font-medium mb-1.5">
-                  Checklist — {cedente.pending_items.length} pendente{cedente.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
-                </p>
-                <ul className="text-sm space-y-1.5">
-                  {(CEDENTES_CHECKLIST[cedente.status] ?? []).map((item, idx) => {
-                    const isPending = cedente.pending_items.includes(item);
-                    return (
-                      <li key={idx} className={cn("flex items-start gap-1.5", isPending ? "text-foreground" : "text-muted-foreground")}>
-                        <span className={isPending ? "text-red-500 mt-0.5" : "text-green-600 mt-0.5"}>
-                          {isPending ? "○" : "✓"}
-                        </span>
-                        <span>{item}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </PopoverContent>
-            </Popover>
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger>
+                  <button type="button" className="cursor-help">
+                    <Badge className="bg-red-100 text-red-800 pointer-events-none">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {cedente.pending_items.length} de {CEDENTES_CHECKLIST[cedente.status]?.length ?? cedente.pending_items.length}
+                    </Badge>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[320px]">
+                  <p className="font-medium mb-1.5">
+                    Checklist — {cedente.pending_items.length} pendente{cedente.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
+                  </p>
+                  <ul className="text-sm space-y-1.5">
+                    {(CEDENTES_CHECKLIST[cedente.status] ?? []).map((item, idx) => {
+                      const isPending = cedente.pending_items.includes(item);
+                      return (
+                        <li key={idx} className={cn("flex items-start gap-1.5", isPending ? "text-foreground" : "text-muted-foreground")}>
+                          <span className={isPending ? "text-red-500 mt-0.5" : "text-green-600 mt-0.5"}>
+                            {isPending ? "○" : "✓"}
+                          </span>
+                          <span>{item}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </CardContent>
