@@ -6,15 +6,15 @@ import { AlertCircle, Clock, AlertTriangle, GripVertical, Building2, DollarSign 
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { RECEBIVEIS_CHECKLIST } from "@/data/recebiveisChecklist";
-import { toast } from "@/hooks/use-toast";
 import { useAssignWorkflow } from "@/hooks/useProspection";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
 
 interface RecebiveisCardProps {
   workflow: ProspectionWorkflow;
+  onOpenDetails?: (workflow: ProspectionWorkflow) => void;
 }
 
-export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
+export function RecebiveisCard({ workflow, onOpenDetails }: RecebiveisCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: workflow.id,
   });
@@ -136,10 +136,7 @@ export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
   };
 
   const handleOpenWorkflow = () => {
-    toast({
-      title: "Em desenvolvimento",
-      description: "Detalhes do workflow serão implementados em breve",
-    });
+    onOpenDetails?.(workflow);
   };
 
   const getCurrentStepLabel = () => {

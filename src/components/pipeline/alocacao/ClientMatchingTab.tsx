@@ -12,8 +12,9 @@ import {
 import { MatchingKanban } from "./MatchingKanban";
 import { MatchingListView } from "./MatchingListView";
 import { NewAllocationModal } from "./NewAllocationModal";
+import { AlocacaoDetailsModal } from "./AlocacaoDetailsModal";
 import { fundsData } from "@/data";
-import { useAllocationWorkflows, useTransitionAllocationWorkflow } from "@/hooks/useAllocation";
+import { useAllocationWorkflows, useTransitionAllocationWorkflow, useUpdateAllocationWorkflow } from "@/hooks/useAllocation";
 import type { AllocationWorkflow, AllocationStatus } from "@/lib/api/allocationService";
 
 const CURRENT_USER_PLACEHOLDER = "Maria Silva";
@@ -25,6 +26,7 @@ export function ClientMatchingTab() {
   const [assignedFilter, setAssignedFilter] = useState("all");
   const [slaFilter, setSlaFilter] = useState("all");
   const [showNewAllocationModal, setShowNewAllocationModal] = useState(false);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
 
   const apiFilters = {
     status: statusFilter !== "all" ? (statusFilter as AllocationStatus) : undefined,
@@ -38,11 +40,12 @@ export function ClientMatchingTab() {
   const { data, isLoading, isError, error, refetch, isRefetching } =
     useAllocationWorkflows(apiFilters);
   const transitionMutation = useTransitionAllocationWorkflow();
+  const updateAllocation = useUpdateAllocationWorkflow();
 
   const handleRefresh = () => refetch();
 
   const items = data?.items ?? [];
-  const filteredWorkflows = items.filter((wf: AllocationWorkflow) => {
+  const filteredWorkflows: AllocationWorkflow[] = items.filter((wf: AllocationWorkflow) => {
     if (assignedFilter === "unassigned" && wf.assigned_to != null) return false;
     if (slaFilter === "all") return true;
     if (!wf.sla_deadline) return slaFilter !== "overdue";
@@ -56,6 +59,24 @@ export function ClientMatchingTab() {
     if (slaFilter === "overdue" && deadline.getTime() > now.getTime()) return false;
     return true;
   });
+
+  const handleUpdatePendingItems = async (workflowId: string, pendingItems: string[]) => {
+    try {
+      await updateAllocation.mutateAsync({
+        workflowId,
+        data: { pending_items: pendingItems },
+      });
+    } catch {
+      const { toast } = await import("@/hooks/use-toast");
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar os itens pendentes.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const selectedWorkflow = filteredWorkflows.find((wf) => wf.id === selectedWorkflowId) ?? null;
 
   return (
     <div className="space-y-6">
@@ -188,10 +209,23 @@ export function ClientMatchingTab() {
           </CardContent>
         </Card>
       ) : viewMode === "kanban" ? (
-        <MatchingKanban workflows={filteredWorkflows} />
+        <MatchingKanban
+          workflows={filteredWorkflows}
+          onOpenDetails={(wf) => setSelectedWorkflowId(wf.id)}
+        />
       ) : (
-        <MatchingListView workflows={filteredWorkflows} />
+        <MatchingListView
+          workflows={filteredWorkflows}
+          onOpenDetails={(wf) => setSelectedWorkflowId(wf.id)}
+        />
       )}
+
+      <AlocacaoDetailsModal
+        workflow={selectedWorkflow}
+        open={selectedWorkflowId != null}
+        onOpenChange={(open) => !open && setSelectedWorkflowId(null)}
+        onUpdatePendingItems={handleUpdatePendingItems}
+      />
 
       <NewAllocationModal
         open={showNewAllocationModal}

@@ -11,14 +11,14 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Clock, AlertTriangle, GripVertical, FileText, Building2, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "@/hooks/use-toast";
 import type { AllocationWorkflow } from "@/lib/api/allocationService";
 
 interface MatchingCardProps {
   workflow: AllocationWorkflow;
+  onOpenDetails?: (workflow: AllocationWorkflow) => void;
 }
 
-export function MatchingCard({ workflow }: MatchingCardProps) {
+export function MatchingCard({ workflow, onOpenDetails }: MatchingCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: workflow.id,
   });
@@ -116,17 +116,11 @@ export function MatchingCard({ workflow }: MatchingCardProps) {
   };
 
   const handleAssignToMe = () => {
-    toast({
-      title: "Workflow atribuído",
-      description: "Workflow atribuído com sucesso",
-    });
+    // TODO: wire to useAssignAllocation when available
   };
 
   const handleOpenWorkflow = () => {
-    toast({
-      title: "Em desenvolvimento",
-      description: "Detalhes do workflow serão implementados em breve",
-    });
+    onOpenDetails?.(workflow);
   };
 
   return (

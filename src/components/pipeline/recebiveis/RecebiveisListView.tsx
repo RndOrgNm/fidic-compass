@@ -12,16 +12,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { RECEBIVEIS_CHECKLIST } from "@/data/recebiveisChecklist";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
 
 interface RecebiveisListViewProps {
   workflows: ProspectionWorkflow[];
+  onOpenDetails?: (workflow: ProspectionWorkflow) => void;
 }
 
-export function RecebiveisListView({ workflows }: RecebiveisListViewProps) {
+export function RecebiveisListView({ workflows, onOpenDetails }: RecebiveisListViewProps) {
   const formatCnpj = (cnpj: string) => {
     if (!cnpj) return "";
     if (cnpj.includes("/") || cnpj.includes(".")) return cnpj;
@@ -98,12 +98,6 @@ export function RecebiveisListView({ workflows }: RecebiveisListViewProps) {
     return <Badge className={seg.className}>{seg.label}</Badge>;
   };
 
-  const handleOpenWorkflow = () => {
-    toast({
-      title: "Em desenvolvimento",
-      description: "Detalhes do workflow serão implementados em breve",
-    });
-  };
 
   return (
     <Card>
@@ -209,7 +203,11 @@ export function RecebiveisListView({ workflows }: RecebiveisListViewProps) {
                   )}
                 </TableCell>
                 <TableCell>
-                  <Button size="sm" variant="outline" onClick={handleOpenWorkflow}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onOpenDetails?.(workflow)}
+                  >
                     Abrir
                   </Button>
                 </TableCell>

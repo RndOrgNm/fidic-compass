@@ -8,6 +8,7 @@ import type { ProspectionWorkflow, ProspectionStatus } from "@/lib/api/prospecti
 
 interface RecebiveisKanbanProps {
   workflows: ProspectionWorkflow[];
+  onOpenDetails?: (workflow: ProspectionWorkflow) => void;
 }
 
 const columns: { id: ProspectionStatus; title: string; color: string }[] = [
@@ -27,9 +28,10 @@ interface KanbanColumnProps {
   color: string;
   workflows: ProspectionWorkflow[];
   totalValue: string;
+  onOpenDetails?: (workflow: ProspectionWorkflow) => void;
 }
 
-function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnProps) {
+function KanbanColumn({ id, title, color, workflows, totalValue, onOpenDetails }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -50,7 +52,7 @@ function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnP
       </div>
       <div className="space-y-3">
         {workflows.map((workflow) => (
-          <RecebiveisCard key={workflow.id} workflow={workflow} />
+          <RecebiveisCard key={workflow.id} workflow={workflow} onOpenDetails={onOpenDetails} />
         ))}
       </div>
     </div>
@@ -59,7 +61,7 @@ function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnP
 
 // ── Kanban board ───────────────────────────────────────────────────────────────
 
-export function RecebiveisKanban({ workflows }: RecebiveisKanbanProps) {
+export function RecebiveisKanban({ workflows, onOpenDetails }: RecebiveisKanbanProps) {
   const transitionMutation = useTransitionWorkflow();
 
   const formatCurrency = (value: number) => {
@@ -126,6 +128,7 @@ export function RecebiveisKanban({ workflows }: RecebiveisKanbanProps) {
             color={column.color}
             workflows={getWorkflowsByStatus(column.id)}
             totalValue={formatCurrency(getTotalValue(column.id))}
+            onOpenDetails={onOpenDetails}
           />
         ))}
       </div>

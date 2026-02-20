@@ -13,14 +13,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 import type { AllocationWorkflow } from "@/lib/api/allocationService";
 
 interface MatchingListViewProps {
   workflows: AllocationWorkflow[];
+  onOpenDetails?: (workflow: AllocationWorkflow) => void;
 }
 
-export function MatchingListView({ workflows }: MatchingListViewProps) {
+export function MatchingListView({ workflows, onOpenDetails }: MatchingListViewProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -91,12 +91,6 @@ export function MatchingListView({ workflows }: MatchingListViewProps) {
     return <span className="text-sm text-muted-foreground">-</span>;
   };
 
-  const handleOpenWorkflow = () => {
-    toast({
-      title: "Em desenvolvimento",
-      description: "Detalhes do workflow serão implementados em breve",
-    });
-  };
 
   return (
     <Card>
@@ -194,7 +188,11 @@ export function MatchingListView({ workflows }: MatchingListViewProps) {
                   )}
                 </TableCell>
                 <TableCell>
-                  <Button size="sm" variant="outline" onClick={handleOpenWorkflow}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onOpenDetails?.(workflow)}
+                  >
                     Abrir
                   </Button>
                 </TableCell>

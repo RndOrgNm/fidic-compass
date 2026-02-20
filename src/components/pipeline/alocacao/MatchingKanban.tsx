@@ -8,6 +8,7 @@ import type { AllocationWorkflow, AllocationStatus } from "@/lib/api/allocationS
 
 interface MatchingKanbanProps {
   workflows: AllocationWorkflow[];
+  onOpenDetails?: (workflow: AllocationWorkflow) => void;
 }
 
 const columns = [
@@ -23,9 +24,10 @@ interface KanbanColumnProps {
   color: string;
   workflows: AllocationWorkflow[];
   totalValue: string;
+  onOpenDetails?: (workflow: AllocationWorkflow) => void;
 }
 
-function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnProps) {
+function KanbanColumn({ id, title, color, workflows, totalValue, onOpenDetails }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -46,14 +48,14 @@ function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnP
       </div>
       <div className="space-y-3">
         {workflows.map((workflow) => (
-          <MatchingCard key={workflow.id} workflow={workflow} />
+          <MatchingCard key={workflow.id} workflow={workflow} onOpenDetails={onOpenDetails} />
         ))}
       </div>
     </div>
   );
 }
 
-export function MatchingKanban({ workflows }: MatchingKanbanProps) {
+export function MatchingKanban({ workflows, onOpenDetails }: MatchingKanbanProps) {
   const transitionMutation = useTransitionAllocationWorkflow();
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -116,6 +118,7 @@ export function MatchingKanban({ workflows }: MatchingKanbanProps) {
             color={column.color}
             workflows={getWorkflowsByStatus(column.id)}
             totalValue={formatCurrency(getTotalValue(column.id))}
+            onOpenDetails={onOpenDetails}
           />
         ))}
       </div>

@@ -4,9 +4,11 @@ import {
   createNewLead,
   transitionWorkflow,
   assignWorkflow,
+  updateRecebivel,
   type WorkflowFilters,
   type NewLeadCreate,
   type TransitionRequest,
+  type RecebivelUpdateRequest,
 } from "@/lib/api/prospectionService";
 
 const WORKFLOWS_KEY = "prospection-workflows";
@@ -139,6 +141,52 @@ export function useAssignWorkflow() {
       }
     },
 
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
+    },
+  });
+}
+
+/**
+ * Update a recebivel (e.g. pending_items for checklist).
+ */
+export function useUpdateRecebivel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      workflowId,
+      data,
+    }: {
+      workflowId: string;
+      data: RecebivelUpdateRequest;
+    }) => updateRecebivel(workflowId, data),
+    onMutate: async ({ workflowId, data }) => {
+      await queryClient.cancelQueries({ queryKey: [WORKFLOWS_KEY] });
+      const previousData = queryClient.getQueriesData({ queryKey: [WORKFLOWS_KEY] });
+      if (data.pending_items !== undefined) {
+        queryClient.setQueriesData(
+          { queryKey: [WORKFLOWS_KEY] },
+          (old: any) => {
+            if (!old?.items) return old;
+            return {
+              ...old,
+              items: old.items.map((wf: any) =>
+                wf.id === workflowId ? { ...wf, pending_items: data.pending_items } : wf
+              ),
+            };
+          }
+        );
+      }
+      return { previousData };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]: [any, any]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
     },

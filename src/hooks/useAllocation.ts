@@ -3,9 +3,11 @@ import {
   listAllocationWorkflows,
   transitionAllocationWorkflow,
   createAllocationWorkflow,
+  updateAllocationWorkflow,
   type AllocationWorkflowFilters,
   type TransitionAllocationRequest,
   type AllocationWorkflowCreate,
+  type AllocationUpdateRequest,
   type AllocationStatus,
 } from "@/lib/api/allocationService";
 
@@ -81,6 +83,52 @@ export function useCreateAllocationWorkflow() {
   return useMutation({
     mutationFn: (data: AllocationWorkflowCreate) => createAllocationWorkflow(data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
+    },
+  });
+}
+
+/**
+ * Update an allocation workflow (e.g. pending_items for checklist).
+ */
+export function useUpdateAllocationWorkflow() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      workflowId,
+      data,
+    }: {
+      workflowId: string;
+      data: AllocationUpdateRequest;
+    }) => updateAllocationWorkflow(workflowId, data),
+    onMutate: async ({ workflowId, data }) => {
+      await queryClient.cancelQueries({ queryKey: [WORKFLOWS_KEY] });
+      const previousData = queryClient.getQueriesData({ queryKey: [WORKFLOWS_KEY] });
+      if (data.pending_items !== undefined) {
+        queryClient.setQueriesData(
+          { queryKey: [WORKFLOWS_KEY] },
+          (old: { items: any[]; total: number } | undefined) => {
+            if (!old?.items) return old;
+            return {
+              ...old,
+              items: old.items.map((wf) =>
+                wf.id === workflowId ? { ...wf, pending_items: data.pending_items } : wf
+              ),
+            };
+          }
+        );
+      }
+      return { previousData };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousData) {
+        (context.previousData as [unknown, unknown][]).forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey as unknown[], data);
+        });
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
     },
   });

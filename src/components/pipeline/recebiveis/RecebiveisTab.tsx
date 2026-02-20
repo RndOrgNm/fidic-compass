@@ -12,7 +12,8 @@ import {
 import { NewReceivableModal } from "./NewReceivableModal";
 import { RecebiveisKanban } from "./RecebiveisKanban";
 import { RecebiveisListView } from "./RecebiveisListView";
-import { useProspectionWorkflows } from "@/hooks/useProspection";
+import { RecebivelDetailsModal } from "./RecebivelDetailsModal";
+import { useProspectionWorkflows, useUpdateRecebivel } from "@/hooks/useProspection";
 import type {
   ProspectionStatus,
   Segment,
@@ -38,6 +39,8 @@ export function RecebiveisTab() {
   }
 
   const { data, isLoading, isFetching, isError, error, refetch } = useProspectionWorkflows(apiFilters);
+  const updateRecebivel = useUpdateRecebivel();
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
 
   // Client-side filtering for assigned and SLA (not supported by backend)
   const filteredWorkflows: ProspectionWorkflow[] = (data?.items ?? []).filter(
@@ -60,6 +63,24 @@ export function RecebiveisTab() {
       return true;
     }
   );
+
+  const handleUpdatePendingItems = async (workflowId: string, pendingItems: string[]) => {
+    try {
+      await updateRecebivel.mutateAsync({
+        workflowId,
+        data: { pending_items: pendingItems },
+      });
+    } catch {
+      const { toast } = await import("@/hooks/use-toast");
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar os itens pendentes.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const selectedWorkflow = filteredWorkflows.find((wf) => wf.id === selectedWorkflowId) ?? null;
 
   return (
     <div className="space-y-6">
@@ -193,12 +214,25 @@ export function RecebiveisTab() {
       {!isLoading && !isError && (
         <>
           {viewMode === "kanban" ? (
-            <RecebiveisKanban workflows={filteredWorkflows} />
+            <RecebiveisKanban
+              workflows={filteredWorkflows}
+              onOpenDetails={(wf) => setSelectedWorkflowId(wf.id)}
+            />
           ) : (
-            <RecebiveisListView workflows={filteredWorkflows} />
+            <RecebiveisListView
+              workflows={filteredWorkflows}
+              onOpenDetails={(wf) => setSelectedWorkflowId(wf.id)}
+            />
           )}
         </>
       )}
+
+      <RecebivelDetailsModal
+        workflow={selectedWorkflow}
+        open={selectedWorkflowId != null}
+        onOpenChange={(open) => !open && setSelectedWorkflowId(null)}
+        onUpdatePendingItems={handleUpdatePendingItems}
+      />
 
       <NewReceivableModal
         open={showNewModal}

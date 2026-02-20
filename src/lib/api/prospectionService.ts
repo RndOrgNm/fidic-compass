@@ -85,6 +85,15 @@ export interface AssignRequest {
   assigned_to: string;
 }
 
+export interface RecebivelUpdateRequest {
+  pending_items?: string[];
+  assigned_to?: string | null;
+  sla_deadline?: string | null;
+  estimated_volume?: number;
+  status?: ProspectionStatus;
+  current_step?: ProspectionStep;
+}
+
 // ── Filters ────────────────────────────────────────────────────────────────────
 
 export interface WorkflowFilters {
@@ -177,6 +186,27 @@ export async function assignWorkflow(
       body: JSON.stringify({ assigned_to: assignedTo } as AssignRequest),
     }
   );
+
+  return handleResponse<ProspectionWorkflow>(response);
+}
+
+export async function updateRecebivel(
+  workflowId: string,
+  data: RecebivelUpdateRequest
+): Promise<ProspectionWorkflow> {
+  const body: Record<string, unknown> = {};
+  if (data.pending_items !== undefined) body.pending_items = data.pending_items;
+  if (data.assigned_to !== undefined) body.assigned_to = data.assigned_to;
+  if (data.sla_deadline !== undefined) body.sla_deadline = data.sla_deadline;
+  if (data.estimated_volume !== undefined) body.estimated_volume = data.estimated_volume;
+  if (data.status !== undefined) body.status = data.status;
+  if (data.current_step !== undefined) body.current_step = data.current_step;
+
+  const response = await fetch(`${FUNDS_API_BASE_URL}/recebiveis/${workflowId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
   return handleResponse<ProspectionWorkflow>(response);
 }

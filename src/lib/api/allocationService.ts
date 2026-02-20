@@ -74,6 +74,15 @@ export interface AllocationWorkflowCreate {
   pending_items?: string[];
 }
 
+export interface AllocationUpdateRequest {
+  pending_items?: string[];
+  assigned_to?: string | null;
+  fund_id?: string | null;
+  sla_deadline?: string | null;
+  status?: AllocationStatus;
+  current_step?: AllocationStep;
+}
+
 // ── Filters ────────────────────────────────────────────────────────────────────
 
 export interface AllocationWorkflowFilters {
@@ -158,6 +167,27 @@ export async function createAllocationWorkflow(
 
   const response = await fetch(`${FUNDS_API_BASE_URL}/alocacao`, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  return handleResponse<AllocationWorkflow>(response);
+}
+
+export async function updateAllocationWorkflow(
+  workflowId: string,
+  data: AllocationUpdateRequest
+): Promise<AllocationWorkflow> {
+  const body: Record<string, unknown> = {};
+  if (data.pending_items !== undefined) body.pending_items = data.pending_items;
+  if (data.assigned_to !== undefined) body.assigned_to = data.assigned_to;
+  if (data.fund_id !== undefined) body.fund_id = data.fund_id;
+  if (data.sla_deadline !== undefined) body.sla_deadline = data.sla_deadline;
+  if (data.status !== undefined) body.status = data.status;
+  if (data.current_step !== undefined) body.current_step = data.current_step;
+
+  const response = await fetch(`${FUNDS_API_BASE_URL}/alocacao/${workflowId}`, {
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
