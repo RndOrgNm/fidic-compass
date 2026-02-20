@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -160,12 +161,28 @@ export function ProspectionListView({ workflows }: ProspectionListViewProps) {
                 <TableCell>{getSLABadge(workflow)}</TableCell>
                 <TableCell>
                   {workflow.pending_items && workflow.pending_items.length > 0 ? (
-                    <div className="flex items-center gap-1">
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                      <span className="text-sm font-medium text-red-600">
-                        {workflow.pending_items.length}
-                      </span>
-                    </div>
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <button type="button" className="cursor-help inline-flex items-center gap-1">
+                            <AlertCircle className="h-4 w-4 text-red-600" />
+                            <span className="text-sm font-medium text-red-600">
+                              {workflow.pending_items.length}
+                            </span>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-[250px]">
+                          <ul className="text-sm space-y-1">
+                            {workflow.pending_items.map((item: string, idx: number) => (
+                              <li key={idx} className="flex items-start gap-1.5">
+                                <span className="text-red-500 mt-0.5">•</span>
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   ) : (
                     <span className="text-sm text-muted-foreground">-</span>
                   )}

@@ -1,6 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { CEDENTES_CHECKLIST } from "@/data/cedentesChecklist";
 import {
   Table,
   TableBody,
@@ -112,9 +116,36 @@ export function CedentesListView({ cedentes, onOpenDetails }: CedentesListViewPr
                   </TableCell>
                   <TableCell>
                     {cedente.pending_items?.length ? (
-                      <span className="text-red-600 font-medium">
-                        {cedente.pending_items.length} {cedente.pending_items.length === 1 ? "item" : "itens"}
-                      </span>
+                      <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <button type="button" className="cursor-help inline-flex items-center gap-1">
+                              <AlertCircle className="h-4 w-4 text-red-600" />
+                              <span className="text-red-600 font-medium">
+                                {cedente.pending_items.length} {cedente.pending_items.length === 1 ? "item" : "itens"}
+                              </span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-[320px]">
+                            <p className="font-medium mb-1.5">
+                              Checklist — {cedente.pending_items.length} pendente{cedente.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
+                            </p>
+                            <ul className="text-sm space-y-1.5">
+                              {(CEDENTES_CHECKLIST[cedente.status] ?? []).map((item, idx) => {
+                                const isPending = cedente.pending_items.includes(item);
+                                return (
+                                  <li key={idx} className={cn("flex items-start gap-1.5", isPending ? "text-foreground" : "text-muted-foreground")}>
+                                    <span className={isPending ? "text-red-500 mt-0.5" : "text-green-600 mt-0.5"}>
+                                      {isPending ? "○" : "✓"}
+                                    </span>
+                                    <span>{item}</span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}

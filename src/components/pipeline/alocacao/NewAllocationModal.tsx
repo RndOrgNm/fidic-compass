@@ -19,12 +19,14 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { useCreateAllocationWorkflow } from "@/hooks/useAllocation";
-import { listReceivables } from "@/lib/api/receivableService";
+import { listProspectionWorkflows } from "@/lib/api/prospectionService";
+import { listAllocationWorkflows } from "@/lib/api/allocationService";
 import { listFunds } from "@/lib/api/fundService";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
-const RECEIVABLES_KEY = "approved-receivables";
+const APPROVED_WORKFLOWS_KEY = "approved-prospection-workflows";
+const ALLOCATION_WORKFLOWS_KEY = "allocation-workflows";
 const FUNDS_KEY = "funds-active";
 
 interface NewAllocationModalProps {
@@ -49,9 +51,15 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
 
   const createAllocation = useCreateAllocationWorkflow();
 
-  const { data: receivablesData, isLoading: loadingReceivables } = useQuery({
-    queryKey: [RECEIVABLES_KEY],
-    queryFn: () => listReceivables({ status: "approved", limit: 200 }),
+  const { data: workflowsData, isLoading: loadingWorkflows } = useQuery({
+    queryKey: [APPROVED_WORKFLOWS_KEY],
+    queryFn: () => listProspectionWorkflows({ status: "approved", limit: 200 }),
+    enabled: open,
+  });
+
+  const { data: allocationsData } = useQuery({
+    queryKey: [ALLOCATION_WORKFLOWS_KEY],
+    queryFn: () => listAllocationWorkflows({ limit: 500 }),
     enabled: open,
   });
 
@@ -61,7 +69,22 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
     enabled: open,
   });
 
-  const receivables = receivablesData?.items ?? [];
+  // Approved workflows from Prospecção (pipeline before) with receivable_id, excluding already-allocated
+  const allocatedReceivableIds = new Set(
+    (allocationsData?.items ?? []).map((a) => a.receivable_id)
+  );
+  const receivablesMap = new Map<string, { id: string; cedente_name: string; nominal_value: number }>();
+  for (const w of workflowsData?.items ?? []) {
+    if (!w.receivable_id || allocatedReceivableIds.has(w.receivable_id) || receivablesMap.has(w.receivable_id))
+      continue;
+    receivablesMap.set(w.receivable_id, {
+      id: w.receivable_id,
+      cedente_name: w.cedente_name ?? "—",
+      nominal_value: w.receivable_value,
+    });
+  }
+  const receivables = Array.from(receivablesMap.values());
+
   const funds = fundsData?.items ?? [];
 
   const resetForm = () => {
@@ -108,7 +131,7 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
     );
   };
 
-  const isLoadingOptions = loadingReceivables || loadingFunds;
+  const isLoadingOptions = loadingWorkflows || loadingFunds;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -131,17 +154,17 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
               disabled={isLoadingOptions}
             >
               <SelectTrigger id="receivable">
-                <SelectValue placeholder={loadingReceivables ? "Carregando..." : "Selecione o recebível"} />
+                <SelectValue placeholder={loadingWorkflows ? "Carregando..." : "Selecione o recebível aprovado"} />
               </SelectTrigger>
               <SelectContent>
-                {receivables.length === 0 && !loadingReceivables ? (
+                {receivables.length === 0 && !loadingWorkflows ? (
                   <SelectItem value="__none__" disabled>
-                    Nenhum recebível aprovado disponível
+                    Nenhum recebível aprovado disponível (aprovação no pipeline de Prospecção)
                   </SelectItem>
                 ) : (
                   receivables.map((rec) => (
                     <SelectItem key={rec.id} value={rec.id}>
-                      {rec.invoice_number} — {formatCurrency(rec.nominal_value)} · {rec.debtor_name}
+                      {rec.cedente_name} — {formatCurrency(rec.nominal_value)}
                     </SelectItem>
                   ))
                 )}

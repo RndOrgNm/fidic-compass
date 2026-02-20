@@ -1,6 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { MONITORAMENTO_CHECKLIST } from "@/data/monitoramentoChecklist";
 import {
   Table,
   TableBody,
@@ -68,9 +72,36 @@ export function MonitoramentoListView({ items, onOpenDetails }: MonitoramentoLis
                   </TableCell>
                   <TableCell>
                     {item.pending_items?.length ? (
-                      <span className="text-red-600 font-medium">
-                        {item.pending_items.length} {item.pending_items.length === 1 ? "item" : "itens"}
-                      </span>
+                      <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <button type="button" className="cursor-help inline-flex items-center gap-1">
+                              <AlertCircle className="h-4 w-4 text-red-600" />
+                              <span className="text-red-600 font-medium">
+                                {item.pending_items.length} {item.pending_items.length === 1 ? "item" : "itens"}
+                              </span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-[320px]">
+                            <p className="font-medium mb-1.5">
+                              Checklist — {item.pending_items.length} pendente{item.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
+                            </p>
+                            <ul className="text-sm space-y-1.5">
+                              {(MONITORAMENTO_CHECKLIST[item.status] ?? []).map((checkItem, idx) => {
+                                const isPending = item.pending_items.includes(checkItem);
+                                return (
+                                  <li key={idx} className={cn("flex items-start gap-1.5", isPending ? "text-foreground" : "text-muted-foreground")}>
+                                    <span className={isPending ? "text-red-500 mt-0.5" : "text-green-600 mt-0.5"}>
+                                      {isPending ? "○" : "✓"}
+                                    </span>
+                                    <span>{checkItem}</span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
