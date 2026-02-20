@@ -119,7 +119,7 @@ export async function listAllocationWorkflows(
   if (filters.offset != null) params.set("offset", String(filters.offset));
 
   const qs = params.toString();
-  const url = `${FUNDS_API_BASE_URL}/matching${qs ? `?${qs}` : ""}`;
+  const url = `${FUNDS_API_BASE_URL}/alocacao${qs ? `?${qs}` : ""}`;
 
   const response = await fetch(url, {
     method: "GET",
@@ -134,7 +134,7 @@ export async function transitionAllocationWorkflow(
   data: TransitionAllocationRequest
 ): Promise<AllocationWorkflow> {
   const response = await fetch(
-    `${FUNDS_API_BASE_URL}/matching/${workflowId}/transition`,
+    `${FUNDS_API_BASE_URL}/alocacao/${workflowId}/transition`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -156,7 +156,7 @@ export async function createAllocationWorkflow(
   if (data.sla_deadline != null && data.sla_deadline !== "") body.sla_deadline = data.sla_deadline;
   if (data.pending_items?.length) body.pending_items = data.pending_items;
 
-  const response = await fetch(`${FUNDS_API_BASE_URL}/matching`, {
+  const response = await fetch(`${FUNDS_API_BASE_URL}/alocacao`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
