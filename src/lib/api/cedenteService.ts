@@ -84,10 +84,17 @@ export interface CedentePipelineItem {
   days_in_status: number;
 }
 
+/** Parse ISO-like timestamp. If no timezone (Z or ±HH:MM), assume UTC (common for APIs). */
+function parseTimestamp(ts: string): number {
+  const s = ts.trim();
+  if (s.endsWith("Z") || /[+-]\d{2}:?\d{2}$/.test(s)) return new Date(s).getTime();
+  return new Date(s.replace(" ", "T") + "Z").getTime();
+}
+
 function daysBetween(start: string, end: Date = new Date()): number {
-  const s = new Date(start).getTime();
+  const s = parseTimestamp(start);
   const e = end.getTime();
-  return Math.floor((e - s) / (1000 * 60 * 60 * 24));
+  return Math.max(0, Math.floor((e - s) / (1000 * 60 * 60 * 24)));
 }
 
 export function mapCedenteToPipelineItem(r: CedenteResponse): CedentePipelineItem {
