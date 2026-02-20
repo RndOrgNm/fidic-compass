@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { NewProspectionModal } from "./NewProspectionModal";
+import { NewReceivableModal } from "./NewReceivableModal";
 import { ProspectionKanban } from "./ProspectionKanban";
 import { ProspectionListView } from "./ProspectionListView";
 import { useProspectionWorkflows } from "@/hooks/useProspection";
@@ -99,7 +99,7 @@ export function ProspectionTab() {
               </Button>
               <Button onClick={() => setShowNewModal(true)}>
                 <Plus className="h-4 w-4" />
-                Novo Lead
+                Novo Recebível
               </Button>
             </div>
           </div>
@@ -200,7 +200,7 @@ export function ProspectionTab() {
         </>
       )}
 
-      <NewProspectionModal
+      <NewReceivableModal
         open={showNewModal}
         onOpenChange={setShowNewModal}
       />

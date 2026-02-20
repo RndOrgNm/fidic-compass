@@ -43,6 +43,17 @@ export interface ReceivableFilters {
   offset?: number;
 }
 
+export interface ReceivableCreatePayload {
+  cedente_id: string;
+  invoice_number: string;
+  nominal_value: number;
+  due_date: string;
+  debtor_name: string;
+  debtor_cnpj: string;
+  segment: Segment;
+  risk_score?: number;
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let errorMessage = "An error occurred";
@@ -79,4 +90,27 @@ export async function listReceivables(
   });
 
   return handleResponse<ReceivableListResponse>(response);
+}
+
+export async function createReceivable(
+  payload: ReceivableCreatePayload
+): Promise<Receivable> {
+  const body: Record<string, unknown> = {
+    cedente_id: payload.cedente_id,
+    invoice_number: payload.invoice_number,
+    nominal_value: payload.nominal_value,
+    due_date: payload.due_date,
+    debtor_name: payload.debtor_name,
+    debtor_cnpj: payload.debtor_cnpj,
+    segment: payload.segment,
+  };
+  if (payload.risk_score != null) body.risk_score = payload.risk_score;
+
+  const response = await fetch(`${FUNDS_API_BASE_URL}/receivables`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  return handleResponse<Receivable>(response);
 }
