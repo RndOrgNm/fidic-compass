@@ -3,10 +3,10 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { GripVertical, AlertCircle, Building2, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MonitoramentoPipelineStatus } from "@/data/pipelineData";
@@ -105,14 +105,18 @@ export function MonitoramentoCard({ item, onOpenDetails }: MonitoramentoCardProp
           )}
           <Badge variant="outline">{item.days_in_status} dias</Badge>
           {(item.pending_items?.length ?? 0) > 0 && (
-            <HoverCard openDelay={0} closeDelay={100}>
-              <HoverCardTrigger asChild>
-                <Badge className="bg-red-100 text-red-800 cursor-help pointer-events-auto hover:bg-red-200/80">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-semibold transition-colors bg-red-100 text-red-800 cursor-pointer hover:bg-red-200/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <AlertCircle className="h-3 w-3 mr-1" />
                   {item.pending_items.length} de {MONITORAMENTO_CHECKLIST[item.status]?.length ?? item.pending_items.length}
-                </Badge>
-              </HoverCardTrigger>
-              <HoverCardContent side="bottom" className="max-w-[320px] z-[9999]" sideOffset={8} avoidCollisions={true}>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent side="bottom" className="max-w-[320px] z-[9999]" sideOffset={8} align="start">
                 <p className="font-medium mb-1.5">
                   Checklist — {item.pending_items.length} pendente{item.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
                 </p>
@@ -129,8 +133,8 @@ export function MonitoramentoCard({ item, onOpenDetails }: MonitoramentoCardProp
                     );
                   })}
                 </ul>
-              </HoverCardContent>
-            </HoverCard>
+              </PopoverContent>
+            </Popover>
           )}
         </div>
       </CardContent>
