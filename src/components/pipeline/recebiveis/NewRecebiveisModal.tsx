@@ -21,12 +21,12 @@ import { toast } from "@/hooks/use-toast";
 import { useCreateNewLead } from "@/hooks/useProspection";
 import type { Segment } from "@/lib/api/prospectionService";
 
-interface NewProspectionModalProps {
+interface NewRecebiveisModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function NewProspectionModal({ open, onOpenChange }: NewProspectionModalProps) {
+export function NewRecebiveisModal({ open, onOpenChange }: NewRecebiveisModalProps) {
   const [companyName, setCompanyName] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [contactName, setContactName] = useState("");
@@ -106,7 +106,7 @@ export function NewProspectionModal({ open, onOpenChange }: NewProspectionModalP
         onSuccess: (data) => {
           toast({
             title: "Lead criado com sucesso",
-            description: `${data.company_name} foi adicionado ao pipeline de prospecção`,
+            description: `${data.company_name} foi adicionado ao pipeline de recebíveis`,
           });
           resetForm();
           onOpenChange(false);
@@ -128,7 +128,7 @@ export function NewProspectionModal({ open, onOpenChange }: NewProspectionModalP
         <DialogHeader>
           <DialogTitle>Novo Lead</DialogTitle>
           <DialogDescription>
-            Adicione uma nova empresa ao pipeline de prospecção
+            Adicione uma nova empresa ao pipeline de recebíveis
           </DialogDescription>
         </DialogHeader>
 

@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CedentesTab } from "@/components/pipeline/cedentes/CedentesTab";
-import { ProspectionTab } from "@/components/pipeline/prospecao/ProspectionTab";
+import { RecebiveisTab } from "@/components/pipeline/recebiveis/RecebiveisTab";
 import { ClientMatchingTab } from "@/components/pipeline/alocacao/ClientMatchingTab";
 import { MonitoramentoTab } from "@/components/pipeline/monitoramento/MonitoramentoTab";
 
@@ -11,13 +11,13 @@ export default function Pipeline() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Pipeline de Investimentos</h1>
-        <p className="text-muted-foreground">Cedentes, prospecção, alocação e monitoramento de recebíveis em fundos</p>
+        <p className="text-muted-foreground">Cedentes, recebíveis, alocação e monitoramento em fundos</p>
       </div>
 
       <Tabs defaultValue="cedentes" className="w-full">
         <TabsList className="grid w-full grid-cols-4 max-w-3xl">
           <TabsTrigger value="cedentes">Cedentes</TabsTrigger>
-          <TabsTrigger value="prospection">Prospecção</TabsTrigger>
+          <TabsTrigger value="recebiveis">Recebíveis</TabsTrigger>
           <TabsTrigger value="matching">Alocação</TabsTrigger>
           <TabsTrigger value="monitoramento">Monitoramento</TabsTrigger>
         </TabsList>
@@ -27,8 +27,8 @@ export default function Pipeline() {
             <CedentesTab />
           </TabsContent>
 
-          <TabsContent value="prospection">
-            <ProspectionTab />
+          <TabsContent value="recebiveis">
+            <RecebiveisTab />
           </TabsContent>
 
           <TabsContent value="matching">

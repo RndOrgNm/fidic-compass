@@ -164,7 +164,7 @@ export const cedentesData = [
   }
 ];
 
-/** Cedentes pipeline: status values for the Cedentes Kanban (before Prospecção). */
+/** Cedentes pipeline: status values for the Cedentes Kanban (before Recebíveis). */
 export type CedentePipelineStatus =
   | "lead"
   | "due_diligence"
@@ -519,7 +519,7 @@ export const pipelineReceivablesData = [
   }
 ];
 
-export const prospectionWorkflowsData = [
+export const recebiveisWorkflowsData = [
   {
     id: "PWF-001",
     cedenteId: "CED-007",

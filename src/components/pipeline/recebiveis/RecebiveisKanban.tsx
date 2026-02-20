@@ -1,12 +1,12 @@
 import { DndContext, DragEndEvent, closestCorners, useDroppable } from "@dnd-kit/core";
 import { Badge } from "@/components/ui/badge";
-import { ProspectionCard } from "./ProspectionCard";
+import { RecebiveisCard } from "./RecebiveisCard";
 import { toast } from "@/hooks/use-toast";
 import { useTransitionWorkflow } from "@/hooks/useProspection";
 import { cn } from "@/lib/utils";
 import type { ProspectionWorkflow, ProspectionStatus } from "@/lib/api/prospectionService";
 
-interface ProspectionKanbanProps {
+interface RecebiveisKanbanProps {
   workflows: ProspectionWorkflow[];
 }
 
@@ -50,7 +50,7 @@ function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnP
       </div>
       <div className="space-y-3">
         {workflows.map((workflow) => (
-          <ProspectionCard key={workflow.id} workflow={workflow} />
+          <RecebiveisCard key={workflow.id} workflow={workflow} />
         ))}
       </div>
     </div>
@@ -59,7 +59,7 @@ function KanbanColumn({ id, title, color, workflows, totalValue }: KanbanColumnP
 
 // ── Kanban board ───────────────────────────────────────────────────────────────
 
-export function ProspectionKanban({ workflows }: ProspectionKanbanProps) {
+export function RecebiveisKanban({ workflows }: RecebiveisKanbanProps) {
   const transitionMutation = useTransitionWorkflow();
 
   const formatCurrency = (value: number) => {

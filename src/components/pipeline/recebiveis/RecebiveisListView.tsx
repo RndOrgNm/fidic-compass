@@ -15,11 +15,11 @@ import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
 
-interface ProspectionListViewProps {
+interface RecebiveisListViewProps {
   workflows: ProspectionWorkflow[];
 }
 
-export function ProspectionListView({ workflows }: ProspectionListViewProps) {
+export function RecebiveisListView({ workflows }: RecebiveisListViewProps) {
   const formatCnpj = (cnpj: string) => {
     if (!cnpj) return "";
     if (cnpj.includes("/") || cnpj.includes(".")) return cnpj;

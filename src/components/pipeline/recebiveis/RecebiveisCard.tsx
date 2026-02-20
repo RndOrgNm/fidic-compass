@@ -9,11 +9,11 @@ import { toast } from "@/hooks/use-toast";
 import { useAssignWorkflow } from "@/hooks/useProspection";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
 
-interface ProspectionCardProps {
+interface RecebiveisCardProps {
   workflow: ProspectionWorkflow;
 }
 
-export function ProspectionCard({ workflow }: ProspectionCardProps) {
+export function RecebiveisCard({ workflow }: RecebiveisCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: workflow.id,
   });

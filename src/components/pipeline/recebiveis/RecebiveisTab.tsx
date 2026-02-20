@@ -10,8 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { NewReceivableModal } from "./NewReceivableModal";
-import { ProspectionKanban } from "./ProspectionKanban";
-import { ProspectionListView } from "./ProspectionListView";
+import { RecebiveisKanban } from "./RecebiveisKanban";
+import { RecebiveisListView } from "./RecebiveisListView";
 import { useProspectionWorkflows } from "@/hooks/useProspection";
 import type {
   ProspectionStatus,
@@ -20,7 +20,7 @@ import type {
   ProspectionWorkflow,
 } from "@/lib/api/prospectionService";
 
-export function ProspectionTab() {
+export function RecebiveisTab() {
   const [showNewModal, setShowNewModal] = useState(false);
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -66,7 +66,7 @@ export function ProspectionTab() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Pipeline de Prospecção</CardTitle>
+            <CardTitle>Pipeline de Recebíveis</CardTitle>
             <div className="flex items-center gap-2">
               <div className="flex border rounded-md">
                 <Button
@@ -193,9 +193,9 @@ export function ProspectionTab() {
       {!isLoading && !isError && (
         <>
           {viewMode === "kanban" ? (
-            <ProspectionKanban workflows={filteredWorkflows} />
+            <RecebiveisKanban workflows={filteredWorkflows} />
           ) : (
-            <ProspectionListView workflows={filteredWorkflows} />
+            <RecebiveisListView workflows={filteredWorkflows} />
           )}
         </>
       )}

@@ -21,7 +21,7 @@ const features = [
   },
   {
     title: "Pipeline de Investimentos",
-    description: "Prospecção e alocação de recebíveis em fundos",
+    description: "Recebíveis e alocação em fundos",
     icon: GitBranch,
     color: "text-orange-600",
     bgColor: "bg-orange-100",

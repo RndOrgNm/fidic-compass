@@ -69,7 +69,7 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
     enabled: open,
   });
 
-  // Approved workflows from Prospecção (pipeline before) with receivable_id, excluding already-allocated
+  // Approved workflows from Recebíveis (pipeline before) with receivable_id, excluding already-allocated
   const allocatedReceivableIds = new Set(
     (allocationsData?.items ?? []).map((a) => a.receivable_id)
   );
@@ -139,7 +139,7 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
         <DialogHeader>
           <DialogTitle>Nova Alocação</DialogTitle>
           <DialogDescription>
-            Inicie um novo fluxo de alocação selecionando um recebível aprovado (aprovação do pipeline de Prospecção).
+            Inicie um novo fluxo de alocação selecionando um recebível aprovado (aprovação no pipeline de Recebíveis).
           </DialogDescription>
         </DialogHeader>
 
@@ -159,7 +159,7 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
               <SelectContent>
                 {receivables.length === 0 && !loadingWorkflows ? (
                   <SelectItem value="__none__" disabled>
-                    Nenhum recebível aprovado disponível (aprovação no pipeline de Prospecção)
+                    Nenhum recebível aprovado disponível (aprovação no pipeline de Recebíveis)
                   </SelectItem>
                 ) : (
                   receivables.map((rec) => (
