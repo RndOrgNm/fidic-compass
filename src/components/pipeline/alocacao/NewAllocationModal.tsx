@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { useCreateAllocationWorkflow } from "@/hooks/useAllocation";
-import { listRecebiveis } from "@/lib/api/recebiveisService";
+import { listProspectionWorkflows } from "@/lib/api/prospectionService";
 import { listAllocationWorkflows } from "@/lib/api/allocationService";
 import { listFunds } from "@/lib/api/fundService";
 import { useQuery } from "@tanstack/react-query";
@@ -44,16 +44,16 @@ function formatCurrency(value: number) {
 }
 
 export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalProps) {
-  const [recebivelId, setRecebivelId] = useState("");
+  const [receivableId, setReceivableId] = useState("");
   const [fundId, setFundId] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   const [slaDeadline, setSlaDeadline] = useState("");
 
   const createAllocation = useCreateAllocationWorkflow();
 
-  const { data: recebiveisData, isLoading: loadingRecebiveis } = useQuery({
+  const { data: workflowsData, isLoading: loadingWorkflows } = useQuery({
     queryKey: [APPROVED_WORKFLOWS_KEY],
-    queryFn: () => listRecebiveis({ status: "approved", limit: 200 }),
+    queryFn: () => listProspectionWorkflows({ status: "approved", limit: 200 }),
     enabled: open,
   });
 
@@ -69,32 +69,33 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
     enabled: open,
   });
 
-  // Approved recebíveis, excluding already-allocated
-  const allocatedRecebivelIds = new Set(
-    (allocationsData?.items ?? []).map((a) => a.recebivel_id ?? (a as any).receivable_id)
+  // Approved recebiveis from Recebíveis pipeline. For merged table, receivable_id is null — use id (recebivel id).
+  const allocatedIds = new Set(
+    (allocationsData?.items ?? []).map((a) => a.receivable_id)
   );
-  const recebiveisMap = new Map<string, { id: string; cedente_name: string; nominal_value: number }>();
-  for (const r of recebiveisData?.items ?? []) {
-    if (allocatedRecebivelIds.has(r.id) || recebiveisMap.has(r.id)) continue;
-    recebiveisMap.set(r.id, {
-      id: r.id,
-      cedente_name: r.cedente_name ?? "—",
-      nominal_value: r.receivable_value ?? r.nominal_value ?? 0,
+  const receivablesMap = new Map<string, { id: string; cedente_name: string; nominal_value: number }>();
+  for (const w of workflowsData?.items ?? []) {
+    const key = w.receivable_id ?? w.id;
+    if (allocatedIds.has(key) || receivablesMap.has(key)) continue;
+    receivablesMap.set(key, {
+      id: key,
+      cedente_name: w.cedente_name ?? "—",
+      nominal_value: w.receivable_value,
     });
   }
-  const recebiveis = Array.from(recebiveisMap.values());
+  const receivables = Array.from(receivablesMap.values());
 
   const funds = fundsData?.items ?? [];
 
   const resetForm = () => {
-    setRecebivelId("");
+    setReceivableId("");
     setFundId("");
     setAssignedTo("");
     setSlaDeadline("");
   };
 
   const handleSubmit = () => {
-    if (!recebivelId.trim()) {
+    if (!receivableId.trim()) {
       toast({
         title: "Campo obrigatório",
         description: "Selecione um recebível para alocar",
@@ -105,7 +106,7 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
 
     createAllocation.mutate(
       {
-        recebivel_id: recebivelId.trim(),
+        receivable_id: receivableId.trim(),
         fund_id: fundId.trim() || undefined,
         assigned_to: assignedTo.trim() || undefined,
         sla_deadline: slaDeadline.trim() || undefined,
@@ -114,7 +115,7 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
         onSuccess: (data) => {
           toast({
             title: "Alocação criada com sucesso",
-            description: `Workflow de alocação iniciado para o recebível (${data.receivable_number ?? data.recebivel_id})`,
+            description: `Workflow de alocação iniciado para o recebível (${data.receivable_number ?? data.receivable_id})`,
           });
           resetForm();
           onOpenChange(false);
@@ -130,7 +131,7 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
     );
   };
 
-  const isLoadingOptions = loadingRecebiveis || loadingFunds;
+  const isLoadingOptions = loadingWorkflows || loadingFunds;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -148,20 +149,20 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
               Recebível <span className="text-red-500">*</span>
             </Label>
             <Select
-              value={recebivelId}
-              onValueChange={setRecebivelId}
+              value={receivableId}
+              onValueChange={setReceivableId}
               disabled={isLoadingOptions}
             >
-              <SelectTrigger id="recebivel">
-                <SelectValue placeholder={loadingRecebiveis ? "Carregando..." : "Selecione o recebível aprovado"} />
+              <SelectTrigger id="receivable">
+                <SelectValue placeholder={loadingWorkflows ? "Carregando..." : "Selecione o recebível aprovado"} />
               </SelectTrigger>
               <SelectContent>
-                {recebiveis.length === 0 && !loadingRecebiveis ? (
+                {receivables.length === 0 && !loadingWorkflows ? (
                   <SelectItem value="__none__" disabled>
                     Nenhum recebível aprovado disponível (aprovação no pipeline de Recebíveis)
                   </SelectItem>
                 ) : (
-                  recebiveis.map((rec) => (
+                  receivables.map((rec) => (
                     <SelectItem key={rec.id} value={rec.id}>
                       {rec.cedente_name} — {formatCurrency(rec.nominal_value)}
                     </SelectItem>
@@ -219,7 +220,7 @@ export function NewAllocationModal({ open, onOpenChange }: NewAllocationModalPro
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={createAllocation.isPending || !recebivelId || isLoadingOptions}
+            disabled={createAllocation.isPending || !receivableId || isLoadingOptions}
           >
             {createAllocation.isPending ? (
               <>

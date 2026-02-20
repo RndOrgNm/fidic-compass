@@ -12,13 +12,13 @@ import {
 import { NewReceivableModal } from "./NewReceivableModal";
 import { RecebiveisKanban } from "./RecebiveisKanban";
 import { RecebiveisListView } from "./RecebiveisListView";
-import { useRecebiveis } from "@/hooks/useRecebiveis";
+import { useProspectionWorkflows } from "@/hooks/useProspection";
 import type {
   ProspectionStatus,
   Segment,
-  RecebivelFilters,
-  Recebivel,
-} from "@/lib/api/recebiveisService";
+  WorkflowFilters,
+  ProspectionWorkflow,
+} from "@/lib/api/prospectionService";
 
 export function RecebiveisTab() {
   const [showNewModal, setShowNewModal] = useState(false);
@@ -29,7 +29,7 @@ export function RecebiveisTab() {
   const [segmentFilter, setSegmentFilter] = useState("all");
 
   // Build API filters
-  const apiFilters: RecebivelFilters = {};
+  const apiFilters: WorkflowFilters = {};
   if (statusFilter !== "all") {
     apiFilters.status = statusFilter as ProspectionStatus;
   }
@@ -37,17 +37,17 @@ export function RecebiveisTab() {
     apiFilters.segment = segmentFilter as Segment;
   }
 
-  const { data, isLoading, isFetching, isError, error, refetch } = useRecebiveis(apiFilters);
+  const { data, isLoading, isFetching, isError, error, refetch } = useProspectionWorkflows(apiFilters);
 
   // Client-side filtering for assigned and SLA (not supported by backend)
-  const filteredWorkflows: Recebivel[] = (data?.items ?? []).filter(
-    (r) => {
-      if (assignedFilter === "unassigned" && r.assigned_to !== null) return false;
+  const filteredWorkflows: ProspectionWorkflow[] = (data?.items ?? []).filter(
+    (wf) => {
+      if (assignedFilter === "unassigned" && wf.assigned_to !== null) return false;
       // "mine" would require knowing the current user; skip for now
 
-      if (slaFilter !== "all" && r.sla_deadline) {
+      if (slaFilter !== "all" && wf.sla_deadline) {
         const now = new Date();
-        const deadline = new Date(r.sla_deadline);
+        const deadline = new Date(wf.sla_deadline);
         const daysRemaining = Math.ceil(
           (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
         );
@@ -193,9 +193,9 @@ export function RecebiveisTab() {
       {!isLoading && !isError && (
         <>
           {viewMode === "kanban" ? (
-            <RecebiveisKanban recebiveis={filteredWorkflows} />
+            <RecebiveisKanban workflows={filteredWorkflows} />
           ) : (
-            <RecebiveisListView recebiveis={filteredWorkflows} />
+            <RecebiveisListView workflows={filteredWorkflows} />
           )}
         </>
       )}

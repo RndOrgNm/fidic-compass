@@ -1,4 +1,4 @@
-import type { ProspectionStatus } from "@/lib/api/recebiveisService";
+import type { ProspectionStatus } from "@/lib/api/prospectionService";
 
 /**
  * Canonical checklists for each Recebíveis (prospection) pipeline status.

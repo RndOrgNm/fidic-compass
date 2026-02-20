@@ -15,13 +15,13 @@ import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { RECEBIVEIS_CHECKLIST } from "@/data/recebiveisChecklist";
-import type { Recebivel } from "@/lib/api/recebiveisService";
+import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
 
 interface RecebiveisListViewProps {
-  recebiveis: Recebivel[];
+  workflows: ProspectionWorkflow[];
 }
 
-export function RecebiveisListView({ recebiveis }: RecebiveisListViewProps) {
+export function RecebiveisListView({ workflows }: RecebiveisListViewProps) {
   const formatCnpj = (cnpj: string) => {
     if (!cnpj) return "";
     if (cnpj.includes("/") || cnpj.includes(".")) return cnpj;
@@ -37,11 +37,11 @@ export function RecebiveisListView({ recebiveis }: RecebiveisListViewProps) {
     }).format(value);
   };
 
-  const getSLABadge = (r: Recebivel) => {
-    if (!r.sla_deadline) return null;
+  const getSLABadge = (workflow: ProspectionWorkflow) => {
+    if (!workflow.sla_deadline) return null;
 
     const now = new Date();
-    const deadline = new Date(r.sla_deadline);
+    const deadline = new Date(workflow.sla_deadline);
     const daysRemaining = Math.ceil(
       (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -126,31 +126,31 @@ export function RecebiveisListView({ recebiveis }: RecebiveisListViewProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recebiveis.map((r) => (
-              <TableRow key={r.id}>
+            {workflows.map((workflow) => (
+              <TableRow key={workflow.id}>
                 <TableCell>
                   <Checkbox />
                 </TableCell>
                 <TableCell>
                   <div>
                     <div className="font-medium">
-                      {r.cedente_name || "Sem nome"}
+                      {workflow.cedente_name || "Sem nome"}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {r.cedente_cnpj ? formatCnpj(r.cedente_cnpj) : "—"}
+                      {workflow.cedente_cnpj ? formatCnpj(workflow.cedente_cnpj) : "—"}
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>{getSegmentBadge(r.cedente_segment)}</TableCell>
-                <TableCell>{getStatusBadge(r.status)}</TableCell>
+                <TableCell>{getSegmentBadge(workflow.cedente_segment)}</TableCell>
+                <TableCell>{getStatusBadge(workflow.status)}</TableCell>
                 <TableCell>
                   <span className="font-medium">
-                    {formatCurrency(r.estimated_volume || r.receivable_value || 0)}
+                    {formatCurrency(workflow.estimated_volume || 0)}
                   </span>
                 </TableCell>
                 <TableCell>
-                  {r.assigned_to ? (
-                    <Badge variant="outline">{r.assigned_to}</Badge>
+                  {workflow.assigned_to ? (
+                    <Badge variant="outline">{workflow.assigned_to}</Badge>
                   ) : (
                     <Badge variant="outline" className="bg-yellow-50">
                       Não atribuído
@@ -158,31 +158,31 @@ export function RecebiveisListView({ recebiveis }: RecebiveisListViewProps) {
                   )}
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{r.days_in_progress} dias</span>
+                  <span className="text-sm">{workflow.days_in_progress} dias</span>
                 </TableCell>
-                <TableCell>{getSLABadge(r)}</TableCell>
+                <TableCell>{getSLABadge(workflow)}</TableCell>
                 <TableCell>
-                  {(r.pending_items?.length ?? 0) > 0 ? (
+                  {(workflow.pending_items?.length ?? 0) > 0 ? (
                     <TooltipProvider delayDuration={100}>
                       <Tooltip>
                         <TooltipTrigger>
                           <button type="button" className="cursor-help inline-flex items-center gap-1">
                             <AlertCircle className="h-4 w-4 text-red-600" />
                             <span className="text-sm font-medium text-red-600">
-                              {(RECEBIVEIS_CHECKLIST[r.status]?.length ?? 0) > 0
-                                ? `${r.pending_items.length} de ${RECEBIVEIS_CHECKLIST[r.status]!.length}`
-                                : `${r.pending_items.length} ${r.pending_items.length === 1 ? "pendência" : "pendências"}`}
+                              {(RECEBIVEIS_CHECKLIST[workflow.status]?.length ?? 0) > 0
+                                ? `${workflow.pending_items.length} de ${RECEBIVEIS_CHECKLIST[workflow.status]!.length}`
+                                : `${workflow.pending_items.length} ${workflow.pending_items.length === 1 ? "pendência" : "pendências"}`}
                             </span>
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="max-w-[320px]">
                           <p className="font-medium mb-1.5">
-                            Checklist — {r.pending_items.length} pendente{r.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
+                            Checklist — {workflow.pending_items.length} pendente{workflow.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
                           </p>
                           <ul className="text-sm space-y-1.5">
-                            {(RECEBIVEIS_CHECKLIST[r.status] ?? []).length > 0 ? (
-                              (RECEBIVEIS_CHECKLIST[r.status] ?? []).map((item, idx) => {
-                                const isPending = r.pending_items.includes(item);
+                            {(RECEBIVEIS_CHECKLIST[workflow.status] ?? []).length > 0 ? (
+                              (RECEBIVEIS_CHECKLIST[workflow.status] ?? []).map((item, idx) => {
+                                const isPending = workflow.pending_items.includes(item);
                                 return (
                                   <li key={idx} className={cn("flex items-start gap-1.5", isPending ? "text-foreground" : "text-muted-foreground")}>
                                     <span className={isPending ? "text-red-500 mt-0.5" : "text-green-600 mt-0.5"}>
@@ -193,7 +193,7 @@ export function RecebiveisListView({ recebiveis }: RecebiveisListViewProps) {
                                 );
                               })
                             ) : (
-                              r.pending_items.map((item: string, idx: number) => (
+                              workflow.pending_items.map((item: string, idx: number) => (
                                 <li key={idx} className="flex items-start gap-1.5">
                                   <span className="text-red-500 mt-0.5">•</span>
                                   <span>{item}</span>

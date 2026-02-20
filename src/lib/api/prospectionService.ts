@@ -127,7 +127,7 @@ export async function listProspectionWorkflows(
   if (filters.offset) params.set("offset", String(filters.offset));
 
   const qs = params.toString();
-  const url = `${FUNDS_API_BASE_URL}/prospection${qs ? `?${qs}` : ""}`;
+  const url = `${FUNDS_API_BASE_URL}/recebiveis${qs ? `?${qs}` : ""}`;
 
   const response = await fetch(url, {
     method: "GET",
@@ -140,7 +140,7 @@ export async function listProspectionWorkflows(
 export async function createNewLead(
   data: NewLeadCreate
 ): Promise<NewLeadResponse> {
-  const response = await fetch(`${FUNDS_API_BASE_URL}/prospection/new-lead`, {
+  const response = await fetch(`${FUNDS_API_BASE_URL}/recebiveis/new-lead`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -154,7 +154,7 @@ export async function transitionWorkflow(
   data: TransitionRequest
 ): Promise<ProspectionWorkflow> {
   const response = await fetch(
-    `${FUNDS_API_BASE_URL}/prospection/${workflowId}/transition`,
+    `${FUNDS_API_BASE_URL}/recebiveis/${workflowId}/transition`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -170,7 +170,7 @@ export async function assignWorkflow(
   assignedTo: string
 ): Promise<ProspectionWorkflow> {
   const response = await fetch(
-    `${FUNDS_API_BASE_URL}/prospection/${workflowId}/assign`,
+    `${FUNDS_API_BASE_URL}/recebiveis/${workflowId}/assign`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

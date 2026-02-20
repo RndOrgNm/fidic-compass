@@ -18,8 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { useCreateNewLead } from "@/hooks/useRecebiveis";
-import type { Segment } from "@/lib/api/recebiveisService";
+import { useCreateNewLead } from "@/hooks/useProspection";
+import type { Segment } from "@/lib/api/prospectionService";
 
 interface NewRecebiveisModalProps {
   open: boolean;
