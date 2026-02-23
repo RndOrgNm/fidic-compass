@@ -144,10 +144,9 @@ export function RecebivelDetailsModal({
             </div>
           )}
 
-          {checklistItems.length === 0 &&
-            (workflow.status === "approved" || workflow.status === "rejected") && (
+          {checklistItems.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              {workflow.status === "approved" ? "Workflow aprovado. Sem checklist pendente." : "Workflow rejeitado."}
+              {RECEBIVEIS_STATUS_LABELS[workflow.status as keyof typeof RECEBIVEIS_STATUS_LABELS] ?? workflow.status}. Sem checklist pendente.
             </p>
           )}
         </div>

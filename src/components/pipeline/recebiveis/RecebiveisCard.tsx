@@ -6,7 +6,9 @@ import { AlertCircle, Clock, AlertTriangle, GripVertical, Building2, DollarSign 
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useAssignWorkflow } from "@/hooks/useProspection";
+import { toast } from "@/hooks/use-toast";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
+import { RECEBIVEIS_COLUMNS } from "@/data/recebiveisPipelineConfig";
 
 interface RecebiveisCardProps {
   workflow: ProspectionWorkflow;
@@ -94,22 +96,8 @@ export function RecebiveisCard({ workflow, checklist, onOpenDetails }: Recebivei
   };
 
   const getStatusBorderClass = () => {
-    switch (workflow.status) {
-      case "lead":
-        return "border-l-4 border-slate-500";
-      case "contact":
-        return "border-l-4 border-blue-500";
-      case "documents":
-        return "border-l-4 border-yellow-500";
-      case "credit_analysis":
-        return "border-l-4 border-purple-500";
-      case "approved":
-        return "border-l-4 border-green-500";
-      case "rejected":
-        return "border-l-4 border-red-500";
-      default:
-        return "";
-    }
+    const column = RECEBIVEIS_COLUMNS.find((c) => c.id === workflow.status);
+    return column ? `border-l-4 ${column.color}` : "";
   };
 
   const handleAssignToMe = () => {

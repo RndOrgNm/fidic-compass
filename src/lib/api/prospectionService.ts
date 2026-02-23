@@ -1,14 +1,13 @@
 import { FUNDS_API_BASE_URL } from "./config";
+import type { RecebivelStatus } from "@/data/recebiveisPipelineConfig";
 
 // ── Enums ──────────────────────────────────────────────────────────────────────
 
-export type ProspectionStatus =
-  | "lead"
-  | "contact"
-  | "documents"
-  | "credit_analysis"
-  | "approved"
-  | "rejected";
+/** Re-exported from recebiveisPipelineConfig (single source of truth). */
+export type { RecebivelStatus };
+
+/** @deprecated Use RecebivelStatus. Kept for backwards compatibility. */
+export type ProspectionStatus = RecebivelStatus;
 
 export type ProspectionStep =
   | "initial_contact"
@@ -32,7 +31,7 @@ export interface ProspectionWorkflow {
   id: string;
   cedente_id: string;
   receivable_id: string | null;
-  status: ProspectionStatus;
+  status: RecebivelStatus;
   current_step: ProspectionStep;
   assigned_to: string | null;
   pending_items: string[];
@@ -71,12 +70,12 @@ export interface NewLeadResponse {
   company_name: string;
   cnpj: string;
   segment: Segment;
-  status: ProspectionStatus;
+  status: RecebivelStatus;
   estimated_volume: number;
 }
 
 export interface TransitionRequest {
-  status: ProspectionStatus;
+  status: RecebivelStatus;
   current_step?: ProspectionStep;
   pending_items?: string[];
 }
@@ -90,14 +89,14 @@ export interface RecebivelUpdateRequest {
   assigned_to?: string | null;
   sla_deadline?: string | null;
   estimated_volume?: number;
-  status?: ProspectionStatus;
+  status?: RecebivelStatus;
   current_step?: ProspectionStep;
 }
 
 // ── Filters ────────────────────────────────────────────────────────────────────
 
 export interface WorkflowFilters {
-  status?: ProspectionStatus;
+  status?: RecebivelStatus;
   assigned_to?: string;
   cedente_id?: string;
   segment?: Segment;

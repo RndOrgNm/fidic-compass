@@ -17,7 +17,7 @@ import { useProspectionWorkflows, useUpdateRecebivel, useRecebiveisChecklist } f
 import { RECEBIVEIS_CHECKLIST } from "@/data/recebiveisChecklist";
 import { RECEBIVEIS_COLUMNS } from "@/data/recebiveisPipelineConfig";
 import type {
-  ProspectionStatus,
+  RecebivelStatus,
   Segment,
   WorkflowFilters,
   ProspectionWorkflow,
@@ -34,7 +34,7 @@ export function RecebiveisTab() {
   // Build API filters
   const apiFilters: WorkflowFilters = {};
   if (statusFilter !== "all") {
-    apiFilters.status = statusFilter as ProspectionStatus;
+    apiFilters.status = statusFilter as RecebivelStatus;
   }
   if (segmentFilter !== "all") {
     apiFilters.segment = segmentFilter as Segment;

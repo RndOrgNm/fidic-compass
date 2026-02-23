@@ -4,7 +4,7 @@ import { RecebiveisCard } from "./RecebiveisCard";
 import { toast } from "@/hooks/use-toast";
 import { useTransitionWorkflow } from "@/hooks/useProspection";
 import { cn } from "@/lib/utils";
-import type { ProspectionWorkflow, ProspectionStatus } from "@/lib/api/prospectionService";
+import type { ProspectionWorkflow, RecebivelStatus } from "@/lib/api/prospectionService";
 import { RECEBIVEIS_COLUMNS } from "@/data/recebiveisPipelineConfig";
 
 interface RecebiveisKanbanProps {
@@ -13,12 +13,12 @@ interface RecebiveisKanbanProps {
   onOpenDetails?: (workflow: ProspectionWorkflow) => void;
 }
 
-const STATUS_ORDER: ProspectionStatus[] = RECEBIVEIS_COLUMNS.map((c) => c.id);
+const STATUS_ORDER: RecebivelStatus[] = RECEBIVEIS_COLUMNS.map((c) => c.id);
 
 // ── Droppable column ───────────────────────────────────────────────────────────
 
 interface KanbanColumnProps {
-  id: ProspectionStatus;
+  id: RecebivelStatus;
   title: string;
   color: string;
   workflows: ProspectionWorkflow[];
@@ -75,7 +75,7 @@ export function RecebiveisKanban({ workflows, checklist, onOpenDetails }: Recebi
     if (!over) return;
 
     const workflowId = active.id as string;
-    const targetColumnId = over.id as ProspectionStatus;
+    const targetColumnId = over.id as RecebivelStatus;
 
     const draggedWorkflow = workflows.find((wf) => wf.id === workflowId);
     if (!draggedWorkflow || draggedWorkflow.status === targetColumnId) return;
@@ -116,11 +116,11 @@ export function RecebiveisKanban({ workflows, checklist, onOpenDetails }: Recebi
     );
   };
 
-  const getWorkflowsByStatus = (status: ProspectionStatus) => {
+  const getWorkflowsByStatus = (status: RecebivelStatus) => {
     return workflows.filter((wf) => wf.status === status);
   };
 
-  const getTotalValue = (status: ProspectionStatus) => {
+  const getTotalValue = (status: RecebivelStatus) => {
     return getWorkflowsByStatus(status).reduce(
       (acc, wf) => acc + (wf.estimated_volume || 0),
       0
