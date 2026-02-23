@@ -13,6 +13,8 @@ const COLUMNS: { id: CedentePipelineStatus; title: string; color: string }[] = [
   { id: "bloqueado_desistencia", title: "Bloqueado/Desistência", color: "border-red-500" },
 ];
 
+const STATUS_ORDER: CedentePipelineStatus[] = COLUMNS.map((c) => c.id);
+
 interface CedentesKanbanProps {
   cedentes: CedentePipelineItem[];
   checklist: Record<string, string[]>;
@@ -57,8 +59,8 @@ function KanbanColumn({ id, title, color, cedentes, checklist, onOpenDetails }: 
 }
 
 /**
- * Kanban pattern: a card can only move to the next status when it has no pending items.
- * Backend will enforce the same rule via pending_items on the cedente/workflow.
+ * Kanban pattern: a card can only move FORWARD to the next status when it has no pending items.
+ * Backward moves (e.g. Due Diligence back to Lead) are always allowed; backend resets pending_items to the target status.
  */
 export function CedentesKanban({ cedentes, checklist, onStatusChange, onOpenDetails }: CedentesKanbanProps) {
   const handleDragEnd = (event: DragEndEvent) => {
@@ -71,11 +73,15 @@ export function CedentesKanban({ cedentes, checklist, onStatusChange, onOpenDeta
     const cedente = cedentes.find((c) => c.id === cedenteId);
     if (!cedente || cedente.status === targetStatus) return;
 
+    const currentIdx = STATUS_ORDER.indexOf(cedente.status);
+    const targetIdx = STATUS_ORDER.indexOf(targetStatus);
+    const isMovingForward = targetIdx > currentIdx;
     const hasPending = (cedente.pending_items?.length ?? 0) > 0;
-    if (hasPending) {
+
+    if (isMovingForward && hasPending) {
       toast({
         title: "Itens pendentes",
-        description: "Complete os itens pendentes antes de mover o cedente para outra etapa.",
+        description: "Complete os itens pendentes antes de avançar para a próxima etapa.",
         variant: "destructive",
       });
       return;

@@ -13,6 +13,8 @@ const COLUMNS: { id: MonitoramentoPipelineStatus; title: string; color: string }
   { id: "encerrado", title: "Encerrado", color: "border-green-500" },
 ];
 
+const STATUS_ORDER: MonitoramentoPipelineStatus[] = COLUMNS.map((c) => c.id);
+
 interface MonitoramentoKanbanProps {
   items: MonitoramentoPipelineItem[];
   onStatusChange: (itemId: string, newStatus: MonitoramentoPipelineStatus) => void;
@@ -55,7 +57,8 @@ function KanbanColumn({ id, title, color, items, onOpenDetails }: KanbanColumnPr
 }
 
 /**
- * Kanban pattern: card can only move when pending_items is empty.
+ * Kanban pattern: card can only move FORWARD when pending_items is empty.
+ * Backward moves are always allowed; backend resets pending_items to the target status.
  */
 export function MonitoramentoKanban({ items, onStatusChange, onOpenDetails }: MonitoramentoKanbanProps) {
   const handleDragEnd = (event: DragEndEvent) => {
@@ -68,11 +71,15 @@ export function MonitoramentoKanban({ items, onStatusChange, onOpenDetails }: Mo
     const item = items.find((i) => i.id === itemId);
     if (!item || item.status === targetStatus) return;
 
+    const currentIdx = STATUS_ORDER.indexOf(item.status);
+    const targetIdx = STATUS_ORDER.indexOf(targetStatus);
+    const isMovingForward = targetIdx > currentIdx;
     const hasPending = (item.pending_items?.length ?? 0) > 0;
-    if (hasPending) {
+
+    if (isMovingForward && hasPending) {
       toast({
         title: "Itens pendentes",
-        description: "Complete os itens pendentes antes de mover para outra etapa.",
+        description: "Complete os itens pendentes antes de avançar para a próxima etapa.",
         variant: "destructive",
       });
       return;
