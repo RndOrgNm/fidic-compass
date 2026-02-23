@@ -15,14 +15,7 @@ import {
 } from "@/components/ui/table";
 import type { MonitoramentoPipelineItem } from "./MonitoramentoCard";
 import type { MonitoramentoPipelineStatus } from "@/data/pipelineData";
-
-const STATUS_BADGES: Record<MonitoramentoPipelineStatus, { label: string; className: string }> = {
-  alertas_deteccao: { label: "Alertas Detecção", className: "bg-amber-100 text-amber-800" },
-  correcoes_acoes: { label: "Correções/Ações", className: "bg-orange-100 text-orange-800" },
-  relatorios_em_andamento: { label: "Relatórios em Andamento", className: "bg-blue-100 text-blue-800" },
-  em_conformidade_auditoria: { label: "Em conformidade/Auditoria", className: "bg-purple-100 text-purple-800" },
-  encerrado: { label: "Encerrado", className: "bg-green-100 text-green-800" },
-};
+import { MONITORAMENTO_STATUS_BADGES } from "@/data/monitoramentoPipelineConfig";
 
 interface MonitoramentoListViewProps {
   items: MonitoramentoPipelineItem[];
@@ -48,7 +41,7 @@ export function MonitoramentoListView({ items, onOpenDetails }: MonitoramentoLis
           </TableHeader>
           <TableBody>
             {items.map((item) => {
-              const statusBadge = STATUS_BADGES[item.status] ?? {
+              const statusBadge = MONITORAMENTO_STATUS_BADGES[item.status] ?? {
                 label: item.status,
                 className: "bg-gray-100 text-gray-800",
               };

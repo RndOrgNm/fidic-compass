@@ -13,14 +13,7 @@ import { cn } from "@/lib/utils";
 import { MONITORAMENTO_CHECKLIST } from "@/data/monitoramentoChecklist";
 import type { MonitoramentoPipelineItem } from "./MonitoramentoCard";
 import type { MonitoramentoPipelineStatus } from "@/data/pipelineData";
-
-const STATUS_LABELS: Record<MonitoramentoPipelineStatus, string> = {
-  alertas_deteccao: "Alertas Detecção",
-  correcoes_acoes: "Correções/Ações",
-  relatorios_em_andamento: "Relatórios em Andamento",
-  em_conformidade_auditoria: "Em conformidade/Auditoria",
-  encerrado: "Encerrado",
-};
+import { MONITORAMENTO_STATUS_LABELS } from "@/data/monitoramentoPipelineConfig";
 
 interface MonitoramentoDetailsModalProps {
   item: MonitoramentoPipelineItem | null;
@@ -61,7 +54,7 @@ export function MonitoramentoDetailsModal({
         <div className="space-y-5 flex-1 min-h-0 flex flex-col">
           <div className="space-y-3 shrink-0">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary">{STATUS_LABELS[item.status]}</Badge>
+              <Badge variant="secondary">{MONITORAMENTO_STATUS_LABELS[item.status]}</Badge>
               {item.fundName && (
                 <Badge variant="outline">{item.fundName}</Badge>
               )}
@@ -78,7 +71,7 @@ export function MonitoramentoDetailsModal({
           </div>
 
           <div className="flex-1 min-h-0 flex flex-col gap-2">
-            <h4 className="font-medium text-sm shrink-0">Checklist — {STATUS_LABELS[item.status]}</h4>
+            <h4 className="font-medium text-sm shrink-0">Checklist — {MONITORAMENTO_STATUS_LABELS[item.status]}</h4>
             <p className="text-xs text-muted-foreground shrink-0">
               Marque os itens concluídos. Quando todos estiverem concluídos, o item poderá avançar para o próximo status.
             </p>

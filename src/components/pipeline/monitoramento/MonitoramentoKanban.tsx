@@ -4,16 +4,9 @@ import { MonitoramentoCard, type MonitoramentoPipelineItem } from "./Monitoramen
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { MonitoramentoPipelineStatus } from "@/data/pipelineData";
+import { MONITORAMENTO_COLUMNS } from "@/data/monitoramentoPipelineConfig";
 
-const COLUMNS: { id: MonitoramentoPipelineStatus; title: string; color: string }[] = [
-  { id: "alertas_deteccao", title: "Alertas Detecção", color: "border-amber-500" },
-  { id: "correcoes_acoes", title: "Correções/Ações", color: "border-orange-500" },
-  { id: "relatorios_em_andamento", title: "Relatórios em Andamento", color: "border-blue-500" },
-  { id: "em_conformidade_auditoria", title: "Em conformidade/Auditoria", color: "border-purple-500" },
-  { id: "encerrado", title: "Encerrado", color: "border-green-500" },
-];
-
-const STATUS_ORDER: MonitoramentoPipelineStatus[] = COLUMNS.map((c) => c.id);
+const STATUS_ORDER: MonitoramentoPipelineStatus[] = MONITORAMENTO_COLUMNS.map((c) => c.id);
 
 interface MonitoramentoKanbanProps {
   items: MonitoramentoPipelineItem[];
@@ -94,7 +87,7 @@ export function MonitoramentoKanban({ items, onStatusChange, onOpenDetails }: Mo
   return (
     <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {COLUMNS.map((col) => (
+        {MONITORAMENTO_COLUMNS.map((col) => (
           <KanbanColumn
             key={col.id}
             id={col.id}

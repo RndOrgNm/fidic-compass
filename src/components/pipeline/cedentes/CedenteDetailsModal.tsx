@@ -12,6 +12,7 @@ import { Building2, User, Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
+import { CEDENTES_STATUS_LABELS } from "@/data/cedentesPipelineConfig";
 
 const SEGMENT_LABELS: Record<string, string> = {
   comercio: "Comércio",
@@ -20,14 +21,6 @@ const SEGMENT_LABELS: Record<string, string> = {
   agronegocio: "Agronegócio",
   varejo: "Varejo",
   insumos: "Insumos",
-};
-
-const STATUS_LABELS: Record<CedentePipelineStatus, string> = {
-  lead: "Lead",
-  due_diligence: "Due Diligence",
-  documentacao_pendente: "Documentação Pendente",
-  cedente_ativo: "Cedente Ativo",
-  bloqueado_desistencia: "Bloqueado/Desistência",
 };
 
 function formatCnpj(cnpj: string) {
@@ -86,7 +79,7 @@ export function CedenteDetailsModal({
         <div className="space-y-5 flex-1 min-h-0 flex flex-col">
           <div className="space-y-3 shrink-0">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary">{STATUS_LABELS[cedente.status]}</Badge>
+              <Badge variant="secondary">{CEDENTES_STATUS_LABELS[cedente.status]}</Badge>
               <Badge variant="outline">{SEGMENT_LABELS[cedente.segment] ?? cedente.segment}</Badge>
               {cedente.assigned_to && (
                 <Badge variant="outline">Atribuído a: {cedente.assigned_to}</Badge>
@@ -125,7 +118,7 @@ export function CedenteDetailsModal({
           </div>
 
           <div className="flex-1 min-h-0 flex flex-col gap-2">
-            <h4 className="font-medium text-sm shrink-0">Checklist — {STATUS_LABELS[cedente.status]}</h4>
+            <h4 className="font-medium text-sm shrink-0">Checklist — {CEDENTES_STATUS_LABELS[cedente.status]}</h4>
             <p className="text-xs text-muted-foreground shrink-0">
               Marque os itens concluídos. Quando todos estiverem concluídos, o cedente poderá avançar para o próximo status.
             </p>

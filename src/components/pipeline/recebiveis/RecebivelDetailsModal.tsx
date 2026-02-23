@@ -11,15 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Building2, Calendar, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
-
-const STATUS_LABELS: Record<string, string> = {
-  lead: "Lead",
-  contact: "Em Contato",
-  documents: "Documentação",
-  credit_analysis: "Análise de Crédito",
-  approved: "Aprovado",
-  rejected: "Rejeitado",
-};
+import { RECEBIVEIS_STATUS_LABELS } from "@/data/recebiveisPipelineConfig";
 
 const SEGMENT_LABELS: Record<string, string> = {
   comercio: "Comércio",
@@ -86,7 +78,7 @@ export function RecebivelDetailsModal({
         <div className="space-y-5 flex-1 min-h-0 flex flex-col">
           <div className="space-y-3 shrink-0">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary">{STATUS_LABELS[workflow.status] ?? workflow.status}</Badge>
+              <Badge variant="secondary">{RECEBIVEIS_STATUS_LABELS[workflow.status as keyof typeof RECEBIVEIS_STATUS_LABELS] ?? workflow.status}</Badge>
               {workflow.cedente_segment && (
                 <Badge variant="outline">{SEGMENT_LABELS[workflow.cedente_segment] ?? workflow.cedente_segment}</Badge>
               )}
@@ -117,7 +109,7 @@ export function RecebivelDetailsModal({
 
           {checklistItems.length > 0 && (
             <div className="flex-1 min-h-0 flex flex-col gap-2">
-              <h4 className="font-medium text-sm shrink-0">Checklist — {STATUS_LABELS[workflow.status] ?? workflow.status}</h4>
+              <h4 className="font-medium text-sm shrink-0">Checklist — {RECEBIVEIS_STATUS_LABELS[workflow.status as keyof typeof RECEBIVEIS_STATUS_LABELS] ?? workflow.status}</h4>
               <p className="text-xs text-muted-foreground shrink-0">
                 Marque os itens concluídos. Quando todos estiverem concluídos, o workflow poderá avançar para o próximo status.
               </p>
@@ -152,7 +144,8 @@ export function RecebivelDetailsModal({
             </div>
           )}
 
-          {checklistItems.length === 0 && (workflow.status === "approved" || workflow.status === "rejected") && (
+          {checklistItems.length === 0 &&
+            (workflow.status === "approved" || workflow.status === "rejected") && (
             <p className="text-sm text-muted-foreground">
               {workflow.status === "approved" ? "Workflow aprovado. Sem checklist pendente." : "Workflow rejeitado."}
             </p>

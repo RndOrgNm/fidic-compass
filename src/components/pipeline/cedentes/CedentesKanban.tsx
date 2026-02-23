@@ -4,16 +4,9 @@ import { CedenteCard, type CedentePipelineItem } from "./CedenteCard";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
+import { CEDENTES_COLUMNS } from "@/data/cedentesPipelineConfig";
 
-const COLUMNS: { id: CedentePipelineStatus; title: string; color: string }[] = [
-  { id: "lead", title: "Lead", color: "border-slate-500" },
-  { id: "due_diligence", title: "Due Diligence", color: "border-blue-500" },
-  { id: "documentacao_pendente", title: "Documentação Pendente", color: "border-yellow-500" },
-  { id: "cedente_ativo", title: "Cedente Ativo", color: "border-green-500" },
-  { id: "bloqueado_desistencia", title: "Bloqueado/Desistência", color: "border-red-500" },
-];
-
-const STATUS_ORDER: CedentePipelineStatus[] = COLUMNS.map((c) => c.id);
+const STATUS_ORDER: CedentePipelineStatus[] = CEDENTES_COLUMNS.map((c) => c.id);
 
 interface CedentesKanbanProps {
   cedentes: CedentePipelineItem[];
@@ -96,7 +89,7 @@ export function CedentesKanban({ cedentes, checklist, onStatusChange, onOpenDeta
   return (
     <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {COLUMNS.map((col) => (
+        {CEDENTES_COLUMNS.map((col) => (
           <KanbanColumn
             key={col.id}
             id={col.id}

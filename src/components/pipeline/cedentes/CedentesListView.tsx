@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
+import { CEDENTES_STATUS_BADGES } from "@/data/cedentesPipelineConfig";
 
 const SEGMENT_LABELS: Record<string, string> = {
   comercio: "Comércio",
@@ -22,14 +23,6 @@ const SEGMENT_LABELS: Record<string, string> = {
   agronegocio: "Agronegócio",
   varejo: "Varejo",
   insumos: "Insumos",
-};
-
-const STATUS_BADGES: Record<CedentePipelineStatus, { label: string; className: string }> = {
-  lead: { label: "Lead", className: "bg-slate-100 text-slate-800" },
-  due_diligence: { label: "Due Diligence", className: "bg-blue-100 text-blue-800" },
-  documentacao_pendente: { label: "Doc. Pendente", className: "bg-yellow-100 text-yellow-800" },
-  cedente_ativo: { label: "Cedente Ativo", className: "bg-green-100 text-green-800" },
-  bloqueado_desistencia: { label: "Bloqueado/Desistência", className: "bg-red-100 text-red-800" },
 };
 
 interface CedentesListViewProps {
@@ -75,7 +68,7 @@ export function CedentesListView({ cedentes, checklist, onOpenDetails }: Cedente
           </TableHeader>
           <TableBody>
             {cedentes.map((cedente) => {
-              const statusBadge = STATUS_BADGES[cedente.status] ?? {
+              const statusBadge = CEDENTES_STATUS_BADGES[cedente.status] ?? {
                 label: cedente.status,
                 className: "bg-gray-100 text-gray-800",
               };

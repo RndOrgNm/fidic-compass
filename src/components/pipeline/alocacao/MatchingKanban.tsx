@@ -5,20 +5,14 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useTransitionAllocationWorkflow } from "@/hooks/useAllocation";
 import type { AllocationWorkflow, AllocationStatus } from "@/lib/api/allocationService";
+import { ALLOCATION_COLUMNS } from "@/data/allocationPipelineConfig";
 
 interface MatchingKanbanProps {
   workflows: AllocationWorkflow[];
   onOpenDetails?: (workflow: AllocationWorkflow) => void;
 }
 
-const columns = [
-  { id: "pending_match", title: "Aguardando Match", color: "border-slate-500" },
-  { id: "fund_selection", title: "Seleção de Fundo", color: "border-blue-500" },
-  { id: "compliance_check", title: "Verificação Compliance", color: "border-yellow-500" },
-  { id: "allocated", title: "Alocado", color: "border-green-500" },
-];
-
-const STATUS_ORDER: string[] = columns.map((c) => c.id);
+const STATUS_ORDER: string[] = ALLOCATION_COLUMNS.map((c) => c.id);
 
 interface KanbanColumnProps {
   id: string;
@@ -89,7 +83,7 @@ export function MatchingKanban({ workflows, onOpenDetails }: MatchingKanbanProps
       { workflowId, data: { status: targetColumnId as AllocationStatus } },
       {
         onSuccess: () => {
-          const columnTitle = columns.find((c) => c.id === targetColumnId)?.title || targetColumnId;
+          const columnTitle = ALLOCATION_COLUMNS.find((c) => c.id === targetColumnId)?.title || targetColumnId;
           toast({
             title: "Workflow movido",
             description: `Recebível movido para ${columnTitle}`,
@@ -126,7 +120,7 @@ export function MatchingKanban({ workflows, onOpenDetails }: MatchingKanbanProps
   return (
     <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {columns.map((column) => (
+        {ALLOCATION_COLUMNS.map((column) => (
           <KanbanColumn
             key={column.id}
             id={column.id}

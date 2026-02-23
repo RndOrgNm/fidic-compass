@@ -5,6 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { useTransitionWorkflow } from "@/hooks/useProspection";
 import { cn } from "@/lib/utils";
 import type { ProspectionWorkflow, ProspectionStatus } from "@/lib/api/prospectionService";
+import { RECEBIVEIS_COLUMNS } from "@/data/recebiveisPipelineConfig";
 
 interface RecebiveisKanbanProps {
   workflows: ProspectionWorkflow[];
@@ -12,16 +13,7 @@ interface RecebiveisKanbanProps {
   onOpenDetails?: (workflow: ProspectionWorkflow) => void;
 }
 
-const columns: { id: ProspectionStatus; title: string; color: string }[] = [
-  { id: "lead", title: "Lead", color: "border-slate-500" },
-  { id: "contact", title: "Em Contato", color: "border-blue-500" },
-  { id: "documents", title: "Documentação", color: "border-yellow-500" },
-  { id: "credit_analysis", title: "Análise de Crédito", color: "border-purple-500" },
-  { id: "approved", title: "Aprovado", color: "border-green-500" },
-  { id: "rejected", title: "Rejeitado", color: "border-red-500" },
-];
-
-const STATUS_ORDER: ProspectionStatus[] = columns.map((c) => c.id);
+const STATUS_ORDER: ProspectionStatus[] = RECEBIVEIS_COLUMNS.map((c) => c.id);
 
 // ── Droppable column ───────────────────────────────────────────────────────────
 
@@ -107,7 +99,7 @@ export function RecebiveisKanban({ workflows, checklist, onOpenDetails }: Recebi
       {
         onSuccess: () => {
           const columnTitle =
-            columns.find((c) => c.id === targetColumnId)?.title || targetColumnId;
+            RECEBIVEIS_COLUMNS.find((c) => c.id === targetColumnId)?.title || targetColumnId;
           toast({
             title: "Workflow movido",
             description: `Workflow movido para ${columnTitle}`,
@@ -138,7 +130,7 @@ export function RecebiveisKanban({ workflows, checklist, onOpenDetails }: Recebi
   return (
     <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-2">
-        {columns.map((column) => (
+        {RECEBIVEIS_COLUMNS.map((column) => (
           <KanbanColumn
             key={column.id}
             id={column.id}

@@ -2,6 +2,21 @@
 
 Este documento descreve o modelo de dados utilizado para os dados mockados da aplicação.
 
+## Estrutura do diretório `data/`
+
+| Arquivo / grupo | Descrição |
+|-----------------|-----------|
+| `dashboardData.ts` | KPIs, alertas críticos, atividades recentes |
+| `receivablesData.ts` | Recebíveis, transações bancárias |
+| `investorsData.ts` | Investidores, onboarding |
+| `chatData.ts` | Conversas e mensagens do chat |
+| `pipelineData.ts` | Fundos, cedentes, workflows, tipos de pipeline |
+| **Checklists** | `*Checklist.ts` – fallbacks quando a API de checklist não está disponível |
+| `allocationChecklist.ts`, `cedentesChecklist.ts`, `monitoramentoChecklist.ts`, `recebiveisChecklist.ts` | |
+| **Pipeline configs** | `*PipelineConfig.ts` – labels de status, colunas e badges por pipeline |
+| `allocationPipelineConfig.ts`, `cedentesPipelineConfig.ts`, `monitoramentoPipelineConfig.ts`, `recebiveisPipelineConfig.ts` | |
+| `index.ts` | Barrel file – re-exporta todos os módulos acima |
+
 ## Pipeline de Investimentos
 
 ### Diagrama ER

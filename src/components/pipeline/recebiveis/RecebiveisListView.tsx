@@ -14,6 +14,7 @@ import {
 import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
+import { RECEBIVEIS_STATUS_BADGES } from "@/data/recebiveisPipelineConfig";
 
 interface RecebiveisListViewProps {
   workflows: ProspectionWorkflow[];
@@ -71,16 +72,10 @@ export function RecebiveisListView({ workflows, checklist, onOpenDetails }: Rece
   };
 
   const getStatusBadge = (status: string) => {
-    const badges: Record<string, { label: string; className: string }> = {
-      lead: { label: "Lead", className: "bg-slate-100 text-slate-800" },
-      contact: { label: "Em Contato", className: "bg-blue-100 text-blue-800" },
-      documents: { label: "Documentação", className: "bg-yellow-100 text-yellow-800" },
-      credit_analysis: { label: "Análise de Crédito", className: "bg-purple-100 text-purple-800" },
-      approved: { label: "Aprovado", className: "bg-green-100 text-green-800" },
-      rejected: { label: "Rejeitado", className: "bg-red-100 text-red-800" },
+    const badge = RECEBIVEIS_STATUS_BADGES[status as keyof typeof RECEBIVEIS_STATUS_BADGES] || {
+      label: status,
+      className: "bg-gray-100 text-gray-800",
     };
-
-    const badge = badges[status] || { label: status, className: "bg-gray-100 text-gray-800" };
     return <Badge className={badge.className}>{badge.label}</Badge>;
   };
 

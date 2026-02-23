@@ -18,16 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ALLOCATION_CHECKLIST } from "@/data/allocationChecklist";
 import type { AllocationWorkflow } from "@/lib/api/allocationService";
-
-const STATUS_LABELS: Record<string, string> = {
-  pending_match: "Aguardando Match",
-  fund_selection: "Seleção de Fundo",
-  compliance_check: "Verificação Compliance",
-  allocated: "Alocado",
-  rejected: "Rejeitado",
-  withdrawn: "Desistência",
-  superseded: "Substituído",
-};
+import { ALLOCATION_STATUS_LABELS } from "@/data/allocationPipelineConfig";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
@@ -77,7 +68,7 @@ export function AlocacaoDetailsModal({
         <div className="space-y-5 flex-1 min-h-0 flex flex-col">
           <div className="space-y-3 shrink-0">
             <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary">{STATUS_LABELS[workflow.status] ?? workflow.status}</Badge>
+              <Badge variant="secondary">{ALLOCATION_STATUS_LABELS[workflow.status] ?? workflow.status}</Badge>
               {workflow.fund_name && (
                 <Badge variant="outline">{workflow.fund_name}</Badge>
               )}
@@ -113,7 +104,7 @@ export function AlocacaoDetailsModal({
 
           {checklistItems.length > 0 && (
             <div className="flex-1 min-h-0 flex flex-col gap-2">
-              <h4 className="font-medium text-sm shrink-0">Checklist — {STATUS_LABELS[workflow.status] ?? workflow.status}</h4>
+              <h4 className="font-medium text-sm shrink-0">Checklist — {ALLOCATION_STATUS_LABELS[workflow.status] ?? workflow.status}</h4>
               <p className="text-xs text-muted-foreground shrink-0">
                 Marque os itens concluídos. Quando todos estiverem concluídos, o workflow poderá avançar para o próximo status.
               </p>

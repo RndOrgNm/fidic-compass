@@ -15,6 +15,7 @@ import { RecebiveisListView } from "./RecebiveisListView";
 import { RecebivelDetailsModal } from "./RecebivelDetailsModal";
 import { useProspectionWorkflows, useUpdateRecebivel, useRecebiveisChecklist } from "@/hooks/useProspection";
 import { RECEBIVEIS_CHECKLIST } from "@/data/recebiveisChecklist";
+import { RECEBIVEIS_COLUMNS } from "@/data/recebiveisPipelineConfig";
 import type {
   ProspectionStatus,
   Segment,
@@ -138,12 +139,11 @@ export function RecebiveisTab() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="lead">Lead</SelectItem>
-                  <SelectItem value="contact">Em Contato</SelectItem>
-                  <SelectItem value="documents">Documentação</SelectItem>
-                  <SelectItem value="credit_analysis">Análise de Crédito</SelectItem>
-                  <SelectItem value="approved">Aprovado</SelectItem>
-                  <SelectItem value="rejected">Rejeitado</SelectItem>
+                  {RECEBIVEIS_COLUMNS.map((col) => (
+                    <SelectItem key={col.id} value={col.id}>
+                      {col.title}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

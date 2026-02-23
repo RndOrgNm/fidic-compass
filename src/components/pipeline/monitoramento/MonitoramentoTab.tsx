@@ -18,6 +18,7 @@ import type { MonitoramentoPipelineStatus } from "@/data/pipelineData";
 import { useMonitoramento, useUpdateMonitoramento } from "@/hooks/useMonitoramento";
 import { toast } from "@/hooks/use-toast";
 import type { MonitoramentoStatus } from "@/lib/api/monitoramentoService";
+import { MONITORAMENTO_COLUMNS, MONITORAMENTO_STATUS_LABELS } from "@/data/monitoramentoPipelineConfig";
 
 const CURRENT_USER_PLACEHOLDER = "Maria Silva";
 
@@ -53,14 +54,7 @@ export function MonitoramentoTab() {
           status_started_at: new Date().toISOString(),
         },
       });
-      const columnTitle =
-        {
-          alertas_deteccao: "Alertas Detecção",
-          correcoes_acoes: "Correções/Ações",
-          relatorios_em_andamento: "Relatórios em Andamento",
-          em_conformidade_auditoria: "Em conformidade/Auditoria",
-          encerrado: "Encerrado",
-        }[newStatus] ?? newStatus;
+      const columnTitle = MONITORAMENTO_STATUS_LABELS[newStatus] ?? newStatus;
       toast({ title: "Monitoramento movido", description: `Movido para ${columnTitle}` });
     } catch {
       toast({
@@ -141,11 +135,11 @@ export function MonitoramentoTab() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="alertas_deteccao">Alertas Detecção</SelectItem>
-                  <SelectItem value="correcoes_acoes">Correções/Ações</SelectItem>
-                  <SelectItem value="relatorios_em_andamento">Relatórios em Andamento</SelectItem>
-                  <SelectItem value="em_conformidade_auditoria">Em conformidade/Auditoria</SelectItem>
-                  <SelectItem value="encerrado">Encerrado</SelectItem>
+                  {MONITORAMENTO_COLUMNS.map((col) => (
+                    <SelectItem key={col.id} value={col.id}>
+                      {col.title}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

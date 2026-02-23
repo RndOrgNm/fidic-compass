@@ -17,6 +17,7 @@ import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
 import { useCedentes, useUpdateCedente, useCedentesChecklist } from "@/hooks/useCedentes";
 import { CEDENTES_CHECKLIST } from "@/data/cedentesChecklist";
+import { CEDENTES_COLUMNS, CEDENTES_STATUS_LABELS } from "@/data/cedentesPipelineConfig";
 import { toast } from "@/hooks/use-toast";
 import type { CedenteStatus, Segment } from "@/lib/api/cedenteService";
 
@@ -57,10 +58,7 @@ export function CedentesTab() {
           status_started_at: new Date().toISOString(),
         },
       });
-      const columnTitle =
-        { lead: "Lead", due_diligence: "Due Diligence", documentacao_pendente: "Documentação Pendente", cedente_ativo: "Cedente Ativo", bloqueado_desistencia: "Bloqueado/Desistência" }[
-          newStatus
-        ] ?? newStatus;
+      const columnTitle = CEDENTES_STATUS_LABELS[newStatus] ?? newStatus;
       toast({ title: "Cedente movido", description: `Movido para ${columnTitle}` });
     } catch {
       toast({
@@ -141,11 +139,11 @@ export function CedentesTab() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="lead">Lead</SelectItem>
-                  <SelectItem value="due_diligence">Due Diligence</SelectItem>
-                  <SelectItem value="documentacao_pendente">Documentação Pendente</SelectItem>
-                  <SelectItem value="cedente_ativo">Cedente Ativo</SelectItem>
-                  <SelectItem value="bloqueado_desistencia">Bloqueado/Desistência</SelectItem>
+                  {CEDENTES_COLUMNS.map((col) => (
+                    <SelectItem key={col.id} value={col.id}>
+                      {col.title}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

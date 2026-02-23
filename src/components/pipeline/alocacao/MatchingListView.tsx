@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
 import type { AllocationWorkflow } from "@/lib/api/allocationService";
+import { ALLOCATION_STATUS_BADGES } from "@/data/allocationPipelineConfig";
 
 interface MatchingListViewProps {
   workflows: AllocationWorkflow[];
@@ -69,14 +70,10 @@ export function MatchingListView({ workflows, onOpenDetails }: MatchingListViewP
   };
 
   const getStatusBadge = (status: string) => {
-    const badges: Record<string, { label: string; className: string }> = {
-      pending_match: { label: "Aguardando Match", className: "bg-slate-100 text-slate-800" },
-      fund_selection: { label: "Seleção de Fundo", className: "bg-blue-100 text-blue-800" },
-      compliance_check: { label: "Verificação Compliance", className: "bg-yellow-100 text-yellow-800" },
-      allocated: { label: "Alocado", className: "bg-green-100 text-green-800" },
+    const badge = ALLOCATION_STATUS_BADGES[status] || {
+      label: status,
+      className: "bg-gray-100 text-gray-800",
     };
-
-    const badge = badges[status] || { label: status, className: "bg-gray-100 text-gray-800" };
     return <Badge className={badge.className}>{badge.label}</Badge>;
   };
 

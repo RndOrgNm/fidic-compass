@@ -16,6 +16,7 @@ import { AlocacaoDetailsModal } from "./AlocacaoDetailsModal";
 import { fundsData } from "@/data";
 import { useAllocationWorkflows, useTransitionAllocationWorkflow, useUpdateAllocationWorkflow } from "@/hooks/useAllocation";
 import type { AllocationWorkflow, AllocationStatus } from "@/lib/api/allocationService";
+import { ALLOCATION_COLUMNS } from "@/data/allocationPipelineConfig";
 
 const CURRENT_USER_PLACEHOLDER = "Maria Silva";
 
@@ -131,10 +132,11 @@ export function ClientMatchingTab() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="pending_match">Aguardando Match</SelectItem>
-                  <SelectItem value="fund_selection">Seleção de Fundo</SelectItem>
-                  <SelectItem value="compliance_check">Verificação Compliance</SelectItem>
-                  <SelectItem value="allocated">Alocado</SelectItem>
+                  {ALLOCATION_COLUMNS.map((col) => (
+                    <SelectItem key={col.id} value={col.id}>
+                      {col.title}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
