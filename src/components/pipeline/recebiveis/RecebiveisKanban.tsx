@@ -29,10 +29,11 @@ interface KanbanColumnProps {
   color: string;
   workflows: ProspectionWorkflow[];
   totalValue: string;
+  checklist: Record<string, string[]>;
   onOpenDetails?: (workflow: ProspectionWorkflow) => void;
 }
 
-function KanbanColumn({ id, title, color, workflows, totalValue, onOpenDetails }: KanbanColumnProps) {
+function KanbanColumn({ id, title, color, workflows, totalValue, checklist, onOpenDetails }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
