@@ -21,6 +21,8 @@ const columns: { id: ProspectionStatus; title: string; color: string }[] = [
   { id: "rejected", title: "Rejeitado", color: "border-red-500" },
 ];
 
+const STATUS_ORDER: ProspectionStatus[] = columns.map((c) => c.id);
+
 // ── Droppable column ───────────────────────────────────────────────────────────
 
 interface KanbanColumnProps {
@@ -85,6 +87,20 @@ export function RecebiveisKanban({ workflows, checklist, onOpenDetails }: Recebi
 
     const draggedWorkflow = workflows.find((wf) => wf.id === workflowId);
     if (!draggedWorkflow || draggedWorkflow.status === targetColumnId) return;
+
+    const currentIdx = STATUS_ORDER.indexOf(draggedWorkflow.status);
+    const targetIdx = STATUS_ORDER.indexOf(targetColumnId);
+    const isMovingForward = targetIdx > currentIdx;
+    const hasPending = (draggedWorkflow.pending_items?.length ?? 0) > 0;
+
+    if (isMovingForward && hasPending) {
+      toast({
+        title: "Itens pendentes",
+        description: "Complete os itens pendentes antes de avançar para a próxima etapa.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     transitionMutation.mutate(
       { workflowId, data: { status: targetColumnId } },

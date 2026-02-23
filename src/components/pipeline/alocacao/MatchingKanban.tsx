@@ -18,6 +18,8 @@ const columns = [
   { id: "allocated", title: "Alocado", color: "border-green-500" },
 ];
 
+const STATUS_ORDER: string[] = columns.map((c) => c.id);
+
 interface KanbanColumnProps {
   id: string;
   title: string;
@@ -68,6 +70,20 @@ export function MatchingKanban({ workflows, onOpenDetails }: MatchingKanbanProps
 
     const draggedWorkflow = workflows.find((wf) => wf.id === workflowId);
     if (!draggedWorkflow || draggedWorkflow.status === targetColumnId) return;
+
+    const currentIdx = STATUS_ORDER.indexOf(draggedWorkflow.status);
+    const targetIdx = STATUS_ORDER.indexOf(targetColumnId);
+    const isMovingForward = targetIdx > currentIdx;
+    const hasPending = (draggedWorkflow.pending_items?.length ?? 0) > 0;
+
+    if (isMovingForward && hasPending) {
+      toast({
+        title: "Itens pendentes",
+        description: "Complete os itens pendentes antes de avançar para a próxima etapa.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     transitionMutation.mutate(
       { workflowId, data: { status: targetColumnId as AllocationStatus } },
