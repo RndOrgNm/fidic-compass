@@ -6,7 +6,6 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { GripVertical, Building2, User, Mail, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
-import { CEDENTES_CHECKLIST } from "@/data/cedentesChecklist";
 
 export interface CedentePipelineItem {
   id: string;
@@ -28,6 +27,7 @@ export interface CedentePipelineItem {
 
 interface CedenteCardProps {
   cedente: CedentePipelineItem;
+  checklist: Record<string, string[]>;
   onOpenDetails?: (cedente: CedentePipelineItem) => void;
 }
 
@@ -55,7 +55,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   insumos: "Insumos",
 };
 
-export function CedenteCard({ cedente, onOpenDetails }: CedenteCardProps) {
+export function CedenteCard({ cedente, checklist, onOpenDetails }: CedenteCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: cedente.id,
   });
@@ -163,7 +163,7 @@ export function CedenteCard({ cedente, onOpenDetails }: CedenteCardProps) {
                   <button type="button" className="cursor-help">
                     <Badge className="bg-red-100 text-red-800 pointer-events-none">
                       <AlertCircle className="h-3 w-3 mr-1" />
-                      {cedente.pending_items.length} de {CEDENTES_CHECKLIST[cedente.status]?.length ?? cedente.pending_items.length}
+                      {cedente.pending_items.length} de {checklist[cedente.status]?.length ?? cedente.pending_items.length}
                     </Badge>
                   </button>
                 </TooltipTrigger>
@@ -172,7 +172,7 @@ export function CedenteCard({ cedente, onOpenDetails }: CedenteCardProps) {
                     Checklist — {cedente.pending_items.length} pendente{cedente.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
                   </p>
                   <ul className="text-sm space-y-1.5">
-                    {(CEDENTES_CHECKLIST[cedente.status] ?? []).map((item, idx) => {
+                    {(checklist[cedente.status] ?? []).map((item, idx) => {
                       const isPending = cedente.pending_items.includes(item);
                       return (
                         <li key={idx} className={cn("flex items-start gap-1.5", isPending ? "text-foreground" : "text-muted-foreground")}>

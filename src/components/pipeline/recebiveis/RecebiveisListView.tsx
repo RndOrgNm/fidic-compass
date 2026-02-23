@@ -13,15 +13,15 @@ import {
 } from "@/components/ui/table";
 import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { RECEBIVEIS_CHECKLIST } from "@/data/recebiveisChecklist";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
 
 interface RecebiveisListViewProps {
   workflows: ProspectionWorkflow[];
+  checklist: Record<string, string[]>;
   onOpenDetails?: (workflow: ProspectionWorkflow) => void;
 }
 
-export function RecebiveisListView({ workflows, onOpenDetails }: RecebiveisListViewProps) {
+export function RecebiveisListView({ workflows, checklist, onOpenDetails }: RecebiveisListViewProps) {
   const formatCnpj = (cnpj: string) => {
     if (!cnpj) return "";
     if (cnpj.includes("/") || cnpj.includes(".")) return cnpj;
@@ -163,8 +163,8 @@ export function RecebiveisListView({ workflows, onOpenDetails }: RecebiveisListV
                           <button type="button" className="cursor-help inline-flex items-center gap-1">
                             <AlertCircle className="h-4 w-4 text-red-600" />
                             <span className="text-sm font-medium text-red-600">
-                              {(RECEBIVEIS_CHECKLIST[workflow.status]?.length ?? 0) > 0
-                                ? `${workflow.pending_items.length} de ${RECEBIVEIS_CHECKLIST[workflow.status]!.length}`
+                              {(checklist[workflow.status]?.length ?? 0) > 0
+                                ? `${workflow.pending_items.length} de ${checklist[workflow.status]!.length}`
                                 : `${workflow.pending_items.length} ${workflow.pending_items.length === 1 ? "pendência" : "pendências"}`}
                             </span>
                           </button>
@@ -174,8 +174,8 @@ export function RecebiveisListView({ workflows, onOpenDetails }: RecebiveisListV
                             Checklist — {workflow.pending_items.length} pendente{workflow.pending_items.length !== 1 ? "s" : ""} (bloqueia avanço)
                           </p>
                           <ul className="text-sm space-y-1.5">
-                            {(RECEBIVEIS_CHECKLIST[workflow.status] ?? []).length > 0 ? (
-                              (RECEBIVEIS_CHECKLIST[workflow.status] ?? []).map((item, idx) => {
+                            {(checklist[workflow.status] ?? []).length > 0 ? (
+                              (checklist[workflow.status] ?? []).map((item, idx) => {
                                 const isPending = workflow.pending_items.includes(item);
                                 return (
                                   <li key={idx} className={cn("flex items-start gap-1.5", isPending ? "text-foreground" : "text-muted-foreground")}>

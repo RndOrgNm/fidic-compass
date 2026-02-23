@@ -8,6 +8,7 @@ import type { ProspectionWorkflow, ProspectionStatus } from "@/lib/api/prospecti
 
 interface RecebiveisKanbanProps {
   workflows: ProspectionWorkflow[];
+  checklist: Record<string, string[]>;
   onOpenDetails?: (workflow: ProspectionWorkflow) => void;
 }
 
@@ -52,7 +53,7 @@ function KanbanColumn({ id, title, color, workflows, totalValue, onOpenDetails }
       </div>
       <div className="space-y-3">
         {workflows.map((workflow) => (
-          <RecebiveisCard key={workflow.id} workflow={workflow} onOpenDetails={onOpenDetails} />
+          <RecebiveisCard key={workflow.id} workflow={workflow} checklist={checklist} onOpenDetails={onOpenDetails} />
         ))}
       </div>
     </div>
@@ -61,7 +62,7 @@ function KanbanColumn({ id, title, color, workflows, totalValue, onOpenDetails }
 
 // ── Kanban board ───────────────────────────────────────────────────────────────
 
-export function RecebiveisKanban({ workflows, onOpenDetails }: RecebiveisKanbanProps) {
+export function RecebiveisKanban({ workflows, checklist, onOpenDetails }: RecebiveisKanbanProps) {
   const transitionMutation = useTransitionWorkflow();
 
   const formatCurrency = (value: number) => {
@@ -128,6 +129,7 @@ export function RecebiveisKanban({ workflows, onOpenDetails }: RecebiveisKanbanP
             color={column.color}
             workflows={getWorkflowsByStatus(column.id)}
             totalValue={formatCurrency(getTotalValue(column.id))}
+            checklist={checklist}
             onOpenDetails={onOpenDetails}
           />
         ))}

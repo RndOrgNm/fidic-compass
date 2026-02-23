@@ -1,10 +1,8 @@
 import type { CedentePipelineStatus } from "./pipelineData";
 
 /**
- * Canonical checklists for each Cedentes pipeline status.
- * A card can only advance to the next status when its pending_items is empty
- * (all items in the current status's checklist are completed).
- * Backend will store pending_items per cedente; these define the full checklist per status.
+ * Fallback checklist when GET /cedentes/checklist fails.
+ * Backend (funds-pipeline/src/data/checklists.py) is the source of truth.
  */
 export const CEDENTES_CHECKLIST: Record<CedentePipelineStatus, string[]> = {
   lead: [

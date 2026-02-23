@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Building2, Calendar, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { RECEBIVEIS_CHECKLIST } from "@/data/recebiveisChecklist";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -48,6 +47,7 @@ function formatCurrency(value: number) {
 
 interface RecebivelDetailsModalProps {
   workflow: ProspectionWorkflow | null;
+  checklist: Record<string, string[]>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdatePendingItems: (workflowId: string, pendingItems: string[]) => void;
@@ -55,13 +55,14 @@ interface RecebivelDetailsModalProps {
 
 export function RecebivelDetailsModal({
   workflow,
+  checklist,
   open,
   onOpenChange,
   onUpdatePendingItems,
 }: RecebivelDetailsModalProps) {
   if (!workflow) return null;
 
-  const checklistItems = RECEBIVEIS_CHECKLIST[workflow.status] ?? [];
+  const checklistItems = checklist[workflow.status] ?? [];
 
   const handleCheckChange = (checkItem: string, checked: boolean) => {
     const current = workflow.pending_items ?? [];

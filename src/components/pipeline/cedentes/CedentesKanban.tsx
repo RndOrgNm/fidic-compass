@@ -15,6 +15,7 @@ const COLUMNS: { id: CedentePipelineStatus; title: string; color: string }[] = [
 
 interface CedentesKanbanProps {
   cedentes: CedentePipelineItem[];
+  checklist: Record<string, string[]>;
   onStatusChange: (cedenteId: string, newStatus: CedentePipelineStatus) => void;
   onOpenDetails: (cedente: CedentePipelineItem) => void;
 }
@@ -24,10 +25,11 @@ interface KanbanColumnProps {
   title: string;
   color: string;
   cedentes: CedentePipelineItem[];
+  checklist: Record<string, string[]>;
   onOpenDetails: (cedente: CedentePipelineItem) => void;
 }
 
-function KanbanColumn({ id, title, color, cedentes, onOpenDetails }: KanbanColumnProps) {
+function KanbanColumn({ id, title, color, cedentes, checklist, onOpenDetails }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -47,7 +49,7 @@ function KanbanColumn({ id, title, color, cedentes, onOpenDetails }: KanbanColum
       </div>
       <div className="space-y-3">
         {cedentes.map((cedente) => (
-          <CedenteCard key={cedente.id} cedente={cedente} onOpenDetails={onOpenDetails} />
+          <CedenteCard key={cedente.id} cedente={cedente} checklist={checklist} onOpenDetails={onOpenDetails} />
         ))}
       </div>
     </div>
@@ -58,7 +60,7 @@ function KanbanColumn({ id, title, color, cedentes, onOpenDetails }: KanbanColum
  * Kanban pattern: a card can only move to the next status when it has no pending items.
  * Backend will enforce the same rule via pending_items on the cedente/workflow.
  */
-export function CedentesKanban({ cedentes, onStatusChange, onOpenDetails }: CedentesKanbanProps) {
+export function CedentesKanban({ cedentes, checklist, onStatusChange, onOpenDetails }: CedentesKanbanProps) {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -95,6 +97,7 @@ export function CedentesKanban({ cedentes, onStatusChange, onOpenDetails }: Cede
             title={col.title}
             color={col.color}
             cedentes={getCedentesByStatus(col.id)}
+            checklist={checklist}
             onOpenDetails={onOpenDetails}
           />
         ))}

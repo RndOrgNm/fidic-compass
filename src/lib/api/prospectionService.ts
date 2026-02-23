@@ -210,3 +210,11 @@ export async function updateRecebivel(
 
   return handleResponse<ProspectionWorkflow>(response);
 }
+
+export async function getRecebiveisChecklist(): Promise<Record<string, string[]>> {
+  const response = await fetch(`${FUNDS_API_BASE_URL}/recebiveis/checklist`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+  return handleResponse<Record<string, string[]>>(response);
+}

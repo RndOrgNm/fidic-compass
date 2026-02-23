@@ -210,3 +210,11 @@ export async function updateCedente(
   const data = await handleResponse<CedenteResponse>(response);
   return mapCedenteToPipelineItem(data);
 }
+
+export async function getCedentesChecklist(): Promise<Record<string, string[]>> {
+  const response = await fetch(`${FUNDS_API_BASE_URL}/cedentes/checklist`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+  return handleResponse<Record<string, string[]>>(response);
+}

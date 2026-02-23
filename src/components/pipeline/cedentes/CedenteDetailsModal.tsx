@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Building2, User, Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CEDENTES_CHECKLIST } from "@/data/cedentesChecklist";
 import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
 
@@ -48,6 +47,7 @@ function formatCurrency(value: number) {
 
 interface CedenteDetailsModalProps {
   cedente: CedentePipelineItem | null;
+  checklist: Record<string, string[]>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdatePendingItems: (cedenteId: string, pendingItems: string[]) => void;
@@ -55,13 +55,14 @@ interface CedenteDetailsModalProps {
 
 export function CedenteDetailsModal({
   cedente,
+  checklist,
   open,
   onOpenChange,
   onUpdatePendingItems,
 }: CedenteDetailsModalProps) {
   if (!cedente) return null;
 
-  const checklistItems = CEDENTES_CHECKLIST[cedente.status] ?? [];
+  const checklistItems = checklist[cedente.status] ?? [];
 
   const handleCheckChange = (item: string, checked: boolean) => {
     const current = cedente.pending_items ?? [];

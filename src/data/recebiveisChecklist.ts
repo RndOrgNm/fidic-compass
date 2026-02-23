@@ -1,8 +1,8 @@
 import type { ProspectionStatus } from "@/lib/api/prospectionService";
 
 /**
- * Canonical checklists for each Recebíveis (prospection) pipeline status.
- * A card can only advance when pending_items is empty.
+ * Fallback checklist when GET /recebiveis/checklist fails.
+ * Backend (funds-pipeline/src/data/checklists.py) is the source of truth.
  */
 export const RECEBIVEIS_CHECKLIST: Record<ProspectionStatus, string[]> = {
   lead: [

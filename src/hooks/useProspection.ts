@@ -5,6 +5,7 @@ import {
   transitionWorkflow,
   assignWorkflow,
   updateRecebivel,
+  getRecebiveisChecklist,
   type WorkflowFilters,
   type NewLeadCreate,
   type TransitionRequest,
@@ -12,6 +13,17 @@ import {
 } from "@/lib/api/prospectionService";
 
 const WORKFLOWS_KEY = "prospection-workflows";
+const CHECKLIST_KEY = "recebiveis-checklist";
+
+/**
+ * Fetch the canonical checklist per status. Backend is the source of truth.
+ */
+export function useRecebiveisChecklist() {
+  return useQuery({
+    queryKey: [CHECKLIST_KEY],
+    queryFn: getRecebiveisChecklist,
+  });
+}
 
 /**
  * Fetch prospection workflows with optional filters.

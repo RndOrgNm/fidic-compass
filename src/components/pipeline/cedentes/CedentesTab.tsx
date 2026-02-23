@@ -15,7 +15,8 @@ import { CedenteDetailsModal } from "./CedenteDetailsModal";
 import { NewCedenteModal } from "./NewCedenteModal";
 import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
-import { useCedentes, useUpdateCedente } from "@/hooks/useCedentes";
+import { useCedentes, useUpdateCedente, useCedentesChecklist } from "@/hooks/useCedentes";
+import { CEDENTES_CHECKLIST } from "@/data/cedentesChecklist";
 import { toast } from "@/hooks/use-toast";
 import type { CedenteStatus, Segment } from "@/lib/api/cedenteService";
 
@@ -34,6 +35,8 @@ export function CedentesTab() {
   if (segmentFilter !== "all") filters.segment = segmentFilter as Segment;
 
   const { data, isLoading, error, refetch, isRefetching } = useCedentes(filters);
+  const { data: checklistData } = useCedentesChecklist();
+  const checklist = checklistData ?? CEDENTES_CHECKLIST;
   const updateCedente = useUpdateCedente();
 
   const cedentes = data?.items ?? [];
@@ -195,12 +198,14 @@ export function CedentesTab() {
           {viewMode === "kanban" ? (
             <CedentesKanban
               cedentes={filteredCedentes}
+              checklist={checklist}
               onStatusChange={handleStatusChange}
               onOpenDetails={(c) => setSelectedCedenteId(c.id)}
             />
           ) : (
             <CedentesListView
               cedentes={filteredCedentes}
+              checklist={checklist}
               onOpenDetails={(c) => setSelectedCedenteId(c.id)}
             />
           )}
@@ -209,6 +214,7 @@ export function CedentesTab() {
 
       <CedenteDetailsModal
         cedente={selectedCedente}
+        checklist={checklist}
         open={selectedCedenteId != null}
         onOpenChange={(open) => !open && setSelectedCedenteId(null)}
         onUpdatePendingItems={handleUpdatePendingItems}

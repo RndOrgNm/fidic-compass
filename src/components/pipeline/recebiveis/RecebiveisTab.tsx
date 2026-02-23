@@ -13,7 +13,8 @@ import { NewReceivableModal } from "./NewReceivableModal";
 import { RecebiveisKanban } from "./RecebiveisKanban";
 import { RecebiveisListView } from "./RecebiveisListView";
 import { RecebivelDetailsModal } from "./RecebivelDetailsModal";
-import { useProspectionWorkflows, useUpdateRecebivel } from "@/hooks/useProspection";
+import { useProspectionWorkflows, useUpdateRecebivel, useRecebiveisChecklist } from "@/hooks/useProspection";
+import { RECEBIVEIS_CHECKLIST } from "@/data/recebiveisChecklist";
 import type {
   ProspectionStatus,
   Segment,
@@ -39,6 +40,8 @@ export function RecebiveisTab() {
   }
 
   const { data, isLoading, isFetching, isError, error, refetch } = useProspectionWorkflows(apiFilters);
+  const { data: checklistData } = useRecebiveisChecklist();
+  const checklist = checklistData ?? RECEBIVEIS_CHECKLIST;
   const updateRecebivel = useUpdateRecebivel();
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
 
@@ -216,11 +219,13 @@ export function RecebiveisTab() {
           {viewMode === "kanban" ? (
             <RecebiveisKanban
               workflows={filteredWorkflows}
+              checklist={checklist}
               onOpenDetails={(wf) => setSelectedWorkflowId(wf.id)}
             />
           ) : (
             <RecebiveisListView
               workflows={filteredWorkflows}
+              checklist={checklist}
               onOpenDetails={(wf) => setSelectedWorkflowId(wf.id)}
             />
           )}
@@ -229,6 +234,7 @@ export function RecebiveisTab() {
 
       <RecebivelDetailsModal
         workflow={selectedWorkflow}
+        checklist={checklist}
         open={selectedWorkflowId != null}
         onOpenChange={(open) => !open && setSelectedWorkflowId(null)}
         onUpdatePendingItems={handleUpdatePendingItems}

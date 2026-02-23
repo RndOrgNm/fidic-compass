@@ -3,6 +3,7 @@ import {
   listCedentes,
   updateCedente,
   createCedente,
+  getCedentesChecklist,
   type CedenteFilters,
   type CedenteUpdatePayload,
   type CedenteCreatePayload,
@@ -11,6 +12,17 @@ import {
 import type { CedentePipelineStatus } from "@/data/pipelineData";
 
 const CEDENTES_KEY = "cedentes";
+const CHECKLIST_KEY = "cedentes-checklist";
+
+/**
+ * Fetch the canonical checklist per status. Backend is the source of truth.
+ */
+export function useCedentesChecklist() {
+  return useQuery({
+    queryKey: [CHECKLIST_KEY],
+    queryFn: getCedentesChecklist,
+  });
+}
 
 export function useCedentes(filters: CedenteFilters = {}) {
   return useQuery({
