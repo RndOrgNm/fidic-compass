@@ -7,3 +7,10 @@ export const RAG_API_BASE_URL = rawUrl.replace(/\/+$/, "");
 const rawFundsUrl = import.meta.env.VITE_FUNDS_API_URL || "http://localhost:8000";
 export const FUNDS_API_BASE_URL = rawFundsUrl.replace(/\/+$/, "");
 
+// Funds Agent API (LangChain agent with MCP tools)
+const rawFundsAgentUrl = import.meta.env.VITE_FUNDS_AGENT_URL || "http://localhost:8001";
+export const FUNDS_AGENT_API_URL = rawFundsAgentUrl.replace(/\/+$/, "");
+
+// Conversation Service (used by funds-agent for persistence)
+const rawConvUrl = import.meta.env.VITE_CONVERSATION_SERVICE_URL || "http://localhost:8002";
+export const CONVERSATION_SERVICE_URL = rawConvUrl.replace(/\/+$/, "");

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useRef, useCallback, ReactNode } from "react";
 import { toast } from "@/hooks/use-toast";
 import { ragService, type ConversationWithMetadata } from "@/lib/api/ragService";
+import { fundsAgentService } from "@/lib/api/fundsAgentService";
 import type { ApiSource } from "@/lib/api/client";
 
 export interface Message {
@@ -36,11 +37,13 @@ interface ChatContextType {
   isLoadingConversations: boolean;
   streamingMessage: Message | null;
   pendingMessages: Map<string, PendingMessage>;
-  
+  selectedAgent: "cvm" | "funds";
+  setSelectedAgent: (agent: "cvm" | "funds") => void;
+
   setCurrentConversationId: (id: string | null) => void;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setStreamingMessage: (message: Message | null) => void;
-  
+
   refreshConversations: () => Promise<void>;
   loadMessages: (conversationId: string) => Promise<void>;
   sendMessage: (query: string) => Promise<void>;
@@ -58,8 +61,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
   const [pendingMessages, setPendingMessages] = useState<Map<string, PendingMessage>>(new Map());
-  
+  const [selectedAgent, setSelectedAgentState] = useState<"cvm" | "funds">("cvm");
+
   const isSendingMessageRef = useRef(false);
+
+  const setSelectedAgent = useCallback(
+    (agent: "cvm" | "funds") => {
+      setSelectedAgentState(agent);
+      setCurrentConversationId(null);
+      setMessages([]);
+      setStreamingMessage(null);
+      refreshConversations(agent);
+    },
+    [refreshConversations]
+  );
 
   const resetToInitialState = useCallback(() => {
     setCurrentConversationId(null);
@@ -68,209 +83,234 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const refreshConversations = useCallback(async () => {
-    try {
-      setIsLoadingConversations(true);
-      const fetchedConversations = await ragService.fetchConversations(50);
-      setConversations(fetchedConversations);
-    } catch (error) {
-      console.error("Error loading conversations:", error);
-      toast({
-        title: "Erro ao carregar conversas",
-        description: error instanceof Error ? error.message : "Não foi possível carregar as conversas",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingConversations(false);
-    }
-  }, []);
-
-  const loadMessages = useCallback(async (conversationId: string) => {
-    if (!conversationId) {
-      setMessages([]);
-      return;
-    }
-
-    // Don't reload messages if we're currently sending a message
-    if (isSendingMessageRef.current) {
-      return;
-    }
-
-    try {
-      const fetchedMessages = await ragService.loadConversationMessages(conversationId);
-      setMessages(fetchedMessages as Message[]);
-    } catch (error) {
-      console.error("Error loading messages:", error);
-      toast({
-        title: "Erro ao carregar mensagens",
-        description: error instanceof Error ? error.message : "Não foi possível carregar as mensagens",
-        variant: "destructive",
-      });
-    }
-  }, []);
-
-  const sendMessage = useCallback(async (query: string) => {
-    if (!query.trim() || isLoading) return;
-
-    setIsLoading(true);
-    isSendingMessageRef.current = true;
-
-    // Store the conversation ID at the start so we can track even if user navigates away
-    const messageId = `pending-${Date.now()}`;
-
-    try {
-      // Create a new conversation if one doesn't exist
-      let conversationIdAtSend = currentConversationId;
-      let isNewConversation = false;
-      
-      if (!conversationIdAtSend) {
-        const newConv = await ragService.createNewConversation("Nova Conversa");
-        conversationIdAtSend = newConv.conversation_id;
-        isNewConversation = true;
-        setCurrentConversationId(conversationIdAtSend);
-        await refreshConversations();
-      }
-
-      const currentConv = conversations.find(c => c.conversation_id === conversationIdAtSend);
-      // Only generate title if it's a new conversation OR if the conversation still has the default title
-      const shouldGenerateTitle = isNewConversation || !currentConv || currentConv.title === "Nova Conversa";
-
-      // Create a temporary user message for immediate display
-      const tempUserMessage: Message = {
-        message_id: `temp-user-${Date.now()}`,
-        conversation_id: conversationIdAtSend,
-        role: "user",
-        content: query,
-        created_at: new Date().toISOString(),
-      };
-
-      // Add temp message immediately
-      setMessages(prev => [...prev, tempUserMessage]);
-
-      // Track this as a pending message
-      const pending: PendingMessage = {
-        conversationId: conversationIdAtSend,
-        query,
-        userMessage: tempUserMessage,
-        status: "processing",
-      };
-      setPendingMessages(prev => new Map(prev).set(messageId, pending));
-
-      // Make the API call - this will continue even if component unmounts
-      const { userMessage, assistantMessage } = await ragService.sendMessage(
-        conversationIdAtSend,
-        query,
-        shouldGenerateTitle
-      );
-
-      // Update pending message with result
-      setPendingMessages(prev => {
-        const newMap = new Map(prev);
-        newMap.set(messageId, {
-          ...pending,
-          status: "completed",
-          assistantMessage: assistantMessage as Message,
+  const refreshConversations = useCallback(
+    async (agentOverride?: "cvm" | "funds") => {
+      const agent = agentOverride ?? selectedAgent;
+      try {
+        setIsLoadingConversations(true);
+        const service = agent === "funds" ? fundsAgentService : ragService;
+        const fetchedConversations = await service.fetchConversations(50);
+        setConversations(fetchedConversations);
+      } catch (error) {
+        console.error("Error loading conversations:", error);
+        toast({
+          title: "Erro ao carregar conversas",
+          description:
+            error instanceof Error ? error.message : "Não foi possível carregar as conversas",
+          variant: "destructive",
         });
-        return newMap;
-      });
+      } finally {
+        setIsLoadingConversations(false);
+      }
+    },
+    [selectedAgent]
+  );
 
-      // Update messages - replace temp with real and add assistant response
-      setMessages(prev => {
-        const filtered = prev.filter(m => m.message_id !== tempUserMessage.message_id);
-        return [...filtered, userMessage as Message, assistantMessage as Message];
-      });
-      
-      setStreamingMessage(assistantMessage as Message);
-
-      if (shouldGenerateTitle) {
-        try {
-          const updatedConv = await ragService.getConversation(conversationIdAtSend);
-          setConversations(prev =>
-            prev.map(c =>
-              c.conversation_id === conversationIdAtSend
-                ? { ...c, title: updatedConv.title }
-                : c
-            )
-          );
-        } catch (titleError) {
-          console.error("Error updating conversation title:", titleError);
-        }
+  const loadMessages = useCallback(
+    async (conversationId: string) => {
+      if (!conversationId) {
+        setMessages([]);
+        return;
       }
 
-      await refreshConversations();
+      if (isSendingMessageRef.current) {
+        return;
+      }
 
-      // Clean up pending message after a delay
-      setTimeout(() => {
-        setPendingMessages(prev => {
+      const service = selectedAgent === "funds" ? fundsAgentService : ragService;
+      try {
+        const fetchedMessages = await service.loadConversationMessages(conversationId);
+        setMessages(fetchedMessages as Message[]);
+      } catch (error) {
+        console.error("Error loading messages:", error);
+        toast({
+          title: "Erro ao carregar mensagens",
+          description:
+            error instanceof Error ? error.message : "Não foi possível carregar as mensagens",
+          variant: "destructive",
+        });
+      }
+    },
+    [selectedAgent]
+  );
+
+  const sendMessage = useCallback(
+    async (query: string) => {
+      if (!query.trim() || isLoading) return;
+
+      const service = selectedAgent === "funds" ? fundsAgentService : ragService;
+
+      setIsLoading(true);
+      isSendingMessageRef.current = true;
+
+      const messageId = `pending-${Date.now()}`;
+
+      try {
+        let conversationIdAtSend = currentConversationId;
+        let isNewConversation = false;
+
+        if (!conversationIdAtSend) {
+          const newConv = await service.createNewConversation("Nova Conversa");
+          conversationIdAtSend = newConv.conversation_id;
+          isNewConversation = true;
+          setCurrentConversationId(conversationIdAtSend);
+          await refreshConversations();
+        }
+
+        const currentConv = conversations.find(
+          (c) => c.conversation_id === conversationIdAtSend
+        );
+        const shouldGenerateTitle =
+          isNewConversation || !currentConv || currentConv.title === "Nova Conversa";
+
+        const tempUserMessage: Message = {
+          message_id: `temp-user-${Date.now()}`,
+          conversation_id: conversationIdAtSend,
+          role: "user",
+          content: query,
+          created_at: new Date().toISOString(),
+        };
+
+        setMessages((prev) => [...prev, tempUserMessage]);
+
+        const pending: PendingMessage = {
+          conversationId: conversationIdAtSend,
+          query,
+          userMessage: tempUserMessage,
+          status: "processing",
+        };
+        setPendingMessages((prev) => new Map(prev).set(messageId, pending));
+
+        const { userMessage, assistantMessage } = await service.sendMessage(
+          conversationIdAtSend,
+          query,
+          shouldGenerateTitle
+        );
+
+        setPendingMessages((prev) => {
           const newMap = new Map(prev);
-          newMap.delete(messageId);
+          newMap.set(messageId, {
+            ...pending,
+            status: "completed",
+            assistantMessage: assistantMessage as Message,
+          });
           return newMap;
         });
-      }, 5000);
 
-    } catch (error) {
-      console.error("Error sending message:", error);
-      
-      // Update pending message with error
-      setPendingMessages(prev => {
-        const newMap = new Map(prev);
-        const existing = newMap.get(messageId);
-        if (existing) {
-          newMap.set(messageId, {
-            ...existing,
-            status: "error",
-            error: error instanceof Error ? error.message : "Unknown error",
-          });
+        setMessages((prev) => {
+          const filtered = prev.filter(
+            (m) => m.message_id !== tempUserMessage.message_id
+          );
+          return [...filtered, userMessage as Message, assistantMessage as Message];
+        });
+
+        setStreamingMessage(assistantMessage as Message);
+
+        if (shouldGenerateTitle) {
+          try {
+            const updatedConv = await service.getConversation(
+              conversationIdAtSend
+            );
+            setConversations((prev) =>
+              prev.map((c) =>
+                c.conversation_id === conversationIdAtSend
+                  ? { ...c, title: updatedConv.title }
+                  : c
+              )
+            );
+          } catch (titleError) {
+            console.error("Error updating conversation title:", titleError);
+          }
         }
-        return newMap;
-      });
 
-      toast({
-        title: "Erro ao enviar mensagem",
-        description: error instanceof Error ? error.message : "Não foi possível enviar a mensagem",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-      isSendingMessageRef.current = false;
-    }
-  }, [currentConversationId, conversations, isLoading, refreshConversations]);
+        await refreshConversations();
 
-  const deleteConversation = useCallback(async (conversationId: string) => {
-    if (!conversationId || !conversationId.trim()) {
-      toast({
-        title: "Erro",
-        description: "ID da conversa inválido",
-        variant: "destructive",
-      });
-      return;
-    }
+        setTimeout(() => {
+          setPendingMessages((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(messageId);
+            return newMap;
+          });
+        }, 5000);
+      } catch (error) {
+        console.error("Error sending message:", error);
 
-    try {
-      await ragService.deleteConversation(conversationId);
-      
-      // If we deleted the current conversation, clear it
-      if (conversationId === currentConversationId) {
-        resetToInitialState();
+        setPendingMessages((prev) => {
+          const newMap = new Map(prev);
+          const existing = newMap.get(messageId);
+          if (existing) {
+            newMap.set(messageId, {
+              ...existing,
+              status: "error",
+              error: error instanceof Error ? error.message : "Unknown error",
+            });
+          }
+          return newMap;
+        });
+
+        toast({
+          title: "Erro ao enviar mensagem",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Não foi possível enviar a mensagem",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+        isSendingMessageRef.current = false;
       }
-      
-      // Refresh the conversations list
-      await refreshConversations();
-      
-      toast({
-        title: "Conversa excluída",
-        description: "A conversa foi excluída com sucesso.",
-      });
-    } catch (error) {
-      console.error("Error deleting conversation:", error);
-      const errorMessage = error instanceof Error ? error.message : "Não foi possível excluir a conversa";
-      toast({
-        title: "Erro ao excluir conversa",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
-  }, [currentConversationId, refreshConversations, resetToInitialState]);
+    },
+    [
+      currentConversationId,
+      conversations,
+      isLoading,
+      refreshConversations,
+      selectedAgent,
+    ]
+  );
+
+  const deleteConversation = useCallback(
+    async (conversationId: string) => {
+      if (!conversationId || !conversationId.trim()) {
+        toast({
+          title: "Erro",
+          description: "ID da conversa inválido",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const service = selectedAgent === "funds" ? fundsAgentService : ragService;
+
+      try {
+        await service.deleteConversation(conversationId);
+
+        if (conversationId === currentConversationId) {
+          resetToInitialState();
+        }
+
+        await refreshConversations();
+
+        toast({
+          title: "Conversa excluída",
+          description: "A conversa foi excluída com sucesso.",
+        });
+      } catch (error) {
+        console.error("Error deleting conversation:", error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Não foi possível excluir a conversa";
+        toast({
+          title: "Erro ao excluir conversa",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    },
+    [currentConversationId, refreshConversations, resetToInitialState, selectedAgent]
+  );
 
   const value: ChatContextType = {
     conversations,
@@ -280,11 +320,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     isLoadingConversations,
     streamingMessage,
     pendingMessages,
-    
+    selectedAgent,
+    setSelectedAgent,
+
     setCurrentConversationId,
     setMessages,
     setStreamingMessage,
-    
+
     refreshConversations,
     loadMessages,
     sendMessage,

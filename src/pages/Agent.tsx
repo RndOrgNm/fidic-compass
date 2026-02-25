@@ -35,6 +35,8 @@ export default function Agent() {
     isLoading,
     isLoadingConversations,
     streamingMessage,
+    selectedAgent,
+    setSelectedAgent,
     setCurrentConversationId,
     setStreamingMessage,
     refreshConversations,
@@ -49,7 +51,6 @@ export default function Agent() {
   const [displayedText, setDisplayedText] = useState("");
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedAgent, setSelectedAgent] = useState<"cvm" | "funds">("cvm");
   const totalPages = 100;
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -282,12 +283,15 @@ export default function Agent() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <UserCog className="h-4 w-4 mr-2" />
-                Selecionar Agente
+                {selectedAgent === "cvm" ? "CVM Agent" : "Funds Agent"}
                 <ChevronDown className="h-4 w-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuRadioGroup value={selectedAgent} onValueChange={(v) => setSelectedAgent(v as "cvm" | "funds")}>
+              <DropdownMenuRadioGroup
+                value={selectedAgent}
+                onValueChange={(v) => setSelectedAgent(v as "cvm" | "funds")}
+              >
                 <DropdownMenuRadioItem value="cvm">CVM Agent</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="funds">Funds Agent</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
