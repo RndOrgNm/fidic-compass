@@ -101,23 +101,20 @@ export function CedenteCard({ cedente, checklist, onOpenDetails, onDelete }: Ced
       )}
     >
       <CardHeader className="pb-3">
-        <div
-          {...listeners}
-          {...attributes}
-          className="flex items-start justify-between gap-2"
-        >
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <div
+            {...listeners}
+            {...attributes}
+            className="flex items-center gap-2 min-w-0 cursor-move touch-none"
+          >
             <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <span className="font-semibold truncate">{cedente.companyName}</span>
           </div>
           {isCedenteTerminal(cedente.status) && onDelete && (
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(cedente);
-              }}
-              className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+              onClick={() => onDelete(cedente)}
+              className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0 touch-auto cursor-pointer"
               aria-label="Excluir"
             >
               <Trash2 className="h-4 w-4" />

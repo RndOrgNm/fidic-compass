@@ -142,37 +142,36 @@ export function MatchingCard({ workflow, onOpenDetails, onDelete }: MatchingCard
       )}
     >
       <CardHeader className="pb-3">
-        <div
-          {...listeners}
-          {...attributes}
-          className="flex items-start justify-between gap-2"
-        >
-          <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <div
+            {...listeners}
+            {...attributes}
+            className="flex-1 min-w-0 cursor-move touch-none"
+          >
             <div className="flex items-center justify-between gap-2 mb-1">
               <div className="flex items-center gap-2 min-w-0">
                 <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="font-semibold truncate">{workflow.receivable_number ?? "—"}</span>
               </div>
-              {isAllocationTerminal(workflow.status) && onDelete && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(workflow);
-                  }}
-                  className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
-                  aria-label="Excluir"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              )}
             </div>
             <div className="text-lg font-bold text-primary">
               {formatCurrency(workflow.nominal_value)}
             </div>
           </div>
-          {workflow.risk_score > 0 && getRiskBadge(workflow.risk_score)}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {workflow.risk_score > 0 && getRiskBadge(workflow.risk_score)}
+            {isAllocationTerminal(workflow.status) && onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(workflow)}
+                className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors touch-auto cursor-pointer"
+                aria-label="Excluir"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
       </CardHeader>
 
