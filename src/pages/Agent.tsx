@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { Bot, Send, MessageSquare, Plus, Loader2, ChevronLeft, ChevronRight, X, Trash2 } from "lucide-react";
+import { Bot, Send, MessageSquare, Plus, Loader2, ChevronLeft, ChevronRight, X, Trash2, UserCog, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -10,6 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
@@ -42,6 +49,7 @@ export default function Agent() {
   const [displayedText, setDisplayedText] = useState("");
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedAgent, setSelectedAgent] = useState<"cvm" | "funds">("cvm");
   const totalPages = 100;
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -268,6 +276,24 @@ export default function Agent() {
           <Plus className="h-4 w-4 mr-2" />
           Nova Conversa
         </Button>
+
+        <div className="ml-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <UserCog className="h-4 w-4 mr-2" />
+                Selecionar Agente
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuRadioGroup value={selectedAgent} onValueChange={(v) => setSelectedAgent(v as "cvm" | "funds")}>
+                <DropdownMenuRadioItem value="cvm">CVM Agent</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="funds">Funds Agent</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Messages Area */}
