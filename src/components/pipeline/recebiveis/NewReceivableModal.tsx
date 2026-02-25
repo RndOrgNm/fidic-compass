@@ -69,7 +69,9 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
     enabled: open,
   });
 
-  const cedentes = cedentesData?.items ?? [];
+  const cedentes = (cedentesData?.items ?? []).filter(
+    (c) => (c.pending_items?.length ?? 0) === 0
+  );
 
   const resetForm = () => {
     setCedenteId("");
@@ -183,7 +185,7 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
         <DialogHeader>
           <DialogTitle>Novo Recebível</DialogTitle>
           <DialogDescription>
-            Cadastre um novo recebível (nota fiscal / direito creditório). Só é possível criar recebíveis para cedentes em status Cedente Ativo (aprovação do pipeline anterior).
+            Cadastre um novo recebível (nota fiscal / direito creditório). Só é possível criar recebíveis para cedentes em status Cedente Ativo com checklist completo.
           </DialogDescription>
         </DialogHeader>
 
@@ -202,14 +204,14 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
                   placeholder={
                     loadingCedentes
                       ? "Carregando..."
-                      : "Selecione o cedente (apenas Cedente Ativo)"
+                      : "Selecione o cedente (Cedente Ativo com checklist completo)"
                   }
                 />
               </SelectTrigger>
               <SelectContent>
                 {cedentes.length === 0 && !loadingCedentes ? (
                   <SelectItem value="__none__" disabled>
-                    Nenhum cedente ativo disponível
+                    Nenhum cedente disponível (Cedente Ativo com checklist completo)
                   </SelectItem>
                 ) : (
                   cedentes.map((c) => (
