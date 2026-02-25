@@ -18,11 +18,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { useCreateReceivable } from "@/hooks/useReceivables";
+import { useCreateRecebivel } from "@/hooks/useProspection";
 import { listCedentes } from "@/lib/api/cedenteService";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import type { Segment } from "@/lib/api/receivableService";
+import type { Segment } from "@/lib/api/prospectionService";
 
 const CEDENTES_ATIVOS_KEY = "cedentes-ativos";
 
@@ -61,7 +61,7 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
   const [debtorCnpj, setDebtorCnpj] = useState("");
   const [segment, setSegment] = useState("");
 
-  const createReceivable = useCreateReceivable();
+  const createRecebivel = useCreateRecebivel();
 
   const { data: cedentesData, isLoading: loadingCedentes } = useQuery({
     queryKey: [CEDENTES_ATIVOS_KEY],
@@ -144,7 +144,7 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
       return;
     }
 
-    createReceivable.mutate(
+    createRecebivel.mutate(
       {
         cedente_id: cedenteId.trim(),
         invoice_number: invoiceNumber.trim(),
@@ -156,9 +156,10 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
       },
       {
         onSuccess: (data) => {
+          const res = data as { invoice_number: string; nominal_value: number };
           toast({
             title: "Recebível criado",
-            description: `Nota ${data.invoice_number} (${formatCurrency(data.nominal_value)}) cadastrada com sucesso.`,
+            description: `Nota ${res.invoice_number} (${formatCurrency(res.nominal_value)}) cadastrada com sucesso.`,
           });
           resetForm();
           onOpenChange(false);
@@ -313,7 +314,7 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
           <Button
             onClick={handleSubmit}
             disabled={
-              createReceivable.isPending ||
+              createRecebivel.isPending ||
               !cedenteId ||
               !invoiceNumber ||
               !nominalValue ||
@@ -324,7 +325,7 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
               isLoadingOptions
             }
           >
-            {createReceivable.isPending ? (
+            {createRecebivel.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 Criando...

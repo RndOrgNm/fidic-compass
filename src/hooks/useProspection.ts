@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listProspectionWorkflows,
   createNewLead,
+  createRecebivel,
   transitionWorkflow,
   assignWorkflow,
   updateRecebivel,
@@ -11,6 +12,7 @@ import {
   type NewLeadCreate,
   type TransitionRequest,
   type RecebivelUpdateRequest,
+  type RecebivelCreatePayload,
 } from "@/lib/api/prospectionService";
 
 const WORKFLOWS_KEY = "prospection-workflows";
@@ -45,6 +47,21 @@ export function useCreateNewLead() {
 
   return useMutation({
     mutationFn: (data: NewLeadCreate) => createNewLead(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
+    },
+  });
+}
+
+/**
+ * Create a new recebivel (for existing cedente).
+ * Invalidates the workflows list on success.
+ */
+export function useCreateRecebivel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: RecebivelCreatePayload) => createRecebivel(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
     },
