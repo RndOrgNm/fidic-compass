@@ -7,19 +7,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 5173, // 8080 conflicts with funds-mcp in Docker
-    proxy: {
-      "/api/funds-agent": {
-        target: "http://localhost:8001",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/funds-agent/, ""),
-      },
-      "/api/conversation-service": {
-        target: "http://localhost:8002",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/conversation-service/, ""),
-      },
-    },
+    port: 8080,
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

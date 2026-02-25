@@ -32,28 +32,13 @@ async function askFundsAgent(
     body.conversation_id = conversationId;
   }
 
-  const url = `${FUNDS_AGENT_API_URL}/ask`;
-  if (import.meta.env.DEV) {
-    console.log("[Funds Agent] POST", url, { conversation_id: conversationId, query_len: query.length });
-  }
-
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Request-Source": "chatbot",
-      },
-      body: JSON.stringify(body),
-    });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[Funds Agent] Connection failed:", msg, "| URL:", url);
-    throw new Error(
-      `Não foi possível conectar ao Funds Agent (${url}). Verifique se o serviço está rodando.`
-    );
-  }
+  const response = await fetch(`${FUNDS_AGENT_API_URL}/ask`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
 
   if (!response.ok) {
     let errorMessage = "An error occurred";
@@ -63,7 +48,6 @@ async function askFundsAgent(
     } catch {
       errorMessage = response.statusText || `HTTP ${response.status}`;
     }
-    console.error("[Funds Agent] Error response:", response.status, errorMessage);
     throw new Error(errorMessage);
   }
   return response.json();
