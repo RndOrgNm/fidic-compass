@@ -1,11 +1,22 @@
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { PIPELINE_INVALIDATE_KEYS } from "@/lib/queryKeys";
 import { CedentesTab } from "@/components/pipeline/cedentes/CedentesTab";
 import { RecebiveisTab } from "@/components/pipeline/recebiveis/RecebiveisTab";
 import { ClientMatchingTab } from "@/components/pipeline/alocacao/ClientMatchingTab";
 import { MonitoramentoTab } from "@/components/pipeline/monitoramento/MonitoramentoTab";
 
 export default function Pipeline() {
+  const queryClient = useQueryClient();
+
+  // Refetch pipeline data on mount — ensures fresh data when agent changes pipeline via web chat OR WhatsApp/SQS
+  useEffect(() => {
+    PIPELINE_INVALIDATE_KEYS.forEach((key) => {
+      queryClient.invalidateQueries({ queryKey: [key] });
+    });
+  }, [queryClient]);
   return (
     <TooltipProvider delayDuration={200} skipDelayDuration={0}>
     <div className="space-y-6">
