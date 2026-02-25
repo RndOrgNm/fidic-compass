@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useRef, useCallback, ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
+import { PIPELINE_INVALIDATE_KEYS } from "@/lib/queryKeys";
 import { ragService, type ConversationWithMetadata } from "@/lib/api/ragService";
 import { fundsAgentService } from "@/lib/api/fundsAgentService";
 import type { ApiSource } from "@/lib/api/client";
@@ -54,6 +56,7 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | null>(null);
 
 export function ChatProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -225,6 +228,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
         await refreshConversations();
 
+        // Invalidate pipeline cache when Funds Agent completes (it may have modified pipeline via MCP tools)
+        if (selectedAgent === "funds") {
+          PIPELINE_INVALIDATE_KEYS.forEach((key) => {
+            queryClient.invalidateQueries({ queryKey: [key] });
+          });
+        }
+
         setTimeout(() => {
           setPendingMessages((prev) => {
             const newMap = new Map(prev);
@@ -265,6 +275,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       currentConversationId,
       conversations,
       isLoading,
+      queryClient,
       refreshConversations,
       selectedAgent,
     ]
