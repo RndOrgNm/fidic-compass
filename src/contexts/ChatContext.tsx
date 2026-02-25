@@ -65,17 +65,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const isSendingMessageRef = useRef(false);
 
-  const setSelectedAgent = useCallback(
-    (agent: "cvm" | "funds") => {
-      setSelectedAgentState(agent);
-      setCurrentConversationId(null);
-      setMessages([]);
-      setStreamingMessage(null);
-      refreshConversations(agent);
-    },
-    [refreshConversations]
-  );
-
   const resetToInitialState = useCallback(() => {
     setCurrentConversationId(null);
     setMessages([]);
@@ -104,6 +93,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       }
     },
     [selectedAgent]
+  );
+
+  const setSelectedAgent = useCallback(
+    (agent: "cvm" | "funds") => {
+      setSelectedAgentState(agent);
+      setCurrentConversationId(null);
+      setMessages([]);
+      setStreamingMessage(null);
+      refreshConversations(agent);
+    },
+    [refreshConversations]
   );
 
   const loadMessages = useCallback(
