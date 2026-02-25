@@ -36,6 +36,7 @@ async function askFundsAgent(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "X-Request-Source": "chatbot",
     },
     body: JSON.stringify(body),
   });
