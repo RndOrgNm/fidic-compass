@@ -3,6 +3,7 @@ import {
   listMonitoramentos,
   updateMonitoramento,
   createMonitoramento,
+  deleteMonitoramento,
   type MonitoramentoFilters,
   type MonitoramentoUpdatePayload,
   type MonitoramentoCreatePayload,
@@ -72,6 +73,17 @@ export function useCreateMonitoramento() {
 
   return useMutation({
     mutationFn: (payload: MonitoramentoCreatePayload) => createMonitoramento(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [MONITORAMENTO_KEY] });
+    },
+  });
+}
+
+export function useDeleteMonitoramento() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteMonitoramento(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [MONITORAMENTO_KEY] });
     },

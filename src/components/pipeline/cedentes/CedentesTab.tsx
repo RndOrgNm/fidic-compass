@@ -12,10 +12,11 @@ import {
 import { CedentesKanban } from "./CedentesKanban";
 import { CedentesListView } from "./CedentesListView";
 import { CedenteDetailsModal } from "./CedenteDetailsModal";
+import { CedenteDeleteModal } from "./CedenteDeleteModal";
 import { NewCedenteModal } from "./NewCedenteModal";
 import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
-import { useCedentes, useUpdateCedente, useCedentesChecklist } from "@/hooks/useCedentes";
+import { useCedentes, useUpdateCedente, useDeleteCedente, useCedentesChecklist } from "@/hooks/useCedentes";
 import { CEDENTES_CHECKLIST } from "@/data/cedentesChecklist";
 import { CEDENTES_COLUMNS, CEDENTES_STATUS_LABELS } from "@/data/cedentesPipelineConfig";
 import { toast } from "@/hooks/use-toast";
@@ -30,6 +31,7 @@ export function CedentesTab() {
   const [assignedFilter, setAssignedFilter] = useState("all");
   const [showNewCedenteModal, setShowNewCedenteModal] = useState(false);
   const [selectedCedenteId, setSelectedCedenteId] = useState<string | null>(null);
+  const [cedenteToDelete, setCedenteToDelete] = useState<CedentePipelineItem | null>(null);
 
   const filters: { status?: CedenteStatus; segment?: Segment } = {};
   if (statusFilter !== "all") filters.status = statusFilter as CedenteStatus;
@@ -39,6 +41,7 @@ export function CedentesTab() {
   const { data: checklistData } = useCedentesChecklist();
   const checklist = checklistData ?? CEDENTES_CHECKLIST;
   const updateCedente = useUpdateCedente();
+  const deleteCedente = useDeleteCedente();
 
   const cedentes = data?.items ?? [];
   const filteredCedentes = cedentes.filter((c) => {
@@ -64,6 +67,25 @@ export function CedentesTab() {
       toast({
         title: "Erro",
         description: "Não foi possível mover o cedente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRequestDelete = (cedente: CedentePipelineItem) => {
+    setCedenteToDelete(cedente);
+  };
+
+  const handleConfirmDelete = async (cedente: CedentePipelineItem) => {
+    try {
+      await deleteCedente.mutateAsync(cedente.id);
+      toast({ title: "Cedente excluído", description: "O cedente foi removido com sucesso." });
+      if (selectedCedenteId === cedente.id) setSelectedCedenteId(null);
+      setCedenteToDelete(null);
+    } catch {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o cedente.",
         variant: "destructive",
       });
     }
@@ -199,12 +221,14 @@ export function CedentesTab() {
               checklist={checklist}
               onStatusChange={handleStatusChange}
               onOpenDetails={(c) => setSelectedCedenteId(c.id)}
+              onDelete={handleRequestDelete}
             />
           ) : (
             <CedentesListView
               cedentes={filteredCedentes}
               checklist={checklist}
               onOpenDetails={(c) => setSelectedCedenteId(c.id)}
+              onDelete={handleRequestDelete}
             />
           )}
         </>
@@ -219,6 +243,14 @@ export function CedentesTab() {
       />
 
       <NewCedenteModal open={showNewCedenteModal} onOpenChange={setShowNewCedenteModal} />
+
+      <CedenteDeleteModal
+        cedente={cedenteToDelete}
+        open={cedenteToDelete != null}
+        onOpenChange={(open) => !open && setCedenteToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={deleteCedente.isPending}
+      />
     </div>
   );
 }

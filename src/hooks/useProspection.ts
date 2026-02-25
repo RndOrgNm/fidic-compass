@@ -5,6 +5,7 @@ import {
   transitionWorkflow,
   assignWorkflow,
   updateRecebivel,
+  deleteRecebivel,
   getRecebiveisChecklist,
   type WorkflowFilters,
   type NewLeadCreate,
@@ -154,6 +155,20 @@ export function useAssignWorkflow() {
     },
 
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
+    },
+  });
+}
+
+/**
+ * Delete a recebivel. Only allowed for terminal statuses (encerrado, rejeitado).
+ */
+export function useDeleteRecebivel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (workflowId: string) => deleteRecebivel(workflowId),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
     },
   });

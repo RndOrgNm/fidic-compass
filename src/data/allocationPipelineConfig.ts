@@ -11,12 +11,22 @@ export const ALLOCATION_STATUS_LABELS: Record<AllocationStatus, string> = {
   superseded: "Substituído",
 };
 
+/** Statuses where the card can be deleted (terminal/rejected states). */
+export const ALLOCATION_TERMINAL_STATUSES: AllocationStatus[] = ["rejected", "withdrawn", "superseded"];
+
+export function isAllocationTerminal(status: AllocationStatus): boolean {
+  return ALLOCATION_TERMINAL_STATUSES.includes(status);
+}
+
 /** Kanban columns (main flow). STATUS_ORDER derived from id order. */
 export const ALLOCATION_COLUMNS: { id: AllocationStatus; title: string; color: string }[] = [
   { id: "pending_match", title: ALLOCATION_STATUS_LABELS.pending_match, color: "border-slate-500" },
   { id: "fund_selection", title: ALLOCATION_STATUS_LABELS.fund_selection, color: "border-blue-500" },
   { id: "compliance_check", title: ALLOCATION_STATUS_LABELS.compliance_check, color: "border-yellow-500" },
   { id: "allocated", title: ALLOCATION_STATUS_LABELS.allocated, color: "border-green-500" },
+  { id: "rejected", title: ALLOCATION_STATUS_LABELS.rejected, color: "border-red-500" },
+  { id: "withdrawn", title: ALLOCATION_STATUS_LABELS.withdrawn, color: "border-orange-500" },
+  { id: "superseded", title: ALLOCATION_STATUS_LABELS.superseded, color: "border-gray-500" },
 ];
 
 /** Badge config for list views. Label from ALLOCATION_STATUS_LABELS. */

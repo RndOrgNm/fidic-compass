@@ -13,6 +13,7 @@ interface CedentesKanbanProps {
   checklist: Record<string, string[]>;
   onStatusChange: (cedenteId: string, newStatus: CedentePipelineStatus) => void;
   onOpenDetails: (cedente: CedentePipelineItem) => void;
+  onDelete?: (cedente: CedentePipelineItem) => void;
 }
 
 interface KanbanColumnProps {
@@ -22,9 +23,10 @@ interface KanbanColumnProps {
   cedentes: CedentePipelineItem[];
   checklist: Record<string, string[]>;
   onOpenDetails: (cedente: CedentePipelineItem) => void;
+  onDelete?: (cedente: CedentePipelineItem) => void;
 }
 
-function KanbanColumn({ id, title, color, cedentes, checklist, onOpenDetails }: KanbanColumnProps) {
+function KanbanColumn({ id, title, color, cedentes, checklist, onOpenDetails, onDelete }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -44,7 +46,7 @@ function KanbanColumn({ id, title, color, cedentes, checklist, onOpenDetails }: 
       </div>
       <div className="space-y-3">
         {cedentes.map((cedente) => (
-          <CedenteCard key={cedente.id} cedente={cedente} checklist={checklist} onOpenDetails={onOpenDetails} />
+          <CedenteCard key={cedente.id} cedente={cedente} checklist={checklist} onOpenDetails={onOpenDetails} onDelete={onDelete} />
         ))}
       </div>
     </div>
@@ -55,7 +57,7 @@ function KanbanColumn({ id, title, color, cedentes, checklist, onOpenDetails }: 
  * Kanban pattern: a card can only move FORWARD to the next status when it has no pending items.
  * Backward moves (e.g. Due Diligence back to Lead) are always allowed; backend resets pending_items to the target status.
  */
-export function CedentesKanban({ cedentes, checklist, onStatusChange, onOpenDetails }: CedentesKanbanProps) {
+export function CedentesKanban({ cedentes, checklist, onStatusChange, onOpenDetails, onDelete }: CedentesKanbanProps) {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -98,6 +100,7 @@ export function CedentesKanban({ cedentes, checklist, onStatusChange, onOpenDeta
             cedentes={getCedentesByStatus(col.id)}
             checklist={checklist}
             onOpenDetails={onOpenDetails}
+            onDelete={onDelete}
           />
         ))}
       </div>

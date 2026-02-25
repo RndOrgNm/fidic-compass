@@ -9,16 +9,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, Clock, AlertTriangle, GripVertical, FileText, Building2, Briefcase } from "lucide-react";
+import { AlertCircle, Clock, AlertTriangle, GripVertical, FileText, Building2, Briefcase, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AllocationWorkflow } from "@/lib/api/allocationService";
+import { isAllocationTerminal } from "@/data/allocationPipelineConfig";
 
 interface MatchingCardProps {
   workflow: AllocationWorkflow;
   onOpenDetails?: (workflow: AllocationWorkflow) => void;
+  onDelete?: (workflow: AllocationWorkflow) => void;
 }
 
-export function MatchingCard({ workflow, onOpenDetails }: MatchingCardProps) {
+export function MatchingCard({ workflow, onOpenDetails, onDelete }: MatchingCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: workflow.id,
   });
@@ -110,6 +112,12 @@ export function MatchingCard({ workflow, onOpenDetails }: MatchingCardProps) {
         return "border-l-4 border-yellow-500";
       case "allocated":
         return "border-l-4 border-green-500";
+      case "rejected":
+        return "border-l-4 border-red-500";
+      case "withdrawn":
+        return "border-l-4 border-orange-500";
+      case "superseded":
+        return "border-l-4 border-gray-500";
       default:
         return "";
     }
@@ -140,10 +148,25 @@ export function MatchingCard({ workflow, onOpenDetails }: MatchingCardProps) {
           className="flex items-start justify-between gap-2"
         >
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="font-semibold truncate">{workflow.receivable_number ?? "—"}</span>
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center gap-2 min-w-0">
+                <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="font-semibold truncate">{workflow.receivable_number ?? "—"}</span>
+              </div>
+              {isAllocationTerminal(workflow.status) && onDelete && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(workflow);
+                  }}
+                  className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+                  aria-label="Excluir"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
             </div>
             <div className="text-lg font-bold text-primary">
               {formatCurrency(workflow.nominal_value)}

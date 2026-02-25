@@ -3,9 +3,10 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { GripVertical, Building2, User, Mail, AlertCircle } from "lucide-react";
+import { GripVertical, Building2, User, Mail, AlertCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
+import { isCedenteTerminal } from "@/data/cedentesPipelineConfig";
 
 export interface CedentePipelineItem {
   id: string;
@@ -29,6 +30,7 @@ interface CedenteCardProps {
   cedente: CedentePipelineItem;
   checklist: Record<string, string[]>;
   onOpenDetails?: (cedente: CedentePipelineItem) => void;
+  onDelete?: (cedente: CedentePipelineItem) => void;
 }
 
 function formatCnpj(cnpj: string) {
@@ -55,7 +57,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   insumos: "Insumos",
 };
 
-export function CedenteCard({ cedente, checklist, onOpenDetails }: CedenteCardProps) {
+export function CedenteCard({ cedente, checklist, onOpenDetails, onDelete }: CedenteCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: cedente.id,
   });
@@ -108,6 +110,19 @@ export function CedenteCard({ cedente, checklist, onOpenDetails }: CedenteCardPr
             <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <span className="font-semibold truncate">{cedente.companyName}</span>
           </div>
+          {isCedenteTerminal(cedente.status) && onDelete && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(cedente);
+              }}
+              className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+              aria-label="Excluir"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground pl-6">
           <Building2 className="h-3 w-3 flex-shrink-0" />

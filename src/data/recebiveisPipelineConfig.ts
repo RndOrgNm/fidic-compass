@@ -21,6 +21,13 @@ export const RECEBIVEIS_COLUMNS: { id: RecebivelStatus; title: string; color: st
   { id: "rejeitado", title: RECEBIVEIS_STATUS_LABELS.rejeitado, color: "border-red-500" },
 ];
 
+/** Statuses where the card can be deleted (terminal/rejected states). */
+export const RECEBIVEIS_TERMINAL_STATUSES: RecebivelStatus[] = ["encerrado", "rejeitado"];
+
+export function isRecebivelTerminal(status: RecebivelStatus): boolean {
+  return RECEBIVEIS_TERMINAL_STATUSES.includes(status);
+}
+
 /** Badge config for list views. Label from RECEBIVEIS_STATUS_LABELS. */
 export const RECEBIVEIS_STATUS_BADGES: Record<RecebivelStatus, { label: string; className: string }> = {
   identificados: { label: RECEBIVEIS_STATUS_LABELS.identificados, className: "bg-slate-100 text-slate-800" },

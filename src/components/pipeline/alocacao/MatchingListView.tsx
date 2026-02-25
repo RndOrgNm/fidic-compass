@@ -12,16 +12,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
+import { Clock, AlertTriangle, AlertCircle, Trash2 } from "lucide-react";
 import type { AllocationWorkflow } from "@/lib/api/allocationService";
-import { ALLOCATION_STATUS_BADGES } from "@/data/allocationPipelineConfig";
+import { ALLOCATION_STATUS_BADGES, isAllocationTerminal } from "@/data/allocationPipelineConfig";
 
 interface MatchingListViewProps {
   workflows: AllocationWorkflow[];
   onOpenDetails?: (workflow: AllocationWorkflow) => void;
+  onDelete?: (workflow: AllocationWorkflow) => void;
 }
 
-export function MatchingListView({ workflows, onOpenDetails }: MatchingListViewProps) {
+export function MatchingListView({ workflows, onOpenDetails, onDelete }: MatchingListViewProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -185,13 +186,26 @@ export function MatchingListView({ workflows, onOpenDetails }: MatchingListViewP
                   )}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onOpenDetails?.(workflow)}
-                  >
-                    Abrir
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onOpenDetails?.(workflow)}
+                    >
+                      Abrir
+                    </Button>
+                    {isAllocationTerminal(workflow.status) && onDelete && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-muted-foreground hover:text-destructive"
+                        aria-label="Excluir"
+                        onClick={() => onDelete(workflow)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

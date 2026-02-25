@@ -10,6 +10,7 @@ import { ALLOCATION_COLUMNS } from "@/data/allocationPipelineConfig";
 interface MatchingKanbanProps {
   workflows: AllocationWorkflow[];
   onOpenDetails?: (workflow: AllocationWorkflow) => void;
+  onDelete?: (workflow: AllocationWorkflow) => void;
 }
 
 const STATUS_ORDER: string[] = ALLOCATION_COLUMNS.map((c) => c.id);
@@ -21,16 +22,17 @@ interface KanbanColumnProps {
   workflows: AllocationWorkflow[];
   totalValue: string;
   onOpenDetails?: (workflow: AllocationWorkflow) => void;
+  onDelete?: (workflow: AllocationWorkflow) => void;
 }
 
-function KanbanColumn({ id, title, color, workflows, totalValue, onOpenDetails }: KanbanColumnProps) {
+function KanbanColumn({ id, title, color, workflows, totalValue, onOpenDetails, onDelete }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "space-y-4 border-t-4 rounded-t-md bg-muted/30 p-4 min-h-[600px] transition-colors",
+        "space-y-4 border-t-4 rounded-t-md bg-muted/30 p-4 min-h-[600px] min-w-[260px] w-[260px] flex-shrink-0 transition-colors",
         color,
         isOver && "bg-primary/10 ring-2 ring-primary/30"
       )}
@@ -44,14 +46,14 @@ function KanbanColumn({ id, title, color, workflows, totalValue, onOpenDetails }
       </div>
       <div className="space-y-3">
         {workflows.map((workflow) => (
-          <MatchingCard key={workflow.id} workflow={workflow} onOpenDetails={onOpenDetails} />
+          <MatchingCard key={workflow.id} workflow={workflow} onOpenDetails={onOpenDetails} onDelete={onDelete} />
         ))}
       </div>
     </div>
   );
 }
 
-export function MatchingKanban({ workflows, onOpenDetails }: MatchingKanbanProps) {
+export function MatchingKanban({ workflows, onOpenDetails, onDelete }: MatchingKanbanProps) {
   const transitionMutation = useTransitionAllocationWorkflow();
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -119,7 +121,7 @@ export function MatchingKanban({ workflows, onOpenDetails }: MatchingKanbanProps
 
   return (
     <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="flex gap-4 overflow-x-auto pb-2">
         {ALLOCATION_COLUMNS.map((column) => (
           <KanbanColumn
             key={column.id}
@@ -129,6 +131,7 @@ export function MatchingKanban({ workflows, onOpenDetails }: MatchingKanbanProps
             workflows={getWorkflowsByStatus(column.id)}
             totalValue={formatCurrency(getTotalValue(column.id))}
             onOpenDetails={onOpenDetails}
+            onDelete={onDelete}
           />
         ))}
       </div>

@@ -3,6 +3,7 @@ import {
   listCedentes,
   updateCedente,
   createCedente,
+  deleteCedente,
   getCedentesChecklist,
   type CedenteFilters,
   type CedenteUpdatePayload,
@@ -87,6 +88,17 @@ export function useCreateCedente() {
 
   return useMutation({
     mutationFn: (payload: CedenteCreatePayload) => createCedente(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [CEDENTES_KEY] });
+    },
+  });
+}
+
+export function useDeleteCedente() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteCedente(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CEDENTES_KEY] });
     },

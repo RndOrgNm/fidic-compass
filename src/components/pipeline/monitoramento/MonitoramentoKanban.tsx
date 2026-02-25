@@ -12,6 +12,7 @@ interface MonitoramentoKanbanProps {
   items: MonitoramentoPipelineItem[];
   onStatusChange: (itemId: string, newStatus: MonitoramentoPipelineStatus) => void;
   onOpenDetails: (item: MonitoramentoPipelineItem) => void;
+  onDelete?: (item: MonitoramentoPipelineItem) => void;
 }
 
 interface KanbanColumnProps {
@@ -20,9 +21,10 @@ interface KanbanColumnProps {
   color: string;
   items: MonitoramentoPipelineItem[];
   onOpenDetails: (item: MonitoramentoPipelineItem) => void;
+  onDelete?: (item: MonitoramentoPipelineItem) => void;
 }
 
-function KanbanColumn({ id, title, color, items, onOpenDetails }: KanbanColumnProps) {
+function KanbanColumn({ id, title, color, items, onOpenDetails, onDelete }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -42,7 +44,7 @@ function KanbanColumn({ id, title, color, items, onOpenDetails }: KanbanColumnPr
       </div>
       <div className="space-y-3">
         {items.map((item) => (
-          <MonitoramentoCard key={item.id} item={item} onOpenDetails={onOpenDetails} />
+          <MonitoramentoCard key={item.id} item={item} onOpenDetails={onOpenDetails} onDelete={onDelete} />
         ))}
       </div>
     </div>
@@ -53,7 +55,7 @@ function KanbanColumn({ id, title, color, items, onOpenDetails }: KanbanColumnPr
  * Kanban pattern: card can only move FORWARD when pending_items is empty.
  * Backward moves are always allowed; backend resets pending_items to the target status.
  */
-export function MonitoramentoKanban({ items, onStatusChange, onOpenDetails }: MonitoramentoKanbanProps) {
+export function MonitoramentoKanban({ items, onStatusChange, onOpenDetails, onDelete }: MonitoramentoKanbanProps) {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -95,6 +97,7 @@ export function MonitoramentoKanban({ items, onStatusChange, onOpenDetails }: Mo
             color={col.color}
             items={getItemsByStatus(col.id)}
             onOpenDetails={onOpenDetails}
+            onDelete={onDelete}
           />
         ))}
       </div>

@@ -9,6 +9,13 @@ export const MONITORAMENTO_STATUS_LABELS: Record<MonitoramentoPipelineStatus, st
   encerrado: "Encerrado",
 };
 
+/** Statuses where the card can be deleted (terminal states). */
+export const MONITORAMENTO_TERMINAL_STATUSES: MonitoramentoPipelineStatus[] = ["encerrado"];
+
+export function isMonitoramentoTerminal(status: MonitoramentoPipelineStatus): boolean {
+  return MONITORAMENTO_TERMINAL_STATUSES.includes(status);
+}
+
 /** Kanban columns with id, title (from labels), and color. STATUS_ORDER derived from id order. */
 export const MONITORAMENTO_COLUMNS: {
   id: MonitoramentoPipelineStatus;

@@ -13,9 +13,10 @@ import { MonitoramentoKanban } from "./MonitoramentoKanban";
 import { NewMonitoramentoModal } from "./NewMonitoramentoModal";
 import { MonitoramentoListView } from "./MonitoramentoListView";
 import { MonitoramentoDetailsModal } from "./MonitoramentoDetailsModal";
+import { MonitoramentoDeleteModal } from "./MonitoramentoDeleteModal";
 import type { MonitoramentoPipelineItem } from "./MonitoramentoCard";
 import type { MonitoramentoPipelineStatus } from "@/data/pipelineData";
-import { useMonitoramento, useUpdateMonitoramento } from "@/hooks/useMonitoramento";
+import { useMonitoramento, useUpdateMonitoramento, useDeleteMonitoramento } from "@/hooks/useMonitoramento";
 import { toast } from "@/hooks/use-toast";
 import type { MonitoramentoStatus } from "@/lib/api/monitoramentoService";
 import { MONITORAMENTO_COLUMNS, MONITORAMENTO_STATUS_LABELS } from "@/data/monitoramentoPipelineConfig";
@@ -32,6 +33,7 @@ export function MonitoramentoTab() {
 
   const { data, isLoading, error, refetch, isRefetching } = useMonitoramento(filters);
   const updateMonitoramento = useUpdateMonitoramento();
+  const deleteMonitoramento = useDeleteMonitoramento();
 
   const items = data?.items ?? [];
   const filteredItems = items.filter((i) => {
@@ -42,8 +44,13 @@ export function MonitoramentoTab() {
 
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<MonitoramentoPipelineItem | null>(null);
 
   const handleRefresh = () => refetch();
+
+  const handleRequestDelete = (item: MonitoramentoPipelineItem) => {
+    setItemToDelete(item);
+  };
 
   const handleStatusChange = async (itemId: string, newStatus: MonitoramentoPipelineStatus) => {
     try {
@@ -60,6 +67,21 @@ export function MonitoramentoTab() {
       toast({
         title: "Erro",
         description: "Não foi possível mover o monitoramento.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleConfirmDelete = async (item: MonitoramentoPipelineItem) => {
+    try {
+      await deleteMonitoramento.mutateAsync(item.id);
+      toast({ title: "Monitoramento excluído", description: "O monitoramento foi removido com sucesso." });
+      if (selectedItemId === item.id) setSelectedItemId(null);
+      setItemToDelete(null);
+    } catch {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o monitoramento.",
         variant: "destructive",
       });
     }
@@ -177,11 +199,13 @@ export function MonitoramentoTab() {
               items={filteredItems}
               onStatusChange={handleStatusChange}
               onOpenDetails={(i) => setSelectedItemId(i.id)}
+              onDelete={handleRequestDelete}
             />
           ) : (
             <MonitoramentoListView
               items={filteredItems}
               onOpenDetails={(i) => setSelectedItemId(i.id)}
+              onDelete={handleRequestDelete}
             />
           )}
         </>
@@ -195,6 +219,14 @@ export function MonitoramentoTab() {
       />
 
       <NewMonitoramentoModal open={showNewModal} onOpenChange={setShowNewModal} />
+
+      <MonitoramentoDeleteModal
+        item={itemToDelete}
+        open={itemToDelete != null}
+        onOpenChange={(open) => !open && setItemToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={deleteMonitoramento.isPending}
+      />
     </div>
   );
 }

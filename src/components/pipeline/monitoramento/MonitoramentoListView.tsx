@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MONITORAMENTO_CHECKLIST } from "@/data/monitoramentoChecklist";
 import {
@@ -15,14 +15,15 @@ import {
 } from "@/components/ui/table";
 import type { MonitoramentoPipelineItem } from "./MonitoramentoCard";
 import type { MonitoramentoPipelineStatus } from "@/data/pipelineData";
-import { MONITORAMENTO_STATUS_BADGES } from "@/data/monitoramentoPipelineConfig";
+import { MONITORAMENTO_STATUS_BADGES, isMonitoramentoTerminal } from "@/data/monitoramentoPipelineConfig";
 
 interface MonitoramentoListViewProps {
   items: MonitoramentoPipelineItem[];
   onOpenDetails: (item: MonitoramentoPipelineItem) => void;
+  onDelete?: (item: MonitoramentoPipelineItem) => void;
 }
 
-export function MonitoramentoListView({ items, onOpenDetails }: MonitoramentoListViewProps) {
+export function MonitoramentoListView({ items, onOpenDetails, onDelete }: MonitoramentoListViewProps) {
   return (
     <Card>
       <CardContent className="p-0">
@@ -100,13 +101,26 @@ export function MonitoramentoListView({ items, onOpenDetails }: MonitoramentoLis
                     )}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onOpenDetails(item)}
-                    >
-                      Abrir
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onOpenDetails(item)}
+                      >
+                        Abrir
+                      </Button>
+                      {isMonitoramentoTerminal(item.status) && onDelete && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-destructive"
+                          aria-label="Excluir"
+                          onClick={() => onDelete(item)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               );

@@ -13,8 +13,9 @@ import { MatchingKanban } from "./MatchingKanban";
 import { MatchingListView } from "./MatchingListView";
 import { NewAllocationModal } from "./NewAllocationModal";
 import { AlocacaoDetailsModal } from "./AlocacaoDetailsModal";
+import { AlocacaoDeleteModal } from "./AlocacaoDeleteModal";
 import { fundsData } from "@/data";
-import { useAllocationWorkflows, useTransitionAllocationWorkflow, useUpdateAllocationWorkflow } from "@/hooks/useAllocation";
+import { useAllocationWorkflows, useTransitionAllocationWorkflow, useUpdateAllocationWorkflow, useDeleteAllocation } from "@/hooks/useAllocation";
 import type { AllocationWorkflow, AllocationStatus } from "@/lib/api/allocationService";
 import { ALLOCATION_COLUMNS } from "@/data/allocationPipelineConfig";
 
@@ -28,6 +29,7 @@ export function ClientMatchingTab() {
   const [slaFilter, setSlaFilter] = useState("all");
   const [showNewAllocationModal, setShowNewAllocationModal] = useState(false);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
+  const [workflowToDelete, setWorkflowToDelete] = useState<AllocationWorkflow | null>(null);
 
   const apiFilters = {
     status: statusFilter !== "all" ? (statusFilter as AllocationStatus) : undefined,
@@ -42,8 +44,30 @@ export function ClientMatchingTab() {
     useAllocationWorkflows(apiFilters);
   const transitionMutation = useTransitionAllocationWorkflow();
   const updateAllocation = useUpdateAllocationWorkflow();
+  const deleteAllocation = useDeleteAllocation();
 
   const handleRefresh = () => refetch();
+
+  const handleRequestDelete = (workflow: AllocationWorkflow) => {
+    setWorkflowToDelete(workflow);
+  };
+
+  const handleConfirmDelete = async (workflow: AllocationWorkflow) => {
+    try {
+      await deleteAllocation.mutateAsync(workflow.id);
+      const { toast } = await import("@/hooks/use-toast");
+      toast({ title: "Alocação excluída", description: "A alocação foi removida com sucesso." });
+      if (selectedWorkflowId === workflow.id) setSelectedWorkflowId(null);
+      setWorkflowToDelete(null);
+    } catch {
+      const { toast } = await import("@/hooks/use-toast");
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a alocação.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const items = data?.items ?? [];
   const filteredWorkflows: AllocationWorkflow[] = items.filter((wf: AllocationWorkflow) => {
@@ -214,11 +238,13 @@ export function ClientMatchingTab() {
         <MatchingKanban
           workflows={filteredWorkflows}
           onOpenDetails={(wf) => setSelectedWorkflowId(wf.id)}
+          onDelete={handleRequestDelete}
         />
       ) : (
         <MatchingListView
           workflows={filteredWorkflows}
           onOpenDetails={(wf) => setSelectedWorkflowId(wf.id)}
+          onDelete={handleRequestDelete}
         />
       )}
 
@@ -232,6 +258,14 @@ export function ClientMatchingTab() {
       <NewAllocationModal
         open={showNewAllocationModal}
         onOpenChange={setShowNewAllocationModal}
+      />
+
+      <AlocacaoDeleteModal
+        workflow={workflowToDelete}
+        open={workflowToDelete != null}
+        onOpenChange={(open) => !open && setWorkflowToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={deleteAllocation.isPending}
       />
     </div>
   );

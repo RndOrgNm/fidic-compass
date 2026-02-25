@@ -9,6 +9,13 @@ export const CEDENTES_STATUS_LABELS: Record<CedentePipelineStatus, string> = {
   bloqueado_desistencia: "Bloqueado/Desistência",
 };
 
+/** Statuses where the card can be deleted (terminal/rejected states). */
+export const CEDENTES_TERMINAL_STATUSES: CedentePipelineStatus[] = ["bloqueado_desistencia"];
+
+export function isCedenteTerminal(status: CedentePipelineStatus): boolean {
+  return CEDENTES_TERMINAL_STATUSES.includes(status);
+}
+
 /** Kanban columns with id, title (from labels), and color. STATUS_ORDER derived from id order. */
 export const CEDENTES_COLUMNS: { id: CedentePipelineStatus; title: string; color: string }[] = [
   { id: "lead", title: CEDENTES_STATUS_LABELS.lead, color: "border-slate-500" },

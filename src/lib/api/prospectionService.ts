@@ -210,6 +210,23 @@ export async function updateRecebivel(
   return handleResponse<ProspectionWorkflow>(response);
 }
 
+export async function deleteRecebivel(workflowId: string): Promise<void> {
+  const response = await fetch(`${FUNDS_API_BASE_URL}/recebiveis/${workflowId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!response.ok) {
+    let errorMessage = "An error occurred";
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.detail || errorMessage;
+    } catch {
+      errorMessage = response.statusText || `HTTP ${response.status}`;
+    }
+    throw new Error(errorMessage);
+  }
+}
+
 export async function getRecebiveisChecklist(): Promise<Record<string, string[]>> {
   const response = await fetch(`${FUNDS_API_BASE_URL}/recebiveis/checklist`, {
     method: "GET",

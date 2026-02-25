@@ -11,6 +11,7 @@ interface RecebiveisKanbanProps {
   workflows: ProspectionWorkflow[];
   checklist: Record<string, string[]>;
   onOpenDetails?: (workflow: ProspectionWorkflow) => void;
+  onDelete?: (workflow: ProspectionWorkflow) => void;
 }
 
 const STATUS_ORDER: RecebivelStatus[] = RECEBIVEIS_COLUMNS.map((c) => c.id);
@@ -25,9 +26,10 @@ interface KanbanColumnProps {
   totalValue: string;
   checklist: Record<string, string[]>;
   onOpenDetails?: (workflow: ProspectionWorkflow) => void;
+  onDelete?: (workflow: ProspectionWorkflow) => void;
 }
 
-function KanbanColumn({ id, title, color, workflows, totalValue, checklist, onOpenDetails }: KanbanColumnProps) {
+function KanbanColumn({ id, title, color, workflows, totalValue, checklist, onOpenDetails, onDelete }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -48,7 +50,7 @@ function KanbanColumn({ id, title, color, workflows, totalValue, checklist, onOp
       </div>
       <div className="space-y-3">
         {workflows.map((workflow) => (
-          <RecebiveisCard key={workflow.id} workflow={workflow} checklist={checklist} onOpenDetails={onOpenDetails} />
+          <RecebiveisCard key={workflow.id} workflow={workflow} checklist={checklist} onOpenDetails={onOpenDetails} onDelete={onDelete} />
         ))}
       </div>
     </div>
@@ -57,7 +59,7 @@ function KanbanColumn({ id, title, color, workflows, totalValue, checklist, onOp
 
 // ── Kanban board ───────────────────────────────────────────────────────────────
 
-export function RecebiveisKanban({ workflows, checklist, onOpenDetails }: RecebiveisKanbanProps) {
+export function RecebiveisKanban({ workflows, checklist, onOpenDetails, onDelete }: RecebiveisKanbanProps) {
   const transitionMutation = useTransitionWorkflow();
 
   const formatCurrency = (value: number) => {
@@ -140,6 +142,7 @@ export function RecebiveisKanban({ workflows, checklist, onOpenDetails }: Recebi
             totalValue={formatCurrency(getTotalValue(column.id))}
             checklist={checklist}
             onOpenDetails={onOpenDetails}
+            onDelete={onDelete}
           />
         ))}
       </div>

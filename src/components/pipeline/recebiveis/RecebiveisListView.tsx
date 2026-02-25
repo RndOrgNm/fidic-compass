@@ -11,18 +11,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Clock, AlertTriangle, AlertCircle } from "lucide-react";
+import { Clock, AlertTriangle, AlertCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
-import { RECEBIVEIS_STATUS_BADGES } from "@/data/recebiveisPipelineConfig";
+import { RECEBIVEIS_STATUS_BADGES, isRecebivelTerminal } from "@/data/recebiveisPipelineConfig";
 
 interface RecebiveisListViewProps {
   workflows: ProspectionWorkflow[];
   checklist: Record<string, string[]>;
   onOpenDetails?: (workflow: ProspectionWorkflow) => void;
+  onDelete?: (workflow: ProspectionWorkflow) => void;
 }
 
-export function RecebiveisListView({ workflows, checklist, onOpenDetails }: RecebiveisListViewProps) {
+export function RecebiveisListView({ workflows, checklist, onOpenDetails, onDelete }: RecebiveisListViewProps) {
   const formatCnpj = (cnpj: string) => {
     if (!cnpj) return "";
     if (cnpj.includes("/") || cnpj.includes(".")) return cnpj;
@@ -198,13 +199,26 @@ export function RecebiveisListView({ workflows, checklist, onOpenDetails }: Rece
                   )}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onOpenDetails?.(workflow)}
-                  >
-                    Abrir
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onOpenDetails?.(workflow)}
+                    >
+                      Abrir
+                    </Button>
+                    {isRecebivelTerminal(workflow.status) && onDelete && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-muted-foreground hover:text-destructive"
+                        aria-label="Excluir"
+                        onClick={() => onDelete(workflow)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

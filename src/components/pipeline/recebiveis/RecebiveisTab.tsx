@@ -13,7 +13,8 @@ import { NewReceivableModal } from "./NewReceivableModal";
 import { RecebiveisKanban } from "./RecebiveisKanban";
 import { RecebiveisListView } from "./RecebiveisListView";
 import { RecebivelDetailsModal } from "./RecebivelDetailsModal";
-import { useProspectionWorkflows, useUpdateRecebivel, useRecebiveisChecklist } from "@/hooks/useProspection";
+import { RecebivelDeleteModal } from "./RecebivelDeleteModal";
+import { useProspectionWorkflows, useUpdateRecebivel, useDeleteRecebivel, useRecebiveisChecklist } from "@/hooks/useProspection";
 import { RECEBIVEIS_CHECKLIST } from "@/data/recebiveisChecklist";
 import { RECEBIVEIS_COLUMNS } from "@/data/recebiveisPipelineConfig";
 import type {
@@ -44,7 +45,30 @@ export function RecebiveisTab() {
   const { data: checklistData } = useRecebiveisChecklist();
   const checklist = checklistData ?? RECEBIVEIS_CHECKLIST;
   const updateRecebivel = useUpdateRecebivel();
+  const deleteRecebivel = useDeleteRecebivel();
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
+  const [workflowToDelete, setWorkflowToDelete] = useState<ProspectionWorkflow | null>(null);
+
+  const handleRequestDelete = (workflow: ProspectionWorkflow) => {
+    setWorkflowToDelete(workflow);
+  };
+
+  const handleConfirmDelete = async (workflow: ProspectionWorkflow) => {
+    try {
+      await deleteRecebivel.mutateAsync(workflow.id);
+      const { toast } = await import("@/hooks/use-toast");
+      toast({ title: "Recebível excluído", description: "O recebível foi removido com sucesso." });
+      if (selectedWorkflowId === workflow.id) setSelectedWorkflowId(null);
+      setWorkflowToDelete(null);
+    } catch {
+      const { toast } = await import("@/hooks/use-toast");
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o recebível.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Client-side filtering for assigned and SLA (not supported by backend)
   const filteredWorkflows: ProspectionWorkflow[] = (data?.items ?? []).filter(
@@ -221,12 +245,14 @@ export function RecebiveisTab() {
               workflows={filteredWorkflows}
               checklist={checklist}
               onOpenDetails={(wf) => setSelectedWorkflowId(wf.id)}
+              onDelete={handleRequestDelete}
             />
           ) : (
             <RecebiveisListView
               workflows={filteredWorkflows}
               checklist={checklist}
               onOpenDetails={(wf) => setSelectedWorkflowId(wf.id)}
+              onDelete={handleRequestDelete}
             />
           )}
         </>
@@ -243,6 +269,14 @@ export function RecebiveisTab() {
       <NewReceivableModal
         open={showNewModal}
         onOpenChange={setShowNewModal}
+      />
+
+      <RecebivelDeleteModal
+        workflow={workflowToDelete}
+        open={workflowToDelete != null}
+        onOpenChange={(open) => !open && setWorkflowToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={deleteRecebivel.isPending}
       />
     </div>
   );

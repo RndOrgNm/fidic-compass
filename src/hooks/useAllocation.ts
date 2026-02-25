@@ -4,6 +4,7 @@ import {
   transitionAllocationWorkflow,
   createAllocationWorkflow,
   updateAllocationWorkflow,
+  deleteAllocation,
   type AllocationWorkflowFilters,
   type TransitionAllocationRequest,
   type AllocationWorkflowCreate,
@@ -82,6 +83,20 @@ export function useCreateAllocationWorkflow() {
 
   return useMutation({
     mutationFn: (data: AllocationWorkflowCreate) => createAllocationWorkflow(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
+    },
+  });
+}
+
+/**
+ * Delete an allocation. Only allowed for terminal statuses (rejected, withdrawn, superseded).
+ */
+export function useDeleteAllocation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (workflowId: string) => deleteAllocation(workflowId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [WORKFLOWS_KEY] });
     },

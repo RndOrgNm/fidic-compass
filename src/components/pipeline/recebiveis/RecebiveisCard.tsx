@@ -2,21 +2,22 @@ import { useDraggable } from "@dnd-kit/core";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Clock, AlertTriangle, GripVertical, Building2, DollarSign } from "lucide-react";
+import { AlertCircle, Clock, AlertTriangle, GripVertical, Building2, DollarSign, Trash2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useAssignWorkflow } from "@/hooks/useProspection";
 import { toast } from "@/hooks/use-toast";
 import type { ProspectionWorkflow } from "@/lib/api/prospectionService";
-import { RECEBIVEIS_COLUMNS } from "@/data/recebiveisPipelineConfig";
+import { RECEBIVEIS_COLUMNS, isRecebivelTerminal } from "@/data/recebiveisPipelineConfig";
 
 interface RecebiveisCardProps {
   workflow: ProspectionWorkflow;
   checklist: Record<string, string[]>;
   onOpenDetails?: (workflow: ProspectionWorkflow) => void;
+  onDelete?: (workflow: ProspectionWorkflow) => void;
 }
 
-export function RecebiveisCard({ workflow, checklist, onOpenDetails }: RecebiveisCardProps) {
+export function RecebiveisCard({ workflow, checklist, onOpenDetails, onDelete }: RecebiveisCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: workflow.id,
   });
@@ -155,11 +156,26 @@ export function RecebiveisCard({ workflow, checklist, onOpenDetails }: Recebivei
           {...attributes}
           className="space-y-2"
         >
-          <div className="flex items-center gap-2">
-            <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <span className="font-semibold truncate">
-              {workflow.cedente_name || "Sem nome"}
-            </span>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <span className="font-semibold truncate">
+                {workflow.cedente_name || "Sem nome"}
+              </span>
+            </div>
+            {isRecebivelTerminal(workflow.status) && onDelete && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(workflow);
+                }}
+                className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+                aria-label="Excluir"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Building2 className="h-3 w-3 text-muted-foreground flex-shrink-0" />

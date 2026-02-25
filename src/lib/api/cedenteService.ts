@@ -211,6 +211,26 @@ export async function updateCedente(
   return mapCedenteToPipelineItem(data);
 }
 
+export async function deleteCedente(id: string): Promise<void> {
+  const response = await fetch(`${FUNDS_API_BASE_URL}/cedentes/${id}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!response.ok) {
+    let errorMessage = "An error occurred";
+    try {
+      const errorData = await response.json();
+      errorMessage =
+        typeof errorData.detail === "string"
+          ? errorData.detail
+          : errorData.detail?.[0]?.msg || errorMessage;
+    } catch {
+      errorMessage = response.statusText || `HTTP ${response.status}`;
+    }
+    throw new Error(errorMessage);
+  }
+}
+
 export async function getCedentesChecklist(): Promise<Record<string, string[]>> {
   const response = await fetch(`${FUNDS_API_BASE_URL}/cedentes/checklist`, {
     method: "GET",

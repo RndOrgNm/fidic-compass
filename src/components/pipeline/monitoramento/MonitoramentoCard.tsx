@@ -3,10 +3,11 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { GripVertical, AlertCircle, Building2, Calendar } from "lucide-react";
+import { GripVertical, AlertCircle, Building2, Calendar, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MonitoramentoPipelineStatus } from "@/data/pipelineData";
 import { MONITORAMENTO_CHECKLIST } from "@/data/monitoramentoChecklist";
+import { isMonitoramentoTerminal } from "@/data/monitoramentoPipelineConfig";
 
 export interface MonitoramentoPipelineItem {
   id: string;
@@ -22,9 +23,10 @@ export interface MonitoramentoPipelineItem {
 interface MonitoramentoCardProps {
   item: MonitoramentoPipelineItem;
   onOpenDetails?: (item: MonitoramentoPipelineItem) => void;
+  onDelete?: (item: MonitoramentoPipelineItem) => void;
 }
 
-export function MonitoramentoCard({ item, onOpenDetails }: MonitoramentoCardProps) {
+export function MonitoramentoCard({ item, onOpenDetails, onDelete }: MonitoramentoCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: item.id,
   });
@@ -77,6 +79,19 @@ export function MonitoramentoCard({ item, onOpenDetails }: MonitoramentoCardProp
             <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <span className="font-semibold truncate">{item.title}</span>
           </div>
+          {isMonitoramentoTerminal(item.status) && onDelete && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(item);
+              }}
+              className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+              aria-label="Excluir"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
         </div>
         {item.fundName && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground pl-6">

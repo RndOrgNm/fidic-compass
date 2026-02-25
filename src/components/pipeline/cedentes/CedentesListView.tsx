@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Table,
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import type { CedentePipelineItem } from "./CedenteCard";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
-import { CEDENTES_STATUS_BADGES } from "@/data/cedentesPipelineConfig";
+import { CEDENTES_STATUS_BADGES, isCedenteTerminal } from "@/data/cedentesPipelineConfig";
 
 const SEGMENT_LABELS: Record<string, string> = {
   comercio: "Comércio",
@@ -29,6 +29,7 @@ interface CedentesListViewProps {
   cedentes: CedentePipelineItem[];
   checklist: Record<string, string[]>;
   onOpenDetails: (cedente: CedentePipelineItem) => void;
+  onDelete?: (cedente: CedentePipelineItem) => void;
 }
 
 function formatCnpj(cnpj: string) {
@@ -46,7 +47,7 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
-export function CedentesListView({ cedentes, checklist, onOpenDetails }: CedentesListViewProps) {
+export function CedentesListView({ cedentes, checklist, onOpenDetails, onDelete }: CedentesListViewProps) {
   return (
     <Card>
       <CardContent className="p-0">
@@ -155,13 +156,26 @@ export function CedentesListView({ cedentes, checklist, onOpenDetails }: Cedente
                     )}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onOpenDetails(cedente)}
-                    >
-                      Abrir
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onOpenDetails(cedente)}
+                      >
+                        Abrir
+                      </Button>
+                      {isCedenteTerminal(cedente.status) && onDelete && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-destructive"
+                          aria-label="Excluir"
+                          onClick={() => onDelete(cedente)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               );
