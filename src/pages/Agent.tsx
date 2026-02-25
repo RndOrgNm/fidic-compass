@@ -353,7 +353,9 @@ export default function Agent() {
         ) : (
           <>
             {displayMessages.map((message) => {
-              const displayContent = message.message_id === streamingMessage?.message_id ? displayedText : message.content;
+              const displayContent = message.message_id === streamingMessage?.message_id
+                ? displayedText
+                : (message.content ?? "");
               
               return (
                 <div

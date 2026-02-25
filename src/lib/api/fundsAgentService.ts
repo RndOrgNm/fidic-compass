@@ -7,11 +7,8 @@ import {
   conversationDeleteConversation,
   conversationGenerateTitle,
 } from "./conversationService";
-import type {
-  ConversationResponse,
-  MessageResponse,
-  ConversationWithMetadata,
-} from "./ragService";
+import type { MessageResponse, ApiSource, ConversationResponse } from "./client";
+import type { ConversationWithMetadata } from "./ragService";
 
 interface FundsAgentQueryRequest {
   query: string;
@@ -85,7 +82,25 @@ export class FundsAgentService {
     conversationId: string
   ): Promise<MessageResponse[]> {
     const response = await conversationGetMessages(conversationId);
-    return response.messages;
+    // Normalize: conversation-service returns "id" not "message_id"
+    const rawMessages = response.messages as unknown as Array<Record<string, unknown>>;
+    return rawMessages.map((msg): MessageResponse => {
+      const createdAt = msg.created_at;
+      const createdStr =
+        typeof createdAt === "string"
+          ? createdAt
+          : createdAt instanceof Date
+            ? createdAt.toISOString()
+            : new Date().toISOString();
+      return {
+        message_id: (msg.message_id ?? msg.id) as string,
+        conversation_id: msg.conversation_id as string,
+        role: msg.role as string,
+        content: typeof msg.content === "string" ? msg.content : String(msg.content ?? ""),
+        sources: (msg.sources as ApiSource[] | null) ?? null,
+        created_at: createdStr,
+      };
+    });
   }
 
   async sendMessage(
