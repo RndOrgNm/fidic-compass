@@ -23,10 +23,13 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export async function conversationListConversations(
-  limit: number = 50
+  limit: number = 50,
+  agent?: string
 ): Promise<ConversationListResponse> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (agent) params.set("agent", agent);
   const response = await fetch(
-    `${CONVERSATION_SERVICE_URL}/conversations?limit=${limit}`,
+    `${CONVERSATION_SERVICE_URL}/conversations?${params.toString()}`,
     {
       method: "GET",
       headers: {
@@ -39,7 +42,8 @@ export async function conversationListConversations(
 
 export async function conversationCreateConversation(
   title: string,
-  user?: string
+  user?: string,
+  agent: string = "cvm"
 ): Promise<ConversationResponse> {
   const response = await fetch(`${CONVERSATION_SERVICE_URL}/conversations`, {
     method: "POST",
@@ -49,7 +53,8 @@ export async function conversationCreateConversation(
     body: JSON.stringify({
       title,
       user,
-    } as ConversationCreate),
+      agent,
+    }),
   });
   return handleResponse<ConversationResponse>(response);
 }

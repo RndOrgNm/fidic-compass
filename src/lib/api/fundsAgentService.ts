@@ -57,7 +57,7 @@ export class FundsAgentService {
   async fetchConversations(
     limit: number = 50
   ): Promise<ConversationWithMetadata[]> {
-    const response = await conversationListConversations(limit);
+    const response = await conversationListConversations(limit, "funds");
     return response.conversations.map((conv) => ({
       ...conv,
       lastMessageAt: conv.updated_at,
@@ -69,7 +69,7 @@ export class FundsAgentService {
     title: string = "Nova Conversa",
     user?: string
   ): Promise<ConversationResponse> {
-    return conversationCreateConversation(title, user);
+    return conversationCreateConversation(title, user, "funds");
   }
 
   async getConversation(
