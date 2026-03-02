@@ -65,7 +65,7 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
 
   const { data: cedentesData, isLoading: loadingCedentes } = useQuery({
     queryKey: [CEDENTES_ATIVOS_KEY],
-    queryFn: () => listCedentes({ status: "cedente_ativo", limit: 200 }),
+    queryFn: () => listCedentes({ status: "habilitado", limit: 200 }),
     enabled: open,
   });
 
@@ -185,7 +185,7 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
         <DialogHeader>
           <DialogTitle>Novo Recebível</DialogTitle>
           <DialogDescription>
-            Cadastre um novo recebível (nota fiscal / direito creditório). Só é possível criar recebíveis para cedentes em status Cedente Ativo com checklist completo.
+            Cadastre um novo recebível (nota fiscal / direito creditório). Só é possível criar recebíveis para cedentes Habilitados com checklist completo.
           </DialogDescription>
         </DialogHeader>
 
@@ -204,14 +204,14 @@ export function NewReceivableModal({ open, onOpenChange }: NewReceivableModalPro
                   placeholder={
                     loadingCedentes
                       ? "Carregando..."
-                      : "Selecione o cedente (Cedente Ativo com checklist completo)"
+                      : "Selecione o cedente (Habilitado com checklist completo)"
                   }
                 />
               </SelectTrigger>
               <SelectContent>
                 {cedentes.length === 0 && !loadingCedentes ? (
                   <SelectItem value="__none__" disabled>
-                    Nenhum cedente disponível (Cedente Ativo com checklist completo)
+                    Nenhum cedente disponível (Habilitado com checklist completo)
                   </SelectItem>
                 ) : (
                   cedentes.map((c) => (

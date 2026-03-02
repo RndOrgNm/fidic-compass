@@ -5,37 +5,41 @@ import type { RecebivelStatus } from "@/lib/api/prospectionService";
  * Backend (funds-pipeline/src/data/checklists.py) is the source of truth.
  */
 export const RECEBIVEIS_CHECKLIST: Record<RecebivelStatus, string[]> = {
-  identificados: [
-    "Integridade do Arquivo: Validar se o XML da nota fiscal ou o arquivo de remessa está no padrão correto e sem erros de leitura.",
-    "Cheque de Duplicidade: O sistema deve varrer todos os seus FIDCs para garantir que esse mesmo título não foi vendido para outro fundo da casa (ou se já foi comprado antes).",
-    "Check de Limite Disponível: Verificar se o valor deste lote cabe dentro do \"Limite Aprovado\" que definimos lá no pipeline de Cedentes.",
-    "Verificação de Sacado (Devedor): Identificar se o sacado (quem paga) já está cadastrado ou se precisa de uma análise de crédito rápida.",
+  recepcao_bordero: [
+    "Validação de Layout (CNAB/XML): Verificar se o arquivo de remessa ou borderô está no padrão correto e sem erros de leitura.",
+    "Trava de Unicidade (Duplicidade): O sistema deve varrer todos os FIDCs para garantir que esse título não foi cedido anteriormente.",
+    "Checagem de Limite Disponível do Cedente: Verificar se o valor deste lote cabe dentro do limite aprovado na etapa de Habilitação.",
+    "Validação Básica de Sacados: Identificar se os sacados (devedores) já estão cadastrados ou se precisam de análise de crédito rápida.",
   ],
-  due_diligence: [
-    "Consulta SEFAZ: Verificar se a nota fiscal está \"Autorizada\" e não foi cancelada ou substituída.",
-    "Validação de Lastro (Canhoto/CTE): Confirmar se a mercadoria foi entregue ou o serviço prestado (anexar evidência digital).",
-    "Confirmação (Checagem): Realizar o contato com o sacado (via e-mail, portal ou telefone) para que ele confirme que a dívida existe e será paga ao FIDC.",
-    "Rating do Recebível: Atribuir uma nota de risco específica para este título, cruzando o risco do cedente com o risco do sacado.",
+  checagem_lastro: [
+    "Validação SEFAZ (Chave NFe): Verificar se a nota fiscal está \"Autorizada\" e não foi cancelada ou substituída.",
+    "Confirmação de Performance (Mercadoria Entregue): Confirmar que a mercadoria foi entregue ou o serviço prestado (anexar evidência digital).",
+    "Checagem de Protestos do Sacado: Consultar se o sacado possui protestos ou restrições em bureaus de crédito.",
+    "Confirmação de Veracidade (Call com Sacado): Realizar contato com o sacado para que ele confirme que a dívida existe e será paga ao FIDC.",
   ],
-  custodia_registro: [
-    "Registro em Registradora (B3, Cerc, Tag): Efetuar o registro do ativo na registradora central para garantir a unicidade e evitar que seja vendido para terceiros.",
-    "Emissão do Termo de Cessão: Gerar o documento jurídico que transfere a propriedade do cedente para o fundo.",
-    "Envio ao Custodiante: Notificar o banco custodiante sobre a nova aquisição para validação da carteira.",
-    "Liquidação Financeira: Comandar o pagamento (TED/Pix) para a conta do cedente, descontando as taxas (deságio).",
-    "Instrução de Cobrança: Gerar e enviar o boleto/instrução de pagamento para o sacado com os dados da conta do FIDC.",
+  enquadramento_alocacao: [
+    "Seleção do Fundo Elegível (Regulamento): Classificar o título e filtrar os fundos cujo regulamento permite a aquisição.",
+    "Teste de Concentração (Sacado/Cedente): Verificar se a alocação não estourará limites de concentração por sacado ou cedente no fundo.",
+    "Validação de Taxa/Benchmark do Fundo: Confirmar que a taxa (deságio) do título atende ao objetivo de rentabilidade mínima do fundo.",
+    "Marcação do Fundo Comprador (fund_id): Registrar o fundo selecionado para aquisição do título.",
   ],
-  inadimplencia_risco: [
-    "Identificação de Atraso (D+1): Mover automaticamente para cá títulos que não tiveram baixa bancária no dia do vencimento.",
-    "Análise de Causa: Identificar se é uma falha operacional (pagou mas o banco não baixou) ou risco de crédito real.",
-    "Notificação de Recompra: Solicitar ao cedente que recompre o título (conforme contrato) para manter a saúde do fundo.",
-    "Ajuizamento/Cobrança Extrajudicial: Iniciar protestos ou ações judiciais caso a recompra não ocorra.",
-    "Provisão de Perda (PDD): Ajustar o valor do título no balanço do fundo conforme as regras de provisionamento por atraso.",
+  formalizacao_cessao: [
+    "Geração do Termo de Cessão: Gerar o documento jurídico que transfere a propriedade do cedente para o fundo.",
+    "Assinatura Digital (Cedente + Gestora): Coletar assinaturas digitais de ambas as partes no termo de cessão.",
+    "Envio para Registradora (CERC/B3): Efetuar o registro do ativo na registradora central para garantir unicidade.",
+    "Validação de Aceite da Registradora: Confirmar que a registradora aceitou e registrou a cessão sem pendências.",
   ],
-  encerrado: [
-    "Baixa por Liquidação: Registro do recebimento total do valor pelo sacado.",
-    "Baixa por Recompra: Registro de que o cedente pagou o fundo para \"pegar de volta\" o título inadimplente.",
-    "Cálculo de Rentabilidade Real: Comparar a taxa acordada com o que foi efetivamente recebido (considerando multas ou atrasos).",
-    "Alimentação do Histórico: Atualizar o comportamento do cedente e do sacado para que a próxima análise de crédito seja mais precisa.",
+  aguardando_liquidacao: [
+    "Autorização do Custodiante: Obter validação do banco custodiante para a nova aquisição na carteira do fundo.",
+    "Checagem de Conta Favorecida (Travada): Verificar se a conta destino do pagamento possui trava bancária correta.",
+    "Comando de Pagamento (TED/Pix): Comandar o pagamento ao cedente, descontando as taxas (deságio).",
+    "Conciliação Bancária (Comprovante): Confirmar o recebimento do comprovante de pagamento e conciliar com o sistema.",
   ],
-  rejeitado: [],
+  liquidado: [],
+  reprovado_cancelado: [
+    "Registro do Motivo (Risco/Fraude/Desistência): Documentar a razão da recusa ou cancelamento.",
+    "Notificação ao Cedente: Comunicar formalmente o cedente sobre a reprovação ou cancelamento.",
+    "Estorno de Limite/Caixa: Reverter reservas de limite e caixa que foram alocadas para esta operação.",
+    "Arquivamento Auditável: Consolidar todos os documentos para futuras auditorias.",
+  ],
 };

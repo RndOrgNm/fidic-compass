@@ -71,13 +71,15 @@ export function CedenteCard({ cedente, checklist, onOpenDetails, onDelete }: Ced
 
   const getStatusBorderClass = () => {
     switch (cedente.status) {
-      case "lead":
+      case "em_prospeccao":
         return "border-l-4 border-slate-500";
-      case "due_diligence":
+      case "coleta_documentos":
+        return "border-l-4 border-amber-500";
+      case "analise_credito":
         return "border-l-4 border-blue-500";
-      case "documentacao_pendente":
-        return "border-l-4 border-yellow-500";
-      case "cedente_ativo":
+      case "comite_credito":
+        return "border-l-4 border-purple-500";
+      case "habilitado":
         return "border-l-4 border-green-500";
       case "bloqueado_desistencia":
         return "border-l-4 border-red-500";

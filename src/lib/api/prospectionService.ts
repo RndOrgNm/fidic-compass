@@ -30,6 +30,7 @@ export type Segment =
 export interface ProspectionWorkflow {
   id: string;
   cedente_id: string;
+  fund_id: string | null;
   receivable_id: string | null;
   status: RecebivelStatus;
   current_step: ProspectionStep;
@@ -42,6 +43,7 @@ export interface ProspectionWorkflow {
   cedente_name: string | null;
   cedente_cnpj: string | null;
   cedente_segment: Segment | null;
+  fund_name: string | null;
   receivable_value: number;
   total_steps: number;
   completed_steps: number;
@@ -87,6 +89,7 @@ export interface AssignRequest {
 export interface RecebivelUpdateRequest {
   pending_items?: string[];
   assigned_to?: string | null;
+  fund_id?: string | null;
   sla_deadline?: string | null;
   estimated_volume?: number;
   status?: RecebivelStatus;
@@ -167,7 +170,7 @@ export async function createRecebivel(
     debtor_name: payload.debtor_name,
     debtor_cnpj: payload.debtor_cnpj,
     segment: payload.segment,
-    status: "identificados",
+    status: "recepcao_bordero",
   };
   if (payload.risk_score != null) body.risk_score = payload.risk_score;
 
@@ -231,6 +234,7 @@ export async function updateRecebivel(
   const body: Record<string, unknown> = {};
   if (data.pending_items !== undefined) body.pending_items = data.pending_items;
   if (data.assigned_to !== undefined) body.assigned_to = data.assigned_to;
+  if (data.fund_id !== undefined) body.fund_id = data.fund_id;
   if (data.sla_deadline !== undefined) body.sla_deadline = data.sla_deadline;
   if (data.estimated_volume !== undefined) body.estimated_volume = data.estimated_volume;
   if (data.status !== undefined) body.status = data.status;

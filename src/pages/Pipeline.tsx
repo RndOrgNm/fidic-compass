@@ -2,7 +2,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CedentesTab } from "@/components/pipeline/cedentes/CedentesTab";
 import { RecebiveisTab } from "@/components/pipeline/recebiveis/RecebiveisTab";
-import { ClientMatchingTab } from "@/components/pipeline/alocacao/ClientMatchingTab";
 import { MonitoramentoTab } from "@/components/pipeline/monitoramento/MonitoramentoTab";
 
 export default function Pipeline() {
@@ -10,15 +9,14 @@ export default function Pipeline() {
     <TooltipProvider delayDuration={200} skipDelayDuration={0}>
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Pipeline de Investimentos</h1>
-        <p className="text-muted-foreground">Cedentes, recebíveis, alocação e monitoramento em fundos</p>
+        <h1 className="text-3xl font-bold text-foreground">Mesa de Crédito</h1>
+        <p className="text-muted-foreground">Esteira de Crédito e Operações</p>
       </div>
 
       <Tabs defaultValue="cedentes" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 max-w-3xl">
-          <TabsTrigger value="cedentes">Cedentes</TabsTrigger>
-          <TabsTrigger value="recebiveis">Recebíveis</TabsTrigger>
-          <TabsTrigger value="matching">Alocação</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 max-w-3xl">
+          <TabsTrigger value="cedentes">Gestão de Cedentes</TabsTrigger>
+          <TabsTrigger value="recebiveis">Mesa de Operações</TabsTrigger>
           <TabsTrigger value="monitoramento">Monitoramento</TabsTrigger>
         </TabsList>
 
@@ -29,10 +27,6 @@ export default function Pipeline() {
 
           <TabsContent value="recebiveis">
             <RecebiveisTab />
-          </TabsContent>
-
-          <TabsContent value="matching">
-            <ClientMatchingTab />
           </TabsContent>
 
           <TabsContent value="monitoramento">

@@ -19,12 +19,12 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { useCreateMonitoramento } from "@/hooks/useMonitoramento";
-import { listAllocationWorkflows } from "@/lib/api/allocationService";
+import { listProspectionWorkflows } from "@/lib/api/prospectionService";
 import { listFunds } from "@/lib/api/fundService";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Plus } from "lucide-react";
 
-const ALLOCATED_KEY = "allocated-workflows";
+const LIQUIDADO_KEY = "liquidado-workflows";
 const FUNDS_KEY = "funds-active";
 
 interface NewMonitoramentoModalProps {
@@ -40,9 +40,9 @@ export function NewMonitoramentoModal({ open, onOpenChange }: NewMonitoramentoMo
 
   const createMonitoramento = useCreateMonitoramento();
 
-  const { data: allocationsData } = useQuery({
-    queryKey: [ALLOCATED_KEY],
-    queryFn: () => listAllocationWorkflows({ status: "allocated", limit: 500 }),
+  const { data: liquidadoData } = useQuery({
+    queryKey: [LIQUIDADO_KEY],
+    queryFn: () => listProspectionWorkflows({ status: "liquidado", limit: 500 }),
     enabled: open,
   });
 
@@ -52,14 +52,14 @@ export function NewMonitoramentoModal({ open, onOpenChange }: NewMonitoramentoMo
     enabled: open,
   });
 
-  const allocatedFundIds = new Set(
-    (allocationsData?.items ?? [])
+  const liquidadoFundIds = new Set(
+    (liquidadoData?.items ?? [])
       .map((w) => w.fund_id)
       .filter((id): id is string => !!id)
   );
 
   const allFunds = fundsData?.items ?? [];
-  const eligibleFunds = allFunds.filter((f) => allocatedFundIds.has(f.id));
+  const eligibleFunds = allFunds.filter((f) => liquidadoFundIds.has(f.id));
 
   const resetForm = () => {
     setFundId("");
@@ -115,7 +115,7 @@ export function NewMonitoramentoModal({ open, onOpenChange }: NewMonitoramentoMo
         <DialogHeader>
           <DialogTitle>Novo Monitoramento</DialogTitle>
           <DialogDescription>
-            Crie um novo ciclo de monitoramento. Apenas fundos com alocações concluídas (status Alocado) podem receber novo ciclo (aprovação do pipeline de Alocação).
+            Crie um novo ciclo de monitoramento. Apenas fundos com operações liquidadas podem receber novo ciclo.
           </DialogDescription>
         </DialogHeader>
 
@@ -135,15 +135,15 @@ export function NewMonitoramentoModal({ open, onOpenChange }: NewMonitoramentoMo
                     loadingFunds
                       ? "Carregando..."
                       : eligibleFunds.length === 0
-                        ? "Nenhum fundo com alocações disponível"
-                        : "Selecione o fundo (apenas com alocações)"
+                        ? "Nenhum fundo com operações liquidadas"
+                        : "Selecione o fundo"
                   }
                 />
               </SelectTrigger>
               <SelectContent>
                 {eligibleFunds.length === 0 && !loadingFunds ? (
                   <SelectItem value="__none__" disabled>
-                    Nenhum fundo com alocações concluídas
+                    Nenhum fundo com operações liquidadas
                   </SelectItem>
                 ) : (
                   eligibleFunds.map((fund) => (

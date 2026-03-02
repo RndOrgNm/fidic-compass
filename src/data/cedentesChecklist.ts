@@ -5,36 +5,40 @@ import type { CedentePipelineStatus } from "./pipelineData";
  * Backend (funds-pipeline/src/data/checklists.py) is the source of truth.
  */
 export const CEDENTES_CHECKLIST: Record<CedentePipelineStatus, string[]> = {
-  lead: [
-    "Qualificação Setorial: Verificar se o CNAE da empresa é aceito pelos regulamentos dos FIDCs ativos.",
-    "Estimativa de Volume: Confirmar se o volume mensal de recebíveis atende ao ticket mínimo da operação.",
-    "Check de Fit: Garantir que o cedente entende o modelo de antecipação e quer operar via FIDC.",
-    "Triagem de Concentração: Verificar se o cedente já opera com outros FIDCs concorrentes (risco de duplicidade).",
+  em_prospeccao: [
+    "Pré-Enquadramento na Política (CNAE/Setor): Verificar se o CNAE da empresa é aceito pelos regulamentos dos FIDCs ativos.",
+    "Estimativa de Volume Mensal: Confirmar se o volume mensal de recebíveis atende ao ticket mínimo da operação.",
+    "Checagem de Concorrência (Outros FIDCs): Verificar se o cedente já opera com outros FIDCs concorrentes (risco de duplicidade).",
+    "Reunião de Apresentação: Agendar e realizar reunião para apresentar o modelo de antecipação via FIDC.",
   ],
-  due_diligence: [
-    "Análise de Balanço/DRE: Avaliar a saúde financeira dos últimos 2 ou 3 anos.",
-    "Bureau de Crédito: Consultar Serasa/Boa Vista do CNPJ e dos sócios.",
-    "KYC e Compliance: Pesquisa de mídia negativa, processos judiciais e listas restritivas (AML/PLD).",
-    "Perfil dos Sacados: Analisar a qualidade de quem paga as notas (os devedores do cedente).",
-    "Aprovação em Comitê: Registrar o parecer favorável (ou ressalvas) dos tomadores de decisão.",
+  coleta_documentos: [
+    "Contrato Social e Alterações: Coletar contrato social atualizado e todas as alterações contratuais.",
+    "Faturamento (DRE/Balanço): Solicitar demonstrações financeiras (DRE e Balanço) dos últimos 2-3 anos.",
+    "Documentos dos Sócios: Validar documentos pessoais dos sócios (RG, CPF, comprovante de residência).",
+    "Certidões Negativas (CNDs): Obter certidões negativas de débitos federais, estaduais e municipais.",
   ],
-  documentacao_pendente: [
-    "Contrato de Cessão (Mãe): Coletar assinatura digital do contrato principal e aditivos.",
-    "Documentos Societários: Validar Contrato Social atualizado e procurações.",
-    "Domicílio Bancário: Configurar a conta onde os sacados deverão pagar os boletos (trava bancária).",
-    "Garantias Adicionais: Formalizar avais, alienações fiduciárias ou fundos de reserva, se houver.",
-    "Configuração no ERP/Custodiante: Garantir que o cedente está cadastrado no sistema do custodiante do fundo.",
+  analise_credito: [
+    "Consulta Bureau (Serasa/Boa Vista): Consultar score de crédito do CNPJ e dos sócios nos principais bureaus.",
+    "Consulta SCR (Bacen): Verificar a posição de crédito no Sistema de Informações de Crédito do Banco Central.",
+    "Análise de Capacidade Técnica: Avaliar a capacidade operacional e técnica da empresa para gerar recebíveis.",
+    "KYC/PLD (Mídia Negativa): Pesquisa de mídia negativa, processos judiciais e listas restritivas (AML/PLD).",
   ],
-  cedente_ativo: [
-    "Primeira Operação: Validar o primeiro borderô (lote de títulos) enviado.",
-    "Monitoramento de Limite: Checar se a exposição do cedente está dentro do limite aprovado.",
-    "Re-rating Periódico: Agendar a próxima análise de crédito (geralmente a cada 6 ou 12 meses).",
-    "Verificação de Lastro: Realizar checagens recorrentes se as notas fiscais emitidas são reais.",
+  comite_credito: [
+    "Elaboração do Parecer de Crédito: Preparar documento técnico consolidando todas as análises realizadas.",
+    "Definição de Limite Global (R$): Propor o limite máximo de exposição aprovado para o cedente.",
+    "Definição de Taxa Mínima: Estabelecer a taxa mínima de deságio para operações com este cedente.",
+    "Votação/Aprovação da Alçada: Submeter o parecer ao comitê e registrar o resultado da votação.",
+  ],
+  habilitado: [
+    "Assinatura do Contrato Mãe: Coletar assinatura digital do contrato principal de cessão e aditivos.",
+    "Abertura de Conta Escrow: Configurar a conta escrow onde os sacados pagarão os boletos (trava bancária).",
+    "Cadastro no Sistema do Custodiante: Garantir que o cedente está cadastrado no sistema do banco custodiante do fundo.",
+    "Liberação de Acesso ao Portal: Conceder acesso ao portal de envio de borderôs e acompanhamento de operações.",
   ],
   bloqueado_desistencia: [
     "Motivo da Saída: Registrar se foi por risco (bloqueio) ou por vontade do cliente (desistência).",
     "Check de Recompra: Verificar se existem títulos vencidos que o cedente ainda precisa pagar/recomprar.",
     "Baixa em Garantias: Liberar travas bancárias ou garantias caso a relação tenha sido encerrada sem dívidas.",
-    "Blacklist Interna: Marcar o CNPJ para que não entre novamente no pipeline de Lead sem um alerta de segurança.",
+    "Blacklist Interna: Marcar o CNPJ para que não entre novamente no pipeline sem um alerta de segurança.",
   ],
 };

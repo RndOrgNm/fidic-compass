@@ -143,7 +143,7 @@ export const cedentesData = [
     contactPhone: "(31) 3456-7890",
     segment: "servicos",
     creditScore: 0,
-    status: "lead",
+    status: "em_prospeccao",
     totalReceivables: 0,
     approvedLimit: 0,
     createdAt: "2025-10-14T14:00:00"
@@ -157,19 +157,20 @@ export const cedentesData = [
     contactPhone: "(41) 3456-7890",
     segment: "industria",
     creditScore: 0,
-    status: "lead",
+    status: "em_prospeccao",
     totalReceivables: 0,
     approvedLimit: 0,
     createdAt: "2025-10-15T09:00:00"
   }
 ];
 
-/** Cedentes pipeline: status values for the Cedentes Kanban (before Recebíveis). */
+/** Cedentes pipeline: status values for the Gestão de Cedentes Kanban. */
 export type CedentePipelineStatus =
-  | "lead"
-  | "due_diligence"
-  | "documentacao_pendente"
-  | "cedente_ativo"
+  | "em_prospeccao"
+  | "coleta_documentos"
+  | "analise_credito"
+  | "comite_credito"
+  | "habilitado"
   | "bloqueado_desistencia";
 
 /** Monitoramento pipeline: status values for the Monitoramento Kanban. */
@@ -180,7 +181,7 @@ export type MonitoramentoPipelineStatus =
   | "em_conformidade_auditoria"
   | "encerrado";
 
-/** Cedentes for the Cedentes pipeline tab. assigned_to, pending_items, days_in_status. Transition to next status only when pending_items is empty (backend will enforce same rule). */
+/** Cedentes for the Gestão de Cedentes pipeline tab. assigned_to, pending_items, days_in_status. Transition to next status only when pending_items is empty (backend will enforce same rule). */
 export const cedentesPipelineData: Array<{
   id: string;
   companyName: string;
@@ -200,17 +201,17 @@ export const cedentesPipelineData: Array<{
 }> = [
   {
     ...cedentesData[6],
-    status: "lead" as CedentePipelineStatus,
+    status: "em_prospeccao" as CedentePipelineStatus,
     assigned_to: null,
     pending_items: [
-      "Qualificação Setorial: Verificar se o CNAE da empresa é aceito pelos regulamentos dos FIDCs ativos.",
-      "Estimativa de Volume: Confirmar se o volume mensal de recebíveis atende ao ticket mínimo da operação.",
+      "Pré-Enquadramento na Política (CNAE/Setor): Verificar se o CNAE da empresa é aceito pelos regulamentos dos FIDCs ativos.",
+      "Estimativa de Volume Mensal: Confirmar se o volume mensal de recebíveis atende ao ticket mínimo da operação.",
     ],
     days_in_status: 12,
   },
   {
     ...cedentesData[7],
-    status: "lead" as CedentePipelineStatus,
+    status: "em_prospeccao" as CedentePipelineStatus,
     assigned_to: "Maria Silva",
     pending_items: [],
     days_in_status: 8,
@@ -224,14 +225,14 @@ export const cedentesPipelineData: Array<{
     contactPhone: "(61) 3456-7890",
     segment: "servicos",
     creditScore: 0,
-    status: "due_diligence",
+    status: "coleta_documentos",
     totalReceivables: 0,
     approvedLimit: 0,
     createdAt: "2025-10-16T11:00:00",
     assigned_to: "Ana Costa",
     pending_items: [
-      "Bureau de Crédito: Consultar Serasa/Boa Vista do CNPJ e dos sócios.",
-      "KYC e Compliance: Pesquisa de mídia negativa, processos judiciais e listas restritivas (AML/PLD).",
+      "Faturamento (DRE/Balanço): Solicitar demonstrações financeiras (DRE e Balanço) dos últimos 2-3 anos.",
+      "Certidões Negativas (CNDs): Obter certidões negativas de débitos federais, estaduais e municipais.",
     ],
     days_in_status: 5,
   },
@@ -244,43 +245,43 @@ export const cedentesPipelineData: Array<{
     contactPhone: "(11) 98765-4321",
     segment: "industria",
     creditScore: 0,
-    status: "documentacao_pendente",
+    status: "analise_credito",
     totalReceivables: 0,
     approvedLimit: 0,
     createdAt: "2025-10-14T08:00:00",
     assigned_to: "Pedro Santos",
     pending_items: [
-      "Documentos Societários: Validar Contrato Social atualizado e procurações.",
-      "Domicílio Bancário: Configurar a conta onde os sacados deverão pagar os boletos (trava bancária).",
+      "Consulta Bureau (Serasa/Boa Vista): Consultar score de crédito do CNPJ e dos sócios nos principais bureaus.",
+      "KYC/PLD (Mídia Negativa): Pesquisa de mídia negativa, processos judiciais e listas restritivas (AML/PLD).",
     ],
     days_in_status: 18,
   },
   {
     ...cedentesData[4],
-    status: "documentacao_pendente" as CedentePipelineStatus,
+    status: "comite_credito" as CedentePipelineStatus,
     assigned_to: null,
     pending_items: [
-      "Contrato de Cessão (Mãe): Coletar assinatura digital do contrato principal e aditivos.",
+      "Votação/Aprovação da Alçada: Submeter o parecer ao comitê e registrar o resultado da votação.",
     ],
     days_in_status: 3,
   },
   {
     ...cedentesData[5],
-    status: "documentacao_pendente" as CedentePipelineStatus,
+    status: "comite_credito" as CedentePipelineStatus,
     assigned_to: "Maria Silva",
     pending_items: [],
     days_in_status: 7,
   },
-  { ...cedentesData[0], status: "cedente_ativo" as CedentePipelineStatus, assigned_to: "Ana Costa", pending_items: [], days_in_status: 120 },
-  { ...cedentesData[1], status: "cedente_ativo" as CedentePipelineStatus, assigned_to: "Pedro Santos", pending_items: [], days_in_status: 95 },
+  { ...cedentesData[0], status: "habilitado" as CedentePipelineStatus, assigned_to: "Ana Costa", pending_items: [], days_in_status: 120 },
+  { ...cedentesData[1], status: "habilitado" as CedentePipelineStatus, assigned_to: "Pedro Santos", pending_items: [], days_in_status: 95 },
   {
     ...cedentesData[2],
-    status: "cedente_ativo" as CedentePipelineStatus,
+    status: "habilitado" as CedentePipelineStatus,
     assigned_to: "Maria Silva",
-    pending_items: ["Re-rating Periódico: Agendar a próxima análise de crédito (geralmente a cada 6 ou 12 meses)."],
+    pending_items: ["Liberação de Acesso ao Portal: Conceder acesso ao portal de envio de borderôs e acompanhamento de operações."],
     days_in_status: 45,
   },
-  { ...cedentesData[3], status: "cedente_ativo" as CedentePipelineStatus, assigned_to: null, pending_items: [], days_in_status: 28 },
+  { ...cedentesData[3], status: "habilitado" as CedentePipelineStatus, assigned_to: null, pending_items: [], days_in_status: 28 },
   {
     id: "CED-011",
     companyName: "Ex-Cedente Desistente Ltda",
@@ -296,7 +297,7 @@ export const cedentesPipelineData: Array<{
     createdAt: "2025-09-01T10:00:00",
     assigned_to: null,
     pending_items: [
-      "Blacklist Interna: Marcar o CNPJ para que não entre novamente no pipeline de Lead sem um alerta de segurança.",
+      "Blacklist Interna: Marcar o CNPJ para que não entre novamente no pipeline sem um alerta de segurança.",
     ],
     days_in_status: 42,
   },
@@ -528,14 +529,14 @@ export const recebiveisWorkflowsData = [
     cedenteSegment: "servicos",
     receivableId: null,
     receivableValue: 0,
-    status: "lead",
+    status: "recepcao_bordero",
     currentStep: "initial_contact",
-    totalSteps: 6,
+    totalSteps: 7,
     completedSteps: 0,
     startedAt: "2025-10-14T14:00:00",
     lastActivityAt: "2025-10-14T14:00:00",
     assignedTo: null,
-    pendingItems: ["Aguardando primeiro contato"],
+    pendingItems: ["Validação de Layout (CNAB/XML)"],
     slaDeadline: "2025-10-21T23:59:59",
     daysInProgress: 1,
     estimatedVolume: 500000.00
@@ -548,14 +549,14 @@ export const recebiveisWorkflowsData = [
     cedenteSegment: "industria",
     receivableId: null,
     receivableValue: 0,
-    status: "lead",
+    status: "recepcao_bordero",
     currentStep: "initial_contact",
-    totalSteps: 6,
+    totalSteps: 7,
     completedSteps: 0,
     startedAt: "2025-10-15T09:00:00",
     lastActivityAt: "2025-10-15T09:00:00",
     assignedTo: "Maria Silva",
-    pendingItems: ["Agendar reunião de apresentação"],
+    pendingItems: ["Validação Básica de Sacados"],
     slaDeadline: "2025-10-22T23:59:59",
     daysInProgress: 0,
     estimatedVolume: 800000.00
@@ -568,14 +569,14 @@ export const recebiveisWorkflowsData = [
     cedenteSegment: "servicos",
     receivableId: "PREC-007",
     receivableValue: 65000.00,
-    status: "documents",
+    status: "checagem_lastro",
     currentStep: "document_collection",
-    totalSteps: 6,
+    totalSteps: 7,
     completedSteps: 2,
     startedAt: "2025-10-10T16:45:00",
     lastActivityAt: "2025-10-14T11:00:00",
     assignedTo: "Ana Costa",
-    pendingItems: ["Contrato social atualizado", "Balanço patrimonial 2024"],
+    pendingItems: ["Confirmação de Performance (Mercadoria Entregue)", "Confirmação de Veracidade (Call com Sacado)"],
     slaDeadline: "2025-10-17T23:59:59",
     daysInProgress: 5,
     estimatedVolume: 200000.00
@@ -588,14 +589,14 @@ export const recebiveisWorkflowsData = [
     cedenteSegment: "varejo",
     receivableId: "PREC-008",
     receivableValue: 42000.00,
-    status: "contact",
+    status: "checagem_lastro",
     currentStep: "proposal_sent",
-    totalSteps: 6,
+    totalSteps: 7,
     completedSteps: 1,
     startedAt: "2025-10-12T10:30:00",
     lastActivityAt: "2025-10-13T15:30:00",
     assignedTo: "Pedro Santos",
-    pendingItems: ["Aguardando retorno sobre proposta comercial"],
+    pendingItems: ["Checagem de Protestos do Sacado"],
     slaDeadline: "2025-10-19T23:59:59",
     daysInProgress: 3,
     estimatedVolume: 150000.00
@@ -608,14 +609,14 @@ export const recebiveisWorkflowsData = [
     cedenteSegment: "comercio",
     receivableId: "PREC-006",
     receivableValue: 95000.00,
-    status: "documents",
+    status: "enquadramento_alocacao",
     currentStep: "document_collection",
-    totalSteps: 6,
-    completedSteps: 2,
+    totalSteps: 7,
+    completedSteps: 3,
     startedAt: "2025-10-05T11:00:00",
     lastActivityAt: "2025-10-14T10:30:00",
     assignedTo: "Ana Costa",
-    pendingItems: ["Comprovante de faturamento dos últimos 12 meses"],
+    pendingItems: ["Teste de Concentração (Sacado/Cedente)"],
     slaDeadline: "2025-10-16T23:59:59",
     daysInProgress: 10,
     estimatedVolume: 300000.00
@@ -628,14 +629,14 @@ export const recebiveisWorkflowsData = [
     cedenteSegment: "industria",
     receivableId: "PREC-003",
     receivableValue: 320000.00,
-    status: "credit_analysis",
+    status: "formalizacao_cessao",
     currentStep: "risk_assessment",
-    totalSteps: 6,
+    totalSteps: 7,
     completedSteps: 4,
     startedAt: "2025-10-01T14:30:00",
     lastActivityAt: "2025-10-15T09:00:00",
     assignedTo: "Maria Silva",
-    pendingItems: ["Finalizar análise de risco do sacado"],
+    pendingItems: ["Envio para Registradora (CERC/B3)"],
     slaDeadline: "2025-10-18T23:59:59",
     daysInProgress: 14,
     estimatedVolume: 1000000.00
@@ -648,14 +649,14 @@ export const recebiveisWorkflowsData = [
     cedenteSegment: "agronegocio",
     receivableId: "PREC-005",
     receivableValue: 420000.00,
-    status: "credit_analysis",
+    status: "aguardando_liquidacao",
     currentStep: "committee_review",
-    totalSteps: 6,
+    totalSteps: 7,
     completedSteps: 5,
     startedAt: "2025-09-20T09:15:00",
     lastActivityAt: "2025-10-14T16:00:00",
     assignedTo: "Pedro Santos",
-    pendingItems: ["Aprovação do comitê de crédito"],
+    pendingItems: ["Conciliação Bancária (Comprovante)"],
     slaDeadline: "2025-10-16T23:59:59",
     daysInProgress: 25,
     estimatedVolume: 800000.00
@@ -668,10 +669,10 @@ export const recebiveisWorkflowsData = [
     cedenteSegment: "comercio",
     receivableId: "PREC-001",
     receivableValue: 150000.00,
-    status: "approved",
+    status: "liquidado",
     currentStep: "completed",
-    totalSteps: 6,
-    completedSteps: 6,
+    totalSteps: 7,
+    completedSteps: 7,
     startedAt: "2025-09-15T10:00:00",
     lastActivityAt: "2025-10-05T14:00:00",
     assignedTo: "Maria Silva",
@@ -688,10 +689,10 @@ export const recebiveisWorkflowsData = [
     cedenteSegment: "comercio",
     receivableId: "PREC-002",
     receivableValue: 85000.00,
-    status: "approved",
+    status: "liquidado",
     currentStep: "completed",
-    totalSteps: 6,
-    completedSteps: 6,
+    totalSteps: 7,
+    completedSteps: 7,
     startedAt: "2025-09-18T14:30:00",
     lastActivityAt: "2025-10-08T11:00:00",
     assignedTo: "Ana Costa",
@@ -708,10 +709,10 @@ export const recebiveisWorkflowsData = [
     cedenteSegment: "industria",
     receivableId: "PREC-004",
     receivableValue: 180000.00,
-    status: "approved",
+    status: "liquidado",
     currentStep: "completed",
-    totalSteps: 6,
-    completedSteps: 6,
+    totalSteps: 7,
+    completedSteps: 7,
     startedAt: "2025-09-25T11:00:00",
     lastActivityAt: "2025-10-10T15:00:00",
     assignedTo: "Pedro Santos",

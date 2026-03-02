@@ -2,10 +2,11 @@ import { FUNDS_API_BASE_URL } from "./config";
 import type { CedentePipelineStatus } from "@/data/pipelineData";
 
 export type CedenteStatus =
-  | "lead"
-  | "due_diligence"
-  | "documentacao_pendente"
-  | "cedente_ativo"
+  | "em_prospeccao"
+  | "coleta_documentos"
+  | "analise_credito"
+  | "comite_credito"
+  | "habilitado"
   | "bloqueado_desistencia";
 
 export type Segment =
